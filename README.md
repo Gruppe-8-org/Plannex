@@ -12,7 +12,7 @@ Plannex (plan-nexus) is a project management service written as a web app. It al
 4. Run the executable with `java plannex`
 5. Navigate to `localhost:8080` and start planning
 
-**Building and running with IntelliJ IDEA**
+**Building and running with IntelliJ IDEA 2025.2.4**
 1. Clone the source code as in step 1 above, but in `~/IdeaProjects`.
 2. Open IDEA
 3. Hit run (the green play button)
