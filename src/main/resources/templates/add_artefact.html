@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Artefact</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<form th:action="">
+    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+</form>
+<h1>Add Artefact</h1>
+<form th:action="@{/}" th:object="${artefact}" method="post">
+    <fieldset>
+        <fieldset>
+            <legend>Description</legend>
+            <label for="description"></label>
+            <input id="description" th:field="*{description}" required>
+        </fieldset>
+
+        <label for="name">Name</label>
+        <input type="text" id="name" th:field="*{name}" required>
+
+        <form action="">
+            <label for="myfile">File</label>
+            <input type="file" id="myfile" name="myfile"><br><br>
+            <input type="submit">
+        </form>
+
+        <button type="submit">Add</button>
+        <button th:href="@{}">Cancel</button>
+    </fieldset>
+</form>
+</body>
+</html>

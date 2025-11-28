@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add task</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<form th:action="">
+    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+</form>
+<h1>Add task</h1>
+<form th:action="@{/}" th:object="${task}" method="post">
+    <fieldset>
+        <fieldset>
+            <legend>Description</legend>
+            <label for="description"></label>
+            <input id="description" th:field="*{description}" required>
+        </fieldset>
+
+        <label for="title">Title</label>
+        <input id="title" th:field="*{title}" required>
+
+        <label for="startDate">Start Date</label>
+        <input type="date" id="startDate" th:field="*{StartDate}" required>
+
+        <label for="endDate">End Date</label>
+        <input type="date" id="endDate" th:field="*{EndDate}" required>
+
+        <label for="status">Status</label>
+        <input type="text" id="status" th:field="*{Status}" required>
+
+        <label for="priority">Priority</label>
+        <input type="text" id="priority" th:field="*{Importance}" required>
+
+        <label for="duration">Duration (hours)</label>
+        <input type="text" id="duration" th:field="*{Duration}" required>
+
+        <button type="submit">Add</button>
+        <button th:href="@{}">Cancel</button>
+    </fieldset>
+</form>
+</body>
+</html>

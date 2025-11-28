@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Projects Window</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<form th:action="">
+    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+</form>
+<h1>Your Projects</h1>
+<fieldset th:each="project, iter : ${getAllProjects()}">
+    <h2 th:text="Project ${project.getID()}"></h2>
+    <fieldset>
+        <p th:text="${project.getUserAmount()}" style="font-size:14px"><i class="fa fa-user"></i></p>
+        <p th:text="${project.getTimeEstimate}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
+    </fieldset>
+</fieldset>
+
+<fieldset>
+    <form th:action="">
+        <button type="submit" style="font-size:50px">+</button>
+    </form>
+</fieldset>
+
+</body>
+</html>

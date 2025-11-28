@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Dependencies</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<form th:action="">
+    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+</form>
+<h1>Add Dependencies</h1>
+<form th:action="@{/}" th:object="${dependencies}" method="post">
+    <fieldset>
+        <fieldset>
+            <legend>Tasks/subtasks</legend>
+            <div th:each="task, iter : ${allTasks}">
+                <input type="checkbox" th:id="'blocks task/subtask-' + ${task.getID()}" th:value="${task.getID()}" th:text="${task.getTitle()}" th:field="*{taskIDs}">
+                <input type="checkbox" th:id="'blocked by task/subtask-' + ${task.getID()}" th:value="${task.getID()}" th:text="${task.getTitle()}" th:field="*{taskIDs}">
+            </div>
+        </fieldset>
+
+        <button type="submit">Add</button>
+        <button th:href="@{}">Cancel</button>
+    </fieldset>
+</form>
+</body>
+</html>
