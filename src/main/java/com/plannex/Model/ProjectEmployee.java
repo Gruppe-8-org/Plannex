@@ -20,6 +20,9 @@ public class ProjectEmployee {
         this.workingHoursTo = worksTo;
     }
 
+    public ProjectEmployee() {
+    }
+
     public String getEmployeeName() {
         return employeeName;
     }
