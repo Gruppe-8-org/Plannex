@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 public class Task {
-    private final int parentProjectID;
+    private int parentProjectID;
     private int parentTaskID;
     private String taskTitle;
     private String taskDescription;
@@ -21,6 +21,8 @@ public class Task {
         this.taskEnd = taskEnd;
         this.taskDurationHours = durationHours;
     }
+
+    public Task() {}
 
     public int getParentProjectID() {
         return parentProjectID;

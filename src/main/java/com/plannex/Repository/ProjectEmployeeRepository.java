@@ -91,7 +91,6 @@ public class ProjectEmployeeRepository {
         }
     }
 
-    @Transactional // Important because this cascades
     public int updateEmployee(ProjectEmployee updatedProjectEmployee, String targetUsername) {
         if (getEmployeeByUsername(targetUsername) == null) {
             throw new EntityDoesNotExistException("No employee with username " + targetUsername + " exists.");
@@ -104,7 +103,7 @@ public class ProjectEmployeeRepository {
                                                    updatedProjectEmployee.getEmployeeEmail(), updatedProjectEmployee.getEmployeePassword(),
                                                    updatedProjectEmployee.getWorkingHoursFrom(), updatedProjectEmployee.getWorkingHoursTo(), targetUsername); // rowsAffected
         } catch (DataIntegrityViolationException dive) {
-            throw new EntityAlreadyExistsException("A different user with username " + updatedProjectEmployee.getEmployeeUsername() + " already exists.");
+            throw new EntityAlreadyExistsException("A different employee with username " + updatedProjectEmployee.getEmployeeUsername() + " already exists.");
         }
     }
 
@@ -209,10 +208,9 @@ public class ProjectEmployeeRepository {
         return jdbcTemplate.update("DELETE FROM TimeSpent WHERE ByEmployee = ? AND _When = ?;", username, when);
     }
 
-    @Transactional // Important because this cascades
     public int deleteEmployeeByUsername(String targetUsername) {
         if (getEmployeeByUsername(targetUsername) == null) {
-            throw new EntityDoesNotExistException("No user with username " + targetUsername + " exists.");
+            throw new EntityDoesNotExistException("No employee with username " + targetUsername + " exists.");
         }
 
         return jdbcTemplate.update("DELETE FROM ProjectEmployees WHERE EmployeeUsername = ?;", targetUsername); // rowsAffected

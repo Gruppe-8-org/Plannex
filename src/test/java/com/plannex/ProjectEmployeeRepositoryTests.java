@@ -27,9 +27,12 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 public class ProjectEmployeeRepositoryTests {
     @Autowired
     private ProjectEmployeeRepository projectEmployeeRepository;
-
     @Autowired
     JdbcTemplate jdbcTemplate;
+
+    private final AssertThrowsHelper assertThrowsHelper = new AssertThrowsHelper();
+
+
 
     @Test
     public void addEmployeeInsertsEmployeeIfItDoesNotAlreadyExist() {
@@ -46,16 +49,7 @@ public class ProjectEmployeeRepositoryTests {
     public void addEmployeeThrowsIfEmployeeAlreadyExists() {
         ProjectEmployee MES = new ProjectEmployee("lildawg", "Max-Emil", "MES@gmail.com", "fAbc#21Y", LocalTime.of(8, 0, 0), LocalTime.of(16, 0, 0));
         assertNotNull(projectEmployeeRepository.getEmployeeByUsername("lildawg"));
-        String expectedExceptionMessage = "An employee with username lildawg already exists.";
-        Exception ex = assertThrows(EntityAlreadyExistsException.class,
-                () -> projectEmployeeRepository.addEmployee(MES, "Manager"),
-                expectedExceptionMessage);
-        assertEquals(expectedExceptionMessage, ex.getMessage());
-    }
-
-    @Test
-    public void addEmployeeThrowsIfEmployeeDoesNotExistButHasPermissions() {
-
+        assertThrowsHelper.verifyExceptionThrownWithMessage("An employee with username lildawg already exists.", EntityAlreadyExistsException.class, () -> projectEmployeeRepository.addEmployee(MES, "Manager"));
     }
 
     @Test
@@ -118,7 +112,6 @@ public class ProjectEmployeeRepositoryTests {
         assertNotEquals(MESBefore.getEmployeeUsername(), MESAfter.getEmployeeUsername());
         assertNotEquals(MESBefore.getWorkingHoursTo(), MESAfter.getWorkingHoursTo());
 
-        // Permissions, assignees, artifacts, time spent should be updated
         assertEquals(Boolean.TRUE, jdbcTemplate.queryForObject("SELECT COUNT(PermissionHolder) > 0 FROM Permissions WHERE PermissionHolder = 'lild4wg'", Boolean.class));
         assertEquals(Boolean.TRUE, jdbcTemplate.queryForObject("SELECT COUNT(EmployeeUsername) > 0 FROM TaskAssignees WHERE EmployeeUsername = 'lild4wg'", Boolean.class));
         assertEquals(Boolean.TRUE, jdbcTemplate.queryForObject("SELECT COUNT(ByEmployee) > 0 FROM TimeSpent WHERE ByEmployee = 'lild4wg'", Boolean.class));
@@ -128,29 +121,15 @@ public class ProjectEmployeeRepositoryTests {
     @Test
     public void updateEmployeeThrowsOnNonExistentEmployee() {
         ProjectEmployee newMES = new ProjectEmployee("lildowg", "Max-Emil", "MES@gmail.com", "fAbc#21Y", LocalTime.of(8, 0, 0), LocalTime.of(10, 0, 0));
-        String expectedMessage = "No employee with username lildowg exists.";
-
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.updateEmployee(newMES, "lildowg"),
-                expectedMessage
-        );
-
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No employee with username lildowg exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.updateEmployee(newMES, "lildowg"));
     }
 
     @Test
     public void updateEmployeeThrowsOnUsernameCollisionAfterUpdate() {
         ProjectEmployee newMES = new ProjectEmployee("marqs", "Max-Emil", "MES@gmail.com", "fAbc#21Y", LocalTime.of(8, 0, 0), LocalTime.of(10, 0, 0));
-        ProjectEmployee MESBefore = projectEmployeeRepository.getEmployeeByUsername("marqs");
-        assertNotNull(MESBefore);
-        String expectedMessage = "A different user with username marqs already exists.";
-
-        Exception thrown = assertThrows(EntityAlreadyExistsException.class,
-                () -> projectEmployeeRepository.updateEmployee(newMES, "lildawg"),
-                expectedMessage
-        );
-
-        assertEquals(expectedMessage, thrown.getMessage());
+        ProjectEmployee MBRBefore = projectEmployeeRepository.getEmployeeByUsername("marqs");
+        assertNotNull(MBRBefore);
+        assertThrowsHelper.verifyExceptionThrownWithMessage("A different employee with username marqs already exists.", EntityAlreadyExistsException.class, () -> projectEmployeeRepository.updateEmployee(newMES, "lildawg"));
     }
 
     @Test
@@ -166,30 +145,18 @@ public class ProjectEmployeeRepositoryTests {
 
     @Test
     public void addArtifactThrowsIfNonExistentEmployeeUsernameProvided() {
-        String expectedMessage = "No employee with username lildowg exists.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.addArtifact(13, "lildowg", "resources/testArtifact.a"),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No employee with username lildowg exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.addArtifact(13, "lildowg", "resources/testArtifact.a"));
     }
 
     @Test
     public void addArtifactThrowsOnNonExistentTask() {
-        String expectedMessage = "No task with ID -1 exists.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.addArtifact(-1, "lildawg", "resources/testArtifact.a"),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.addArtifact(-1, "lildawg", "resources/testArtifact.a"));
     }
 
     @Test
     public void addArtifactThrowsIfArtifactAlreadyExistsBySameEmployeeOnSameTask() {
         // The following does not mean that different users can't upload the same artifact to the same task!
-        String expectedMessage = "Employee lildawg has already uploaded this artifact to this task. Update it if you want to change it.";
-        Exception thrown = assertThrows(EntityAlreadyExistsException.class,
-                () -> projectEmployeeRepository.addArtifact(5, "lildawg", "docs/domain_model_plannex.png"),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("Employee lildawg has already uploaded this artifact to this task. Update it if you want to change it.", EntityAlreadyExistsException.class, () -> projectEmployeeRepository.addArtifact(5, "lildawg", "docs/domain_model_plannex.png"));
     }
 
     @Test
@@ -202,80 +169,46 @@ public class ProjectEmployeeRepositoryTests {
 
     @Test
     public void updateArtifactThrowsOnNonExistentEmployee() {
-        String expectedMessage = "No employee with username marqois exists.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.updateArtifact(2, "marqois", "github.com/Gruppe-8-org/plannex", "github.com/Gruppe-8-org/plannex"),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No employee with username marqois exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.updateArtifact(2, "marqois", "github.com/Gruppe-8-org/plannex", "github.com/Gruppe-8-org/plannex"));
     }
 
     @Test
     public void updateArtifactThrowsOnNonExistentTask() {
-        String expectedMessage = "The artifact with path github.com/Gruppe-8-org/plannex does not exist, uploaded by marqs for task with ID 100000.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.updateArtifact(100000, "marqs", "github.com/Gruppe-8-org/plannex", "github.com/Gruppe-8-org/plannex"),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("The artifact with path github.com/Gruppe-8-org/plannex does not exist, uploaded by marqs for task with ID -1.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.updateArtifact(-1, "marqs", "github.com/Gruppe-8-org/plannex", "github.com/Gruppe-8-org/plannex"));
     }
 
     @Test
     public void updateArtifactThrowsOnNonExistentArtifact() {
-        String expectedMessage = "The artifact with path github.com/Gruppe-8-org/plannex3 does not exist, uploaded by marqs for task with ID 2.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.updateArtifact(2, "marqs", "github.com/Gruppe-8-org/plannex3", "github.com/Gruppe-8-org/plannex4"),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("The artifact with path github.com/Gruppe-8-org/plannex3 does not exist, uploaded by marqs for task with ID 2.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.updateArtifact(2, "marqs", "github.com/Gruppe-8-org/plannex3", "github.com/Gruppe-8-org/plannex4"));
     }
 
     @Test
     public void updateArtifactThrowsIfNewPathAlreadyExists() {
         int rowsAdded = projectEmployeeRepository.addArtifact(2, "marqs", "github.com/Gruppe-8-org/plannex2");
         assertEquals(1, rowsAdded);
-
-        String expectedMessage = "The artifact with path github.com/Gruppe-8-org/plannex2 already exists. Change its name or delete and replace it.";
-        Exception thrown = assertThrows(EntityAlreadyExistsException.class,
-                () -> projectEmployeeRepository.updateArtifact(2, "marqs", "github.com/Gruppe-8-org/plannex", "github.com/Gruppe-8-org/plannex2"),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("The artifact with path github.com/Gruppe-8-org/plannex2 already exists. Change its name or delete and replace it.", EntityAlreadyExistsException.class, () -> projectEmployeeRepository.updateArtifact(2, "marqs", "github.com/Gruppe-8-org/plannex", "github.com/Gruppe-8-org/plannex2"));
     }
 
     @Test
     public void deleteArtifactDeletesExistingArtifact() {
         int rowsDeleted = projectEmployeeRepository.deleteArtifact(2, "marqs", "github.com/Gruppe-8-org/plannex");
         assertEquals(1, rowsDeleted);
-
-        String expectedMessage = "The artifact with path github.com/Gruppe-8-org/plannex does not exist, uploaded by marqs for task with ID 2.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.deleteArtifact(2, "marqs", "github.com/Gruppe-8-org/plannex"),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("The artifact with path github.com/Gruppe-8-org/plannex does not exist, uploaded by marqs for task with ID 2.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.deleteArtifact(2, "marqs", "github.com/Gruppe-8-org/plannex"));
     }
 
     @Test
     public void deleteArtifactThrowsOnNonExistentEmployee() {
-        String expectedMessage = "No employee with username marqois exists.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.deleteArtifact(2, "marqois", "github.com/Gruppe-8-org/plannex"),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No employee with username marqois exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.deleteArtifact(2, "marqois", "github.com/Gruppe-8-org/plannex"));
     }
 
     @Test
     public void deleteArtifactThrowsOnNonExistentTask() {
-        String expectedMessage = "The artifact with path github.com/Gruppe-8-org/plannex does not exist, uploaded by marqs for task with ID -1.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.deleteArtifact(-1, "marqs", "github.com/Gruppe-8-org/plannex"),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("The artifact with path github.com/Gruppe-8-org/plannex does not exist, uploaded by marqs for task with ID -1.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.deleteArtifact(-1, "marqs", "github.com/Gruppe-8-org/plannex"));
     }
 
     @Test
     public void deleteArtifactThrowsOnNonExistentArtifact() {
-        String expectedMessage = "The artifact with path github.com/Gruppe-8-org/plannex2 does not exist, uploaded by marqs for task with ID 2.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.deleteArtifact(2, "marqs", "github.com/Gruppe-8-org/plannex2"),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("The artifact with path github.com/Gruppe-8-org/plannex2 does not exist, uploaded by marqs for task with ID 2.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.deleteArtifact(2, "marqs", "github.com/Gruppe-8-org/plannex2"));
     }
 
     @Test
@@ -287,29 +220,17 @@ public class ProjectEmployeeRepositoryTests {
 
     @Test
     public void contributeTimeThrowsOnNonExistentEmployee() {
-        String expectedMessage = "No employee with username marqois exists.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.contributeTime("marqois", 17, 2.0f),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No employee with username marqois exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.contributeTime("marqois", 17, 2.0f));
     }
 
     @Test
     public void contributeTimeThrowsOnNonExistentTask() {
-        String expectedMessage = "No task with ID 100000 exists.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.contributeTime("marqs", 100000, 2.0f),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.contributeTime("marqs", -1, 2.0f));
     }
 
     @Test
     public void contributeTimeThrowsOnNegativeTimeSpent() {
-        String expectedMessage = "Hours spent should be zero or more.";
-        Exception thrown = assertThrows(InvalidValueException.class,
-                () -> projectEmployeeRepository.contributeTime("marqs", 17, -2.0f),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("Hours spent should be zero or more.", InvalidValueException.class, () -> projectEmployeeRepository.contributeTime("marqs", 17, -2.0f));
     }
 
     @Test
@@ -322,38 +243,22 @@ public class ProjectEmployeeRepositoryTests {
 
     @Test
     public void updateTimeContributionThrowsOnNonExistentEmployee() {
-        String expectedMessage = "No employee with username marqois exists.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.updateTimeContribution("marqois", 2, 0.5f, LocalDateTime.of(LocalDate.of(2025, 11, 12), LocalTime.of(10, 0, 0))),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No employee with username marqois exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.updateTimeContribution("marqois", 2, 0.5f, LocalDateTime.of(LocalDate.of(2025, 11, 12), LocalTime.of(10, 0, 0))));
     }
 
     @Test
     public void updateTimeContributionThrowsOnNegativeTimeSpent() {
-        String expectedMessage = "Hours spent should be zero or more.";
-        Exception thrown = assertThrows(InvalidValueException.class,
-                () -> projectEmployeeRepository.updateTimeContribution("marqs", 2, -3.0f, LocalDateTime.of(LocalDate.of(2025, 11, 12), LocalTime.of(10, 0, 0))),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("Hours spent should be zero or more.", InvalidValueException.class, () -> projectEmployeeRepository.updateTimeContribution("marqs", 2, -3.0f, LocalDateTime.of(LocalDate.of(2025, 11, 12), LocalTime.of(10, 0, 0))));
     }
 
     @Test
     public void updateTimeContributionThrowsOnNonExistentContribution() {
-        String expectedMessage = "No time contribution by marqs on task with ID 2 at 2025-11-12T12:00 exists.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.updateTimeContribution("marqs", 2, 3.0f, LocalDateTime.of(LocalDate.of(2025, 11, 12), LocalTime.of(12, 0, 0))),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No time contribution by marqs on task with ID 2 at 2025-11-12T12:00 exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.updateTimeContribution("marqs", 2, 3.0f, LocalDateTime.of(LocalDate.of(2025, 11, 12), LocalTime.of(12, 0, 0))));
     }
 
     @Test
     public void updateTimeContributionThrowsOnNonExistentTask() {
-        String expectedMessage = "No time contribution by marqs on task with ID -1 at 2025-11-12T10:00 exists.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.updateTimeContribution("marqs", -1, 3.0f, LocalDateTime.of(LocalDate.of(2025, 11, 12), LocalTime.of(10, 0, 0))),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No time contribution by marqs on task with ID -1 at 2025-11-12T10:00 exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.updateTimeContribution("marqs", -1, 3.0f, LocalDateTime.of(LocalDate.of(2025, 11, 12), LocalTime.of(10, 0, 0))));
     }
 
     @Test
@@ -366,29 +271,17 @@ public class ProjectEmployeeRepositoryTests {
 
     @Test
     public void deleteTimeContributionThrowsOnNonExistentEmployee() {
-        String expectedMessage = "No employee with username marqois exists.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.deleteTimeContribution("marqois", 2, 0.5f, LocalDateTime.of(LocalDate.of(2025, 11, 12), LocalTime.of(10, 0, 0))),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No employee with username marqois exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.deleteTimeContribution("marqois", 2, 0.5f, LocalDateTime.of(LocalDate.of(2025, 11, 12), LocalTime.of(10, 0, 0))));
     }
 
     @Test
     public void deleteTimeContributionThrowsOnNonExistentTimeContribution() {
-        String expectedMessage = "No time contribution by marqs on task with ID 2 at 2025-11-12T14:00 exists.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.deleteTimeContribution("marqs", 2, 0.5f, LocalDateTime.of(LocalDate.of(2025, 11, 12), LocalTime.of(14, 0, 0))),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No time contribution by marqs on task with ID 2 at 2025-11-12T14:00 exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.deleteTimeContribution("marqs", 2, 0.5f, LocalDateTime.of(LocalDate.of(2025, 11, 12), LocalTime.of(14, 0, 0))));
     }
 
     @Test
     public void deleteTimeContributionThrowsOnNonExistentTask() {
-        String expectedMessage = "No time contribution by marqs on task with ID -1 at 2025-11-12T10:00 exists.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.deleteTimeContribution("marqs", -1, 0.5f, LocalDateTime.of(LocalDate.of(2025, 11, 12), LocalTime.of(10, 0, 0))),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No time contribution by marqs on task with ID -1 at 2025-11-12T10:00 exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.deleteTimeContribution("marqs", -1, 0.5f, LocalDateTime.of(LocalDate.of(2025, 11, 12), LocalTime.of(10, 0, 0))));
     }
 
     @Test
@@ -400,11 +293,7 @@ public class ProjectEmployeeRepositoryTests {
 
     @Test
     public void deleteEmployeeByUsernameThrowsOnNonExistentUsername() {
-        String expectedMessage = "No user with username marqois exists.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectEmployeeRepository.deleteEmployeeByUsername("marqois"),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No employee with username marqois exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.deleteEmployeeByUsername("marqois"));
     }
 
     @Test

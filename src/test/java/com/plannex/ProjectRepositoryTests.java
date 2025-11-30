@@ -21,6 +21,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 public class ProjectRepositoryTests {
     @Autowired
     private ProjectRepository projectRepository;
+    private final AssertThrowsHelper assertThrowsHelper = new AssertThrowsHelper();
 
     @Test
     public void addProjectAddsAProject() {
@@ -70,12 +71,7 @@ public class ProjectRepositoryTests {
     @Test
     public void updateProjectThrowsOnNonExistentProject() {
         Project modifiedProject = new Project("The PlanProject", "A project planning tool for our customer.\nIs to allow splitting of projects into tasks with subtasks.\nNice to have features would be GANTT chart generation and resource management", LocalDate.of(2025, 12, 12), LocalDate.of(2025, 12, 18));
-        String expectedMessage = "No project with projectID 5 exists.";
-
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectRepository.updateProject(modifiedProject, 5),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with projectID -1 exists.", EntityDoesNotExistException.class, () -> projectRepository.updateProject(modifiedProject, -1));
     }
 
     @Test
@@ -88,10 +84,6 @@ public class ProjectRepositoryTests {
 
     @Test
     public void deleteProjectByIDThrowsOnNonExistentProject() {
-        String expectedMessage = "No project with projectID 5 exists.";
-        Exception thrown = assertThrows(EntityDoesNotExistException.class,
-                () -> projectRepository.deleteProjectByID(5),
-                expectedMessage);
-        assertEquals(expectedMessage, thrown.getMessage());
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with projectID -1 exists.", EntityDoesNotExistException.class, () -> projectRepository.deleteProjectByID(-1));
     }
 }
