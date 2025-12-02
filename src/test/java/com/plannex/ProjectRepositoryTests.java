@@ -69,12 +69,6 @@ public class ProjectRepositoryTests {
     }
 
     @Test
-    public void updateProjectThrowsOnNonExistentProject() {
-        Project modifiedProject = new Project("The PlanProject", "A project planning tool for our customer.\nIs to allow splitting of projects into tasks with subtasks.\nNice to have features would be GANTT chart generation and resource management", LocalDate.of(2025, 12, 12), LocalDate.of(2025, 12, 18));
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with projectID -1 exists.", EntityDoesNotExistException.class, () -> projectRepository.updateProject(modifiedProject, -1));
-    }
-
-    @Test
     public void deleteProjectByIDDeletesProjectIfExists() {
         int rowsDeleted = projectRepository.deleteProjectByID(1);
         assertTrue(rowsDeleted >= 1);
@@ -82,8 +76,4 @@ public class ProjectRepositoryTests {
         assertEquals(3, projectRepository.getAllProjects().size());
     }
 
-    @Test
-    public void deleteProjectByIDThrowsOnNonExistentProject() {
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with projectID -1 exists.", EntityDoesNotExistException.class, () -> projectRepository.deleteProjectByID(-1));
-    }
 }

@@ -92,9 +92,6 @@ public class ProjectEmployeeRepository {
     }
 
     public int updateEmployee(ProjectEmployee updatedProjectEmployee, String targetUsername) {
-        if (getEmployeeByUsername(targetUsername) == null) {
-            throw new EntityDoesNotExistException("No employee with username " + targetUsername + " exists.");
-        }
 
         try {
             return jdbcTemplate.update("UPDATE ProjectEmployees" +
@@ -113,9 +110,6 @@ public class ProjectEmployeeRepository {
     }
 
     public int addArtifact(int taskID, String username, String pathToArtifact) {
-        if (getEmployeeByUsername(username) == null) {
-            throw new EntityDoesNotExistException("No employee with username " + username + " exists.");
-        }
 
         if (artifactWithValuesExists(taskID, username, pathToArtifact)) {
             throw new EntityAlreadyExistsException("Employee " + username + " has already uploaded this artifact to this task. Update it if you want to change it.");
@@ -130,9 +124,6 @@ public class ProjectEmployeeRepository {
     }
 
     public int updateArtifact(int taskID, String username, String pathToArtifact, String newPath) {
-        if (getEmployeeByUsername(username) == null) {
-            throw new EntityDoesNotExistException("No employee with username " + username + " exists.");
-        }
 
         if (!artifactWithValuesExists(taskID, username, pathToArtifact)) {
             throw new EntityDoesNotExistException("The artifact with path " + pathToArtifact + " does not exist, uploaded by " + username + " for task with ID " + taskID + ".");
@@ -146,9 +137,6 @@ public class ProjectEmployeeRepository {
     }
 
     public int deleteArtifact(int taskID, String username, String path) {
-        if (getEmployeeByUsername(username) == null) {
-            throw new EntityDoesNotExistException("No employee with username " + username + " exists.");
-        }
 
         if (!artifactWithValuesExists(taskID, username, path)) {
             throw new EntityDoesNotExistException("The artifact with path " + path + " does not exist, uploaded by " + username + " for task with ID " + taskID + ".");
@@ -163,9 +151,6 @@ public class ProjectEmployeeRepository {
     }
 
     public int contributeTime(String username, int taskID, float howManyHours) {
-        if (getEmployeeByUsername(username) == null) {
-            throw new EntityDoesNotExistException("No employee with username " + username + " exists.");
-        }
 
         if (howManyHours < 0.0) {
             throw new InvalidValueException("Hours spent should be zero or more.");
@@ -180,9 +165,6 @@ public class ProjectEmployeeRepository {
     }
 
     public int updateTimeContribution(String username, int taskID, float howManyHours, LocalDateTime when) {
-        if (getEmployeeByUsername(username) == null) {
-            throw new EntityDoesNotExistException("No employee with username " + username + " exists.");
-        }
 
         if (howManyHours < 0.0) {
             throw new InvalidValueException("Hours spent should be zero or more.");
@@ -197,9 +179,6 @@ public class ProjectEmployeeRepository {
     }
 
     public int deleteTimeContribution(String username, int taskID, float howManyHours, LocalDateTime when) {
-        if (getEmployeeByUsername(username) == null) {
-            throw new EntityDoesNotExistException("No employee with username " + username + " exists.");
-        }
 
         if (timeContributionWithValuesDoesNotExist(username, taskID, when)) {
             throw new EntityDoesNotExistException("No time contribution by " + username + " on task with ID " + taskID + " at " + when + " exists.");
@@ -209,9 +188,6 @@ public class ProjectEmployeeRepository {
     }
 
     public int deleteEmployeeByUsername(String targetUsername) {
-        if (getEmployeeByUsername(targetUsername) == null) {
-            throw new EntityDoesNotExistException("No employee with username " + targetUsername + " exists.");
-        }
 
         return jdbcTemplate.update("DELETE FROM ProjectEmployees WHERE EmployeeUsername = ?;", targetUsername); // rowsAffected
     }

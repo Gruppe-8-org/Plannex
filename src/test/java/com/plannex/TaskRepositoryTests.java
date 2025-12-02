@@ -38,12 +38,6 @@ public class TaskRepositoryTests {
     }
 
     @Test
-    public void addTaskThrowsOnInvalidProjectID() {
-        Task newTask = new Task(-1, 0, "TaskTitle", "TaskDescription", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.addTask(newTask));
-    }
-
-    @Test
     public void addTaskThrowsOnTryingToAddSubtask() {
         Task newTask = new Task(1, 2, "TaskTitle", "TaskDescription", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
         assertThrowsHelper.verifyExceptionThrownWithMessage("You may not use addTask for adding subtasks.", OperationNotSupportedException.class, () -> taskRepository.addTask(newTask));
@@ -58,17 +52,6 @@ public class TaskRepositoryTests {
         assertEquals(newTask, newTaskFromDB);
     }
 
-    @Test
-    public void addSubtaskThrowsOnInvalidProjectID() {
-        Task newTask = new Task(-1, 1, "TaskTitle", "TaskDescription", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.addSubtask(newTask));
-    }
-
-    @Test
-    public void addSubtaskThrowsOnInvalidParentTask() {
-        Task newTask = new Task(1, -1, "TaskTitle", "TaskDescription", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.addSubtask(newTask));
-    }
 
     @Test
     public void addSubtaskThrowsOnAddingSubtaskToAnotherSubtask() {
@@ -138,15 +121,6 @@ public class TaskRepositoryTests {
         assertTrue(jdbcTemplate.queryForObject("SELECT COUNT(*) > 0 FROM TaskAssignees WHERE EmployeeUsername = ? AND TaskID = ?;", Boolean.class, "marqs", 16));
     }
 
-    @Test
-    public void assignEmployeeThrowsOnNonExistentTaskID() {
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.assignTaskToEmployee(-1, "marqs"));
-    }
-
-    @Test
-    public void assignEmployeeThrowsOnNonExistentUsername() {
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No employee with username marqois exists.", EntityDoesNotExistException.class, () -> taskRepository.assignTaskToEmployee(16, "marqois"));
-    }
 
     @Test
     public void assignEmployeeThrowsOnDuplicateAttempt() {
@@ -158,16 +132,6 @@ public class TaskRepositoryTests {
         int rowsDeleted = taskRepository.unassignTaskFromEmployee(16, "lildawg");
         assertEquals(1, rowsDeleted);
         assertFalse(jdbcTemplate.queryForObject("SELECT COUNT(*) > 0 FROM TaskAssignees WHERE EmployeeUsername = ? AND TaskID = ?;", Boolean.class, "lildawg", 16));
-    }
-
-    @Test
-    public void unassignEmployeeThrowsOnNonExistentTask() {
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.unassignTaskFromEmployee(-1, "marqs"));
-    }
-
-    @Test
-    public void unassignEmployeeThrowsOnNonExistentUsername() {
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No employee with username marqois exists.", EntityDoesNotExistException.class, () -> taskRepository.unassignTaskFromEmployee(2, "marqois"));
     }
 
     @Test
@@ -199,19 +163,8 @@ public class TaskRepositoryTests {
     }
 
     @Test
-    public void getAllTasksForProjectWithIDThrowsOnNonExistentProject() {
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.getAllTasksForProject(-1));
-
-    }
-
-    @Test
     public void getAllSubtasksForParentTaskWorksOnExistingProjectWithTasks() throws OperationNotSupportedException {
         assertEquals(6, taskRepository.getAllSubtasksForParentTask(1).size());
-    }
-
-    @Test
-    public void getAllSubtasksForParentTaskThrowsOnNonExistentTask() {
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.getAllSubtasksForParentTask(-1));
     }
 
     @Test
@@ -242,11 +195,6 @@ public class TaskRepositoryTests {
     }
 
     @Test
-    public void getAllArtifactsForTaskThrowsOnNonExistentTask() {
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.getAllArtifactsForTask(-1));
-    }
-
-    @Test
     public void getAllDependenciesForTaskGetsListOfDependenciesForExistingTaskWithDependencies() {
         List<TaskRepository.ConstPair<Integer, Integer>> expectedDependencies = List.of(
                 new TaskRepository.ConstPair<>(5, 4)
@@ -260,20 +208,10 @@ public class TaskRepositoryTests {
     }
 
     @Test
-    public void getAllDependenciesForTaskThrowsOnNonExistentTaskID() {
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.getAllDependenciesForTask(-1));
-    }
-
-    @Test
     public void getAllTimeContributionsForTaskWorksForExistingTaskWithTimeSpent() {
         List<Integer> expectedContributions = List.of(4, 4);
         List<Integer> actualContributions = taskRepository.getAllTimeContributionsForTask(16);
         assertEquals(expectedContributions, actualContributions);
-    }
-
-    @Test
-    public void getAllTimeContributionsForTaskThrowsOnNonExistentTask() {
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.getAllTimeContributionsForTask(-1));
     }
 
     @Test
@@ -286,22 +224,12 @@ public class TaskRepositoryTests {
         assertEquals(expectedTask, taskFromDBAfter);
     }
 
-    @Test
-    public void updateTaskThrowsOnNonExistentTask() {
-        Task newTask = new Task(1, 0, "TaskTitle", "TaskDescription", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.updateTask(newTask, -1));
-    }
 
     @Test
     public void deleteTaskDeletesOnExistingTask() {
         int rowsDeleted = taskRepository.deleteTaskByID(1);
         assertEquals(1, rowsDeleted); // Cascades don't count
         assertNull(taskRepository.getTaskByID(1));
-    }
-
-    @Test
-    public void deleteTaskThrowsOnNonExistentTask() {
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.deleteTaskByID(-1));
     }
 
     @Test

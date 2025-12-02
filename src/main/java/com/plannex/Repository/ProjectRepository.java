@@ -41,9 +41,6 @@ public class ProjectRepository {
     }
 
     public int updateProject(Project modifiedProject, int targetProjectID) {
-        if (getProjectByID(targetProjectID) == null) {
-            throw new EntityDoesNotExistException("No project with projectID " + targetProjectID + " exists.");
-        }
 
         return jdbcTemplate.update(
                 "UPDATE Projects " +
@@ -55,9 +52,6 @@ public class ProjectRepository {
     }
 
     public int deleteProjectByID(int projectID) {
-        if (getProjectByID(projectID) == null) {
-            throw new EntityDoesNotExistException("No project with projectID " + projectID + " exists.");
-        }
 
         return jdbcTemplate.update("DELETE FROM Projects WHERE ProjectID = ?;", projectID);
     }
