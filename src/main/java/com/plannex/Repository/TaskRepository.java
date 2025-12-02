@@ -8,7 +8,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.naming.OperationNotSupportedException;
 import java.util.List;
@@ -62,7 +61,11 @@ public class TaskRepository {
         }
     }
 
-    public int addFollowsDependency(int forTaskID, int blockedByID) {
+    public int addFollowsDependency(int forTaskID, int blockedByID) throws OperationNotSupportedException {
+        if (forTaskID == blockedByID) {
+            throw new OperationNotSupportedException("You may not set a task as blocking itself.");
+        }
+
         if (getTaskByID(forTaskID) == null) {
             throw new EntityDoesNotExistException("No task with ID " + forTaskID + " exists.");
         }
@@ -204,7 +207,6 @@ public class TaskRepository {
         );
     }
 
-    @Transactional // Cascading
     public int deleteTaskByID(int taskID) {
         if (getTaskByID(taskID) == null) {
             throw new EntityDoesNotExistException("No task with ID " + taskID + " exists.");

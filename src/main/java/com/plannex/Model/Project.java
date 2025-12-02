@@ -16,6 +16,7 @@ public class Project {
         this.projectEnd = end;
     }
 
+    public Project() {}
 
     public String getProjectTitle() {
         return projectTitle;

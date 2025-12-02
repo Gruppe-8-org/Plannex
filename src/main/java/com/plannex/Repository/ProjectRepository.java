@@ -6,7 +6,6 @@ import com.plannex.RowMapper.ProjectRowMapper;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -55,7 +54,6 @@ public class ProjectRepository {
         );
     }
 
-    @Transactional
     public int deleteProjectByID(int projectID) {
         if (getProjectByID(projectID) == null) {
             throw new EntityDoesNotExistException("No project with projectID " + projectID + " exists.");
