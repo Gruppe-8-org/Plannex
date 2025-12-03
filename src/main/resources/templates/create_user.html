@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create User</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<form th:action="">
+    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+</form>
+<h1>Create User</h1>
+<form th:action="@{/}" th:object="${user}" method="post">
+    <fieldset>
+        <label for="name">Name</label>
+        <input id="name" th:field="*{userName}" required>
+
+        <label for="username">Username</label>
+        <input id="username" th:field="*{userUserName}" required>
+
+        <label for="email">Email</label>
+        <input id="email" th:field="*{userEmail}" required>
+
+        <label for="password">Password</label>
+        <input id="password" th:field="*{userPassword}" required>
+
+        <fieldset>
+            <label for="bio">Bio</label>
+            <input id="bio" th:field="*{userBio}" required>
+        </fieldset>
+
+        <label for="team"></label>
+        <select id="team" th:each="team, iter : ${allTeams}" required>
+            <option th:id="'team-' + ${team.getID()}" th:value="${team.getID()}" th:text="${team.getTitle()}"></option>
+        </select>
+
+        <label for="department"></label>
+        <select id="department" th:each="department, iter : ${allDepartments}" required>
+            <option th:id="'department-' + ${department.getID()}" th:value="${department.getID()}" th:text="${department.getTitle()}"></option>
+        </select>
+
+        <button type="submit">Create</button>
+        <button th:href="@{}">Cancel</button>
+    </fieldset>
+</form>
+</body>
+</html>

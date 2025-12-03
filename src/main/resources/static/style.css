@@ -1,0 +1,75 @@
+body {
+    display: grid;
+    min-width: 400px;
+    font-size: 16px;
+    font-family: Inter, serif;
+    font-weight: 400;
+    grid-template-areas:
+        "header"
+        "main"
+        "footer";
+    grid-template-columns: 1fr;
+}
+
+Highlight_body {
+
+}
+
+h1 {
+    font-size: 32px;
+    font-family: Inter, serif;
+    font-weight: bold;
+    line-height: 10;
+    letter-spacing: 0;
+}
+
+h2 {
+    font-size: 20px;
+    font-family: Inter, serif;
+    font-weight: 600;
+    line-height: 10;
+    letter-spacing: 0
+}
+
+Button text {
+    font-size: 20px;
+    font-family: Inter, serif;
+    font-weight: 400;
+    line-height: 10;
+    letter-spacing: 0
+}
+
+Link {
+    font-size: 16px;
+    font-family: Inter, serif;
+    font-weight: 400;
+    line-height: 10;
+    letter-spacing: 0
+}
+
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+main {
+    width: 80%;
+    margin: 0 auto;
+    grid-area: main;
+}
+
+nav {
+    grid-area: header;
+    width: 100%;
+}
+
+.nav-wrapper {
+    padding: 5px;
+    background-color: #363636;
+}
+
+footer {
+    width: 100%;
+    background-color: #363636;
+    grid-area: footer;
+}

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Department</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<form th:action="">
+    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+</form>
+<h1>Edit Department</h1>
+<form th:action="@{/}" th:object="${department}" method="post">
+    <fieldset>
+        <label for="title">Title</label>
+        <input id="title" th:field="*{departmentTitle}" th:value="${department.getTitle()}" required>
+
+        <fieldset>
+            <label for="description">Description</label>
+            <input id="description" th:field="*{departmentDescription}" th:value="${department.getDescription()}" required>
+        </fieldset>
+
+        <fieldset>
+            <legend>Users <a th:href="@{/}">+</a></legend>
+            <div th:each="user, iter : ${department.getAllUsers()}">
+                <p th:text="${user.username}"></p>
+            </div>
+        </fieldset>
+
+        <button type="submit">Create</button>
+        <button th:href="@{}">Cancel</button>
+    </fieldset>
+</form>
+</body>
+</html>

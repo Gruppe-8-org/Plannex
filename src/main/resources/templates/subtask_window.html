@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Subtask Window</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<form th:action="">
+    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+</form>
+<fieldset>
+    <fieldset>
+        <legend th:text="${subtask.getTitle()} - start/end - status - importance"> <a th:href="@{/}">edit</a></legend>
+        <p th:text="${subtask.getStartDate}"></p>
+        <p th:text="${subtask.getEndDate}"></p>
+        <p th:text="${subtask.getStatus}"></p>
+        <p th:text="${subtask.getImportance}"></p>
+        <p th:text="${subtask.getDescription}"></p>
+    </fieldset>
+
+    <fieldset>
+        <legend>Assignees <a th:href="@{/}">+</a></legend>
+        <p th:text="${subtask.getMembers()}"></p>
+    </fieldset>
+
+    <fieldset>
+        <legend>Dependencies <a th:href="@{/}">+</a></legend>
+        <p th:text="${subtask.getDependantTasks}"></p>
+    </fieldset>
+
+    <fieldset>
+        <legend>Artefacts <a th:href="@{/}">+</a></legend>
+        <p th:text="${subtask.getArtefacts}"></p>
+    </fieldset>
+
+    <fieldset>
+        <legend>Resources <a th:href="@{/}">+</a></legend>
+        <p th:text="${subtask.getResources}"></p>
+    </fieldset>
+
+    <fieldset>
+        <legend>Comments <a th:href="@{/}">+</a></legend>
+        <p th:text="${subtask.getComments}"></p>
+    </fieldset>
+</fieldset>
+
+</body>
+</html>

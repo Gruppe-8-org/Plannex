@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Assignees</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<form th:action="">
+    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+</form>
+<h1>Edit Assignees</h1>
+<form th:action="@{/}" th:object="${user}" method="post">
+    <fieldset>
+        <fieldset>
+            <legend>Check off which employees you wish to assign to this project/team/department/task/subtask</legend>
+            <div th:each="user : ${allUsers}">
+                <input type="checkbox" th:id="'product-' + ${user.getID()}" th:value="${user.getID()}" th:text="${user.getUsername()}" th:field="*{guestIDs}">
+            </div>
+        </fieldset>
+        <button type="submit">Assign</button>
+        <button th:href="@{}">Cancel</button>
+    </fieldset>
+</form>
+</body>
+</html>

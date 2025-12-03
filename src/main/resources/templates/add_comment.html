@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Comment</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<form th:action="">
+    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+</form>
+<h1>Add Comment</h1>
+<form th:action="@{/}" th:object="${comment}" method="post">
+    <fieldset>
+        <label for="title">Title</label>
+        <input type="text" id="title" th:field="*{title}" required>
+
+        <fieldset>
+            <legend>Comment</legend>
+            <label for="comment"></label>
+            <input id="comment" th:field="*{description}" required>
+        </fieldset>
+
+        <button type="submit">Add</button>
+        <button th:href="@{}">Cancel</button>
+    </fieldset>
+</form>
+</body>
+</html>
