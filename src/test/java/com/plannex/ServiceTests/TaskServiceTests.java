@@ -1,6 +1,7 @@
 package com.plannex.ServiceTests;
 
 import com.plannex.Exception.EntityDoesNotExistException;
+import com.plannex.Model.ProjectEmployee;
 import com.plannex.Model.Task;
 import com.plannex.Repository.TaskRepository;
 import com.plannex.Service.TaskService;
@@ -12,6 +13,8 @@ import org.mockito.MockitoAnnotations;
 
 import javax.naming.OperationNotSupportedException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,7 +33,7 @@ public class TaskServiceTests {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        task = new Task(1, 0, "TaskTitle", "TaskDescription",
+        task = new Task(0, 1, 0, "TaskTitle", "TaskDescription",
                 LocalDate.of(2025, 11, 28), LocalDate.of(2025, 12, 5), 5.0f);
     }
 
@@ -51,7 +54,7 @@ public class TaskServiceTests {
     }
 
     @Test
-    void addFollowsDependencyCallsRepository() {
+    void addFollowsDependencyCallsRepository() throws OperationNotSupportedException {
         when(taskRepository.addFollowsDependency(1, 2)).thenReturn(1);
         int result = taskService.addFollowsDependency(1, 2);
         assertEquals(1, result);
@@ -88,14 +91,6 @@ public class TaskServiceTests {
         Task result = taskService.getTaskByID(1);
         assertEquals(task, result);
         verify(taskRepository).getTaskByID(1);
-    }
-
-    @Test
-    void getAllTasksForProjectCallsRepository() {
-        when(taskRepository.getAllTasksForProject(1)).thenReturn(List.of(task));
-        List<Task> result = taskService.getAllTasksForProject(1);
-        assertEquals(1, result.size());
-        verify(taskRepository).getAllTasksForProject(1);
     }
 
     @Test
@@ -158,9 +153,105 @@ public class TaskServiceTests {
 
     @Test
     void getAllTimeContributionsForTaskCallsRepository() {
-        when(taskRepository.getAllTimeContributionsForTask(1)).thenReturn(List.of(3, 5));
-        List<Integer> result = taskService.getAllTimeContributionsForTask(1);
+        when(taskRepository.getAllTimeContributionsForTask(1)).thenReturn(List.of(3.0f, 5.0f));
+        List<Float> result = taskService.getAllTimeContributionsForTask(1);
         assertEquals(2, result.size());
         verify(taskRepository).getAllTimeContributionsForTask(1);
+    }
+
+    @Test
+    void addArtifact_CallsRepository() {
+        when(taskRepository.addArtifact(7, "johnDoe", "path")).thenReturn(1);
+
+        int result = taskService.addArtifact(7, "johnDoe", "path");
+
+        assertEquals(1, result);
+        verify(taskRepository).addArtifact(7, "johnDoe", "path");
+    }
+
+    @Test
+    void updateArtifact_CallsRepository() {
+        when(taskRepository.updateArtifact(7, "johnDoe", "old", "new")).thenReturn(1);
+
+        int result = taskService.updateArtifact(7, "johnDoe", "old", "new");
+
+        assertEquals(1, result);
+        verify(taskRepository).updateArtifact(7, "johnDoe", "old", "new");
+    }
+
+    @Test
+    void deleteArtifact_CallsRepository() {
+        when(taskRepository.deleteArtifact(7, "johnDoe", "path")).thenReturn(1);
+
+        int result = taskService.deleteArtifact(7, "johnDoe", "path");
+
+        assertEquals(1, result);
+        verify(taskRepository).deleteArtifact(7, "johnDoe", "path");
+    }
+
+    @Test
+    void contributeTime_CallsRepository() {
+        when(taskRepository.contributeTime("johnDoe", 5, 3f)).thenReturn(1);
+
+        int result = taskService.contributeTime("johnDoe", 5, 3f);
+
+        assertEquals(1, result);
+        verify(taskRepository).contributeTime("johnDoe", 5, 3f);
+    }
+
+    @Test
+    void updateTimeContribution_CallsRepository() {
+        LocalDateTime now = LocalDateTime.now();
+        when(taskRepository.updateTimeContribution("johnDoe", 5, 3f, now)).thenReturn(1);
+
+        int result = taskService.updateTimeContribution("johnDoe", 5, 3f, now);
+
+        assertEquals(1, result);
+        verify(taskRepository).updateTimeContribution("johnDoe", 5, 3f, now);
+    }
+
+    @Test
+    void deleteTimeContribution_CallsRepository() {
+        LocalDateTime now = LocalDateTime.now();
+        when(taskRepository.deleteTimeContribution("johnDoe", 5, now)).thenReturn(1);
+
+        int result = taskService.deleteTimeContribution("johnDoe", 5, now);
+
+        assertEquals(1, result);
+        verify(taskRepository).deleteTimeContribution("johnDoe", 5, now);
+    }
+
+    @Test
+    void getAllAssigneesForSubtask_ReturnsList() {
+        when(taskRepository.getAllAssigneesForSubtask(10)).thenReturn(List.of(new ProjectEmployee(
+                "johnDoe",
+                "John Doe",
+                "john@example.com",
+                "password",
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0)
+        )));
+
+        List<ProjectEmployee> result = taskService.getAllAssigneesForSubtask(10);
+
+        assertEquals(1, result.size());
+        verify(taskRepository).getAllAssigneesForSubtask(10);
+    }
+
+    @Test
+    void getAllAssigneesForTask_ReturnsList() {
+        when(taskRepository.getAllAssigneesForTask(5)).thenReturn(List.of(new ProjectEmployee(
+                "johnDoe",
+                "John Doe",
+                "john@example.com",
+                "password",
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0)
+        )));
+
+        List<ProjectEmployee> result = taskService.getAllAssigneesForTask(5);
+
+        assertEquals(1, result.size());
+        verify(taskRepository).getAllAssigneesForTask(5);
     }
 }

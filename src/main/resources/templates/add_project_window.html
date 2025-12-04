@@ -6,29 +6,30 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-<form th:action="">
+<form th:action="@{/employees/{username}(username=${sessionUser})}">
     <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
 </form>
+
 <h1>Create a Project</h1>
-<form th:action="@{/}" th:object="${project}" method="post">
+<form th:action="@{/projects/add-project}" th:object="${project}" method="post">
     <fieldset>
         <label for="title">Title</label>
-        <input id="title" th:field="*{title}" required>
+        <input id="title" th:field="*{projectTitle}" required>
 
         <label for="startDate">Start Date</label>
-        <input type="date" id="startDate" th:field="*{projectStartDate}" required>
+        <input type="date" id="startDate" th:field="*{projectStart}" required>
 
         <label for="endDate">End Date</label>
-        <input type="date" id="endDate" th:field="*{projectEndDate}" required>
+        <input type="date" id="endDate" th:field="*{projectEnd}" required>
 
         <fieldset>
             <legend>Description</legend>
             <label for="description"></label>
-            <input id="description" th:field="*{description}" required>
+            <input id="description" th:field="*{projectDescription}" required>
         </fieldset>
 
         <button type="submit">Create</button>
-        <button th:href="@{}">Cancel</button>
+        <button th:href="@{/projects}">Cancel</button>
     </fieldset>
 </form>
 </body>

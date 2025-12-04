@@ -12,6 +12,7 @@ public class TaskRowMapper implements RowMapper<Task> {
     @Override
     public Task mapRow(ResultSet rs, int rowNum) throws SQLException {
         return new Task(
+                rs.getInt("TaskID"),
                 rs.getInt("ProjectID"),
                 rs.getInt("ParentTaskID"),
                 rs.getString("TaskTitle"),

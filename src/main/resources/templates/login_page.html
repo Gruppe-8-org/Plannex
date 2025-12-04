@@ -6,13 +6,13 @@
     <title>Log in</title>
 </head>
 <body>
-<form th:action="@{/user/login}" th:object="${user}" method="post">
+<form th:action="@{/login}" th:object="${user}" method="post">
 
     <label for="username">Username:</label>
-    <input type="text" id="username" th:field="*{username}" required>
+    <input type="text" id="username" name="username" required>
 
     <label for="password">Password:</label>
-    <input type="text" id="password" th:field="*{password}" required>
+    <input type="password" id="password" name="password" required>
 
     <button type="submit">Login</button>
 </form>

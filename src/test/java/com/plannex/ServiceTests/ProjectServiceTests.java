@@ -2,6 +2,7 @@ package com.plannex.ServiceTests;
 
 import com.plannex.Exception.EntityDoesNotExistException;
 import com.plannex.Model.Project;
+import com.plannex.Model.Task;
 import com.plannex.Repository.ProjectRepository;
 import com.plannex.Service.ProjectService;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +31,7 @@ class ProjectServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         project = new Project(
+                5,
                 "Title",
                 "Description",
                 LocalDate.of(2025, 11, 28),
@@ -109,6 +111,15 @@ class ProjectServiceTest {
         int result = projectService.deleteProjectByID(1);
         assertEquals(1, result);
         verify(projectRepository, times(1)).deleteProjectByID(1);
+    }
+
+    @Test
+    void getAllTasksForProjectCallsRepository() {
+        when(projectRepository.getAllTasksForProject(1)).thenReturn(List.of(new Task(0, 1, 0, "TaskTitle", "TaskDescription",
+                LocalDate.of(2025, 11, 28), LocalDate.of(2025, 12, 5), 5.0f)));
+        List<Task> result = projectRepository.getAllTasksForProject(1);
+        assertEquals(1, result.size());
+        verify(projectRepository).getAllTasksForProject(1);
     }
 }
 

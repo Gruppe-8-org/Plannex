@@ -6,15 +6,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-<form th:action="">
+<form th:action="@{/employees/{username}(username=${sessionUser})}">
     <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
 </form>
 
 <h1>Administration Page</h1>
 
-<a th:href="@{/}">Users, Teams and Departments</a>
+<a th:href="@{/employees}">Users, Teams and Departments</a>
 
-<a th:href="@{/}">Projects</a>
+<a th:href="@{/projects}">Projects</a>
 
 </body>
 </html>

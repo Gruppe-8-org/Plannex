@@ -12,6 +12,7 @@ public class ProjectRowMapper implements RowMapper<Project> {
     @Override
     public Project mapRow(ResultSet rs, int rowNum) throws SQLException {
         return new Project(
+                rs.getInt("ProjectID"),
                 rs.getString("ProjectTitle"),
                 rs.getString("ProjectDescription").replace("\\n", "\n"), // Shouldn't have added linebreaks manually
                 rs.getDate("ProjectStart").toLocalDate(),

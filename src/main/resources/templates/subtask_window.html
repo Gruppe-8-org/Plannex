@@ -6,43 +6,50 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-<form th:action="">
+<<form th:action="@{/employees/{username}(username=${sessionUser})}">
     <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <fieldset>
     <fieldset>
-        <legend th:text="${subtask.getTitle()} - start/end - status - importance"> <a th:href="@{/}">edit</a></legend>
-        <p th:text="${subtask.getStartDate}"></p>
-        <p th:text="${subtask.getEndDate}"></p>
-        <p th:text="${subtask.getStatus}"></p>
-        <p th:text="${subtask.getImportance}"></p>
-        <p th:text="${subtask.getDescription}"></p>
+        <legend th:text="${subtask.ID} + ' - start/end '"> <a th:href="@{/}">edit</a></legend>
+        <p th:text="${subtask.taskStart}"></p>
+        <p th:text="${subtask.taskEnd}"></p>
+        <p th:text="${subtask.taskDescription}"></p>
     </fieldset>
 
     <fieldset>
         <legend>Assignees <a th:href="@{/}">+</a></legend>
-        <p th:text="${subtask.getMembers()}"></p>
+        <div th:each="assignee : ${assignees}">
+            <p th:text="${assignee.employeeName}"></p>
+        </div>
     </fieldset>
 
     <fieldset>
         <legend>Dependencies <a th:href="@{/}">+</a></legend>
-        <p th:text="${subtask.getDependantTasks}"></p>
+        <div th:each="dependency : ${dependencies}">
+            <p th:text="${dependency.first()} ' - blocked by ' + ${dependency.second()}"></p>
+        </div>
     </fieldset>
 
     <fieldset>
-        <legend>Artefacts <a th:href="@{/}">+</a></legend>
-        <p th:text="${subtask.getArtefacts}"></p>
+        <legend>Artifacts <a th:href="@{/}">+</a></legend>
+        <div th:each="artifact : ${artifacts}">
+            <p th:text="${artifact.second()} + ' uploaded by ' + ${artifact.first()}"></p>
+        </div>
     </fieldset>
 
+    <!--
     <fieldset>
         <legend>Resources <a th:href="@{/}">+</a></legend>
         <p th:text="${subtask.getResources}"></p>
     </fieldset>
 
+
     <fieldset>
         <legend>Comments <a th:href="@{/}">+</a></legend>
         <p th:text="${subtask.getComments}"></p>
     </fieldset>
+    -->
 </fieldset>
 
 </body>
