@@ -1,4 +1,4 @@
-package com.plannex.ServiceTests;
+package com.plannex;
 
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Repository.ProjectEmployeeRepository;
@@ -10,7 +10,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -99,9 +98,6 @@ class ProjectEmployeeServiceTests {
         verify(repo).updateEmployee(emp, "johnDoe");
     }
 
-    // ----------------------------------------------------------
-    // DELETE EMPLOYEE
-    // ----------------------------------------------------------
     @Test
     void deleteEmployeeByUsername_CallsRepository() {
         when(repo.deleteEmployeeByUsername("johnDoe")).thenReturn(1);
@@ -111,4 +107,33 @@ class ProjectEmployeeServiceTests {
         assertEquals(1, result);
         verify(repo).deleteEmployeeByUsername("johnDoe");
     }
+    @Test
+    void getPermissions_ReturnsValue() {
+        when(repo.getEmployeePermissions("johnDoe")).thenReturn("ADMIN");
+
+        String result = service.getPermissions("johnDoe");
+
+        assertEquals("ADMIN", result);
+        verify(repo).getEmployeePermissions("johnDoe");
+    }
+    @Test
+    void login_ReturnsTrue() {
+        when(repo.login("johnDoe", "password")).thenReturn(true);
+
+        boolean result = service.login("johnDoe", "password");
+
+        assertTrue(result);
+        verify(repo).login("johnDoe", "password");
+    }
+
+    @Test
+    void login_ReturnsFalse() {
+        when(repo.login("johnDoe", "wrong")).thenReturn(false);
+
+        boolean result = service.login("johnDoe", "wrong");
+
+        assertFalse(result);
+        verify(repo).login("johnDoe", "wrong");
+    }
+
 }
