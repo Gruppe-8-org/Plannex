@@ -2,11 +2,14 @@ package com.plannex.Service;
 
 import com.plannex.Exception.EntityDoesNotExistException;
 import com.plannex.Exception.EntityAlreadyExistsException;
+import com.plannex.Model.ProjectEmployee;
 import com.plannex.Model.Task;
 import com.plannex.Repository.TaskRepository;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import javax.naming.OperationNotSupportedException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -18,6 +21,10 @@ public class TaskService {
         this.taskRepository = taskRepository;
     }
 
+    public boolean isSubtask(Task t) {
+        return taskRepository.isSubtask(t);
+    }
+
     public int addTask(Task task) throws OperationNotSupportedException {
         return taskRepository.addTask(task);
     }
@@ -26,7 +33,7 @@ public class TaskService {
         return taskRepository.addSubtask(task);
     }
 
-    public int addFollowsDependency(int forTaskID, int blockedByID) {
+    public int addFollowsDependency(int forTaskID, int blockedByID) throws OperationNotSupportedException {
         return taskRepository.addFollowsDependency(forTaskID, blockedByID);
     }
 
@@ -46,11 +53,7 @@ public class TaskService {
         return taskRepository.getTaskByID(taskID);
     }
 
-    public List<Task> getAllTasksForProject(int projectID) {
-        return taskRepository.getAllTasksForProject(projectID);
-    }
-
-    public List<Task> getAllSubtasksForParentTask(int parentTaskID) throws OperationNotSupportedException {
+    public List<Task> getAllSubtasksForParentTask(int parentTaskID) {
         return taskRepository.getAllSubtasksForParentTask(parentTaskID);
     }
 
@@ -62,7 +65,7 @@ public class TaskService {
         return taskRepository.getAllDependenciesForTask(taskID);
     }
 
-    public List<Integer> getAllTimeContributionsForTask(int taskID) {
+    public List<Float> getAllTimeContributionsForTask(int taskID) {
         return taskRepository.getAllTimeContributionsForTask(taskID);
     }
 
@@ -80,5 +83,37 @@ public class TaskService {
         }
 
         return taskRepository.deleteTaskByID(taskID);
+    }
+
+    public int addArtifact(int taskID, String username, String pathToArtifact) {
+        return taskRepository.addArtifact(taskID, username, pathToArtifact);
+    }
+
+    public int updateArtifact(int taskID, String username, String oldPath, String newPath) {
+        return taskRepository.updateArtifact(taskID, username, oldPath, newPath);
+    }
+
+    public int deleteArtifact(int taskID, String username, String path) {
+        return taskRepository.deleteArtifact(taskID, username, path);
+    }
+
+    public int contributeTime(String username, int taskID, float hours) {
+        return taskRepository.contributeTime(username, taskID, hours);
+    }
+
+    public int updateTimeContribution(String username, int taskID, float hours, LocalDateTime when) {
+        return taskRepository.updateTimeContribution(username, taskID, hours, when);
+    }
+
+    public int deleteTimeContribution(String username, int taskID, LocalDateTime when) {
+        return taskRepository.deleteTimeContribution(username, taskID, when);
+    }
+
+    public List<ProjectEmployee> getAllAssigneesForSubtask(int subtaskID) {
+        return taskRepository.getAllAssigneesForSubtask(subtaskID);
+    }
+
+    public List<ProjectEmployee> getAllAssigneesForTask(int taskID) {
+        return taskRepository.getAllAssigneesForTask(taskID);
     }
 }

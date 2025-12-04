@@ -6,29 +6,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-<form th:action="">
+<form th:action="@{/employees/{username}(username=${sessionUser})}">
     <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <h1>Edit User</h1>
-<form th:action="@{/}" th:object="${user}" method="post">
+<form th:action="@{/employees/{username}/edit}" th:object="${user}" method="post">
     <fieldset>
         <label for="name">Name</label>
-        <input id="name" th:field="*{userName}" th:value="${user.getName()}" required>
+        <input id="name" th:field="*{employeeName}" th:value="${user.employeeName}" required>
 
         <label for="username">Username</label>
-        <input id="username" th:field="*{userUserName}" th:value="${user.getUserName()}" required>
+        <input id="username" th:field="*{employeeUsername}" th:value="${user.employeeUsername}" required>
 
         <label for="email">Email</label>
-        <input id="email" th:field="*{userEmail}" th:value="${user.getEmail()}" required>
+        <input id="email" th:field="*{employeeEmail}" th:value="${user.employeeEmail}" required>
 
         <label for="password">Password</label>
-        <input id="password" th:field="*{userPassword}" th:value="${user.getPassword()}" required>
+        <input id="password" th:field="*{employeePassword}" th:value="${user.employeePassword}" type="password" required>
 
-        <fieldset>
-            <label for="bio">Bio</label>
-            <input id="bio" th:field="*{userBio}" th:value="${user.getBio()}" required>
-        </fieldset>
-
+        <!--
         <label for="team"></label>
         <select id="team" th:each="team, iter : ${allTeams}" th:value="${user.getTeam()}" required>
             <option th:id="'team-' + ${team.getID()}" th:value="${team.getID()}" th:text="${team.getTitle()}"></option>
@@ -38,9 +34,10 @@
         <select id="department" th:each="department, iter : ${allDepartments}" th:value="${user.getDepartment()}" required>
             <option th:id="'department-' + ${department.getID()}" th:value="${department.getID()}" th:text="${department.getTitle()}"></option>
         </select>
+        -->
 
         <button type="submit">Update</button>
-        <button th:href="@{}">Cancel</button>
+        <button th:href="@{/employees}">Cancel</button>
     </fieldset>
 </form>
 </body>

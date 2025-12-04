@@ -4,61 +4,73 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 public class Project {
+    private int ID;
     private String projectTitle;
     private String projectDescription;
     private LocalDate projectStart;
     private LocalDate projectEnd;
 
-    public Project(String title, String description, LocalDate start, LocalDate end) {
+    public Project(int id, String title, String description, LocalDate start, LocalDate end) {
+        ID = id;
         this.projectTitle = title;
         this.projectDescription = description;
         this.projectStart = start;
         this.projectEnd = end;
     }
 
-    public Project() {}
+    public Project() {
 
-    public String getProjectTitle() {
-        return projectTitle;
+    }
+
+    public void setID(int ID) {
+        this.ID = ID;
     }
 
     public void setProjectTitle(String projectTitle) {
         this.projectTitle = projectTitle;
     }
 
-    public String getProjectDescription() {
-        return projectDescription;
-    }
-
     public void setProjectDescription(String projectDescription) {
         this.projectDescription = projectDescription;
-    }
-
-    public LocalDate getProjectStart() {
-        return projectStart;
     }
 
     public void setProjectStart(LocalDate projectStart) {
         this.projectStart = projectStart;
     }
 
+    public void setProjectEnd(LocalDate projectEnd) {
+        this.projectEnd = projectEnd;
+    }
+
+    public String getProjectTitle() {
+        return projectTitle;
+    }
+
+    public String getProjectDescription() {
+        return projectDescription;
+    }
+
+    public LocalDate getProjectStart() {
+        return projectStart;
+    }
+
     public LocalDate getProjectEnd() {
         return projectEnd;
     }
 
-    public void setProjectEnd(LocalDate projectEnd) {
-        this.projectEnd = projectEnd;
+    public int getID() {
+        return this.ID;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Project project = (Project) o;
-        return Objects.equals(projectTitle, project.projectTitle) && Objects.equals(projectDescription, project.projectDescription) && Objects.equals(projectStart, project.projectStart) && Objects.equals(projectEnd, project.projectEnd);
+        return ID == project.ID && Objects.equals(projectTitle, project.projectTitle) && Objects.equals(projectDescription, project.projectDescription) && Objects.equals(projectStart, project.projectStart) && Objects.equals(projectEnd, project.projectEnd);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(projectTitle, projectDescription, projectStart, projectEnd);
+        return Objects.hash(ID, projectTitle, projectDescription, projectStart, projectEnd);
     }
 }

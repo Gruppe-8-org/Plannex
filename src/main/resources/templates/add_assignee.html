@@ -6,20 +6,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-<form th:action="">
+<form th:action="@{/employees/{username}(username=${sessionUser})}">
     <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <h1>Add Assignees</h1>
-<form th:action="@{/}" th:object="${user}" method="post">
+<form th:action="@{/project/{pid}/tasks/{tid}/subtasks/{sid}/assign-workers(pid = ${pid}, tid = ${tid}, sid = ${sid})}" method="post">
     <fieldset>
         <fieldset>
             <legend>Check off which employees you wish to assign to this project/team/department/task/subtask</legend>
             <div th:each="user : ${allUsers}">
-                <input type="checkbox" th:id="'product-' + ${user.getID()}" th:value="${user.getID()}" th:text="${user.getUsername()}" th:field="*{guestIDs}">
+                <input type="checkbox" th:id="'Employee -' + ${user.employeeName}" th:value="${user.employeeUsername}" th:text="${user.employeeName}" name="usernames">
             </div>
         </fieldset>
         <button type="submit">Assign</button>
-        <button th:href="@{}">Cancel</button>
+        <button th:href="@{/project/{pid}/tasks/{tid}/subtasks/{sid}(pid = ${pid}, tid = ${tid}, sid = ${sid})}">Cancel</button>
     </fieldset>
 </form>
 </body>

@@ -6,11 +6,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-<form th:action="">
+<form th:action="@{/employees/{username}(username=${sessionUser})}">
     <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <h1>Teams, Users and Departments</h1>
 <fieldset>
+    <!--
     <fieldset>
         <legend>Teams <a th:href="@{/}">+</a></legend>
         <div th:each="team, iter : ${allTeams}">
@@ -35,14 +36,15 @@
             </form>
         </div>
     </fieldset>
+    -->
     <fieldset>
         <legend>Users <a th:href="@{/}">+</a></legend>
         <div th:each="user, iter : ${allUsers}">
-            <p th:text="${user.username}"></p>
-            <form th:action="">
+            <p th:text="${user.employeeUsername}"></p>
+            <form th:action="@{/employees/{username}/edit(username=${allUsers[iter.index].getEmployeeUsername()})}">
                 <button type="submit" style="font-size:24px"><i class="fa fa-edit"></i></button>
             </form>
-            <form th:action="">
+            <form th:action="@{/employees/{username}/delete(username=${allUsers[iter.index].getEmployeeUsername()})}">
                 <button type="submit" style="font-size:24px"><i class="fa fa-remove"></i></button>
             </form>
         </div>

@@ -6,50 +6,57 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-<form th:action="">
+<form th:action="@{/employees/{username}(username=${sessionUser})}">
     <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <fieldset>
     <fieldset>
-        <legend th:text="Task ${task.getID()} - start/end - status - importance "></legend>
-        <p th:text="${task.getStartDate}"></p>
-        <p th:text="${task.getEndDate}"></p>
-        <p th:text="${task.getStatus}"></p>
-        <p th:text="${task.getImportance}"></p>
+        <legend th:text="'Task ' + ${task.ID}"></legend>
+        <p th:text="${task.taskStart}"></p>
+        <p th:text="${task.taskEnd}"></p>
     </fieldset>
 
+    <!--
     <fieldset>
         <legend>Teams</legend>
         <p th:text="${task.getTaskMembers()}"></p>
     </fieldset>
-
+    -->
     <fieldset>
         <legend>Dependencies</legend>
-        <p th:text="${task.getDependantTasks}"></p>
+        <div th:each="dependency : ${dependencies}">
+            <p th:text="${dependency.first()} + ' blocked by ' + ${dependency.second()}"></p>
+        </div>
+
     </fieldset>
 
+
     <fieldset>
-        <legend>Artefacts</legend>
-        <p th:text="${task.getArtefacts}"></p>
+        <legend>Artifacts</legend>
+        <div th:each="artifact : ${artifacts}">
+            <p th:text="${artifact.second()} + ' uploaded by ' + ${artifact.first()}"></p>
+        </div>
+
     </fieldset>
 
     <fieldset>
         <legend>Resources</legend>
-        <p th:text="${task.getResources}"></p>
+        <p th:text="${timeSpent} + ' hours'"></p>
+        <p th:text="${assignees.size()} + 'employees'"></p>
     </fieldset>
 
     <fieldset>
         <legend>Subtasks (x/y)</legend>
-        <fieldset th:each="subtask, iter : ${task.getAllSubtasks()}">
-            <h2 th:text="Sub ${subtask.getID()}"></h2>
+        <fieldset th:each="subtask, iter : ${subtasks}">
+            <h2 th:text="'Subtask ' + ${subtask.ID}"></h2>
             <fieldset>
-                <p th:text="${subtask.getUserAmount()}" style="font-size:14px"><i class="fa fa-user"></i></p>
-                <p th:text="${subtask.getTimeEstimate}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
+                <p th:text="${subtaskAssignees[iter.index]}" style="font-size:14px"><i class="fa fa-user"></i></p>
+                <p th:text="${subtaskTimeSpents[iter.index]}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
             </fieldset>
         </fieldset>
 
         <fieldset>
-            <form th:action="">
+            <form th:action="@{/projects/{pid}/tasks/{tid}/add-subtask(pid = ${pid}, tid = ${tid})}">
                 <button type="submit" style="font-size:50px">+</button>
             </form>
         </fieldset>
