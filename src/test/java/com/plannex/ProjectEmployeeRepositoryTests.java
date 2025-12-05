@@ -60,7 +60,7 @@ public class ProjectEmployeeRepositoryTests {
 
     @Test
     public void getEmployeeByUsernameReturnsNullWhenEmployeeDoesNotExist() {
-        assertNull(projectEmployeeRepository.getEmployeeByUsername("jh5024"));
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No employee with username jh5024 exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.getEmployeeByUsername("jh5024"));
     }
 
     @Test
@@ -112,7 +112,7 @@ public class ProjectEmployeeRepositoryTests {
     public void deleteEmployeeByUsernameWorksOnExistingEmployee() {
         int rowsAffected = projectEmployeeRepository.deleteEmployeeByUsername("marqs");
         assertTrue(rowsAffected >= 1); // Unsure if cascading DELETES count
-        assertNull(projectEmployeeRepository.getEmployeeByUsername("marqs"));
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No employee with username marqs exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.getEmployeeByUsername("marqs"));
     }
 
     @Test
@@ -123,7 +123,7 @@ public class ProjectEmployeeRepositoryTests {
     @Test
     public void deleteEmployeeByUsernameCascadesCorrectly() {
         projectEmployeeRepository.deleteEmployeeByUsername("marqs");
-        assertNull(projectEmployeeRepository.getEmployeePermissions("marqs"));
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No permissions registered for user with username marqs.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.getEmployeePermissions("marqs"));
         assertFalse(jdbcTemplate.queryForObject("SELECT COUNT(*) > 0 FROM TaskAssignees WHERE EmployeeUsername = ?", boolean.class, "marqs"));
         assertFalse(jdbcTemplate.queryForObject("SELECT COUNT(*) > 0 FROM TimeSpent WHERE ByEmployee = ?", boolean.class, "marqs"));
         assertFalse(jdbcTemplate.queryForObject("SELECT COUNT(*) > 0 FROM Artifacts WHERE ArtifactAuthor = ?", boolean.class, "marqs"));

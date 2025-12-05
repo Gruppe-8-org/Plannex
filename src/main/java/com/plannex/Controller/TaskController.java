@@ -1,6 +1,7 @@
 package com.plannex.Controller;
 
 import com.plannex.Exception.InsufficientPermissionsException;
+import com.plannex.Model.Project;
 import com.plannex.Model.Task;
 import com.plannex.Service.ProjectEmployeeService;
 import com.plannex.Service.ProjectService;
@@ -169,6 +170,7 @@ public class TaskController {
         }
 
         model.addAttribute("subtask", taskService.getTaskByID(sid));
+        model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "edit_subtask";
     }
 
@@ -179,11 +181,12 @@ public class TaskController {
     }
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}/add-artifact")
-    public String showAddArtifactPage(HttpSession session) {
+    public String showAddArtifactPage(Model model, HttpSession session) {
         if (!isLoggedIn(session)) {
             return "redirect:/login";
         }
 
+        model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "add_artefact";
     }
 
@@ -209,6 +212,8 @@ public class TaskController {
         model.addAttribute("dependencies", taskService.getAllDependenciesForTask(tid));
         model.addAttribute("subtaskAssignees", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllAssigneesForTask(task.getID())).toList());
         model.addAttribute("subtaskTimeSpents", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllTimeContributionsForTask(task.getID())).toList());
+        model.addAttribute("isManager", isManager(session));
+        model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "task_window";
     }
 
@@ -222,6 +227,7 @@ public class TaskController {
         model.addAttribute("artifacts", taskService.getAllArtifactsForTask(sid));
         model.addAttribute("dependencies", taskService.getAllDependenciesForTask(sid));
         model.addAttribute("assignees", taskService.getAllAssigneesForTask(sid));
+        model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "subtask_window";
     }
 
@@ -236,6 +242,7 @@ public class TaskController {
         }
 
         model.addAttribute("task", taskService.getTaskByID(tid));
+        model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "edit_task";
     }
 
@@ -246,7 +253,7 @@ public class TaskController {
     }
 
     @GetMapping("/tasks/{tid}/delete")
-    public String showDeleteTask(@PathVariable int tid, Model model, HttpSession session) {
+    public String showDeleteTask(@PathVariable int pid, @PathVariable int tid, Model model, HttpSession session) {
         if (!isLoggedIn(session)) {
             return "redirect:/login";
         }
@@ -255,18 +262,26 @@ public class TaskController {
             throw new InsufficientPermissionsException("Only managers may delete tasks.");
         }
 
-        model.addAttribute("task", taskService.getTaskByID(tid));
-        return "delete_task_window";
+        Task t = taskService.getTaskByID(tid);
+        model.addAttribute("sessionUser", session.getAttribute("username").toString());
+        model.addAttribute("title", t.getTaskTitle());
+        model.addAttribute("description", t.getTaskDescription());
+        model.addAttribute("start", t.getTaskStart());
+        model.addAttribute("end", t.getTaskEnd());
+        model.addAttribute("mainEntityType", "task");
+        model.addAttribute("whereToSubmit", "/projects/" + pid + "/tasks/" + tid + "/delete");
+        model.addAttribute("whereToGoOnCancel", "/projects/" + pid + "/tasks/" + tid);
+        return "delete_main_entity";
     }
 
     @PostMapping("/tasks/{tid}/delete")
     public String deleteTask(@PathVariable int pid, @PathVariable int tid) {
         taskService.deleteTaskByID(tid);
-        return "redirect:/projects/" + pid + "tasks/" + tid + "/delete";
+        return "redirect:/projects/" + pid;
     }
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}/delete")
-    public String showDeleteSubtask(@PathVariable int sid, Model model, HttpSession session) {
+    public String showDeleteSubtask(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, Model model, HttpSession session) {
         if (!isLoggedIn(session)) {
             return "redirect:/login";
         }
@@ -275,13 +290,21 @@ public class TaskController {
             throw new InsufficientPermissionsException("Only managers may delete subtasks.");
         }
 
-        model.addAttribute("subtask", taskService.getTaskByID(sid));
-        return "delete_task_window";
+        Task s = taskService.getTaskByID(sid);
+        model.addAttribute("sessionUser", session.getAttribute("username").toString());
+        model.addAttribute("title", s.getTaskTitle());
+        model.addAttribute("description", s.getTaskDescription());
+        model.addAttribute("start", s.getTaskStart());
+        model.addAttribute("end", s.getTaskEnd());
+        model.addAttribute("mainEntityType", "subtask");
+        model.addAttribute("whereToSubmit", "/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid + "/delete");
+        model.addAttribute("whereToGoOnCancel", "/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid);
+        return "delete_main_entity";
     }
 
-    @PostMapping("/tasks/{tid}/subtasks/{sid}delete")
-    public String deleteSubtask(@PathVariable int tid, @PathVariable int sid) {
+    @PostMapping("/tasks/{tid}/subtasks/{sid}/delete")
+    public String deleteSubtask(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid) {
         taskService.deleteTaskByID(sid);
-        return "redirect:/projects/tasks/" + tid;
+        return "redirect:/projects/" + pid + "/tasks/" + tid;
     }
 }

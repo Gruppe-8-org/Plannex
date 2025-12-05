@@ -7,7 +7,7 @@
 </head>
 <body>
 <form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <h1>Edit Project</h1>
 <form th:action="@{/projects/{pid}/edit(pid=${project.ID})}" th:object="${project}" method="post">
@@ -28,7 +28,7 @@
         </fieldset>
 
         <button type="submit">Update</button>
-        <button th:href="@{/projects}">Cancel</button>
+        <a th:href="@{/projects}" class="btn" th:text="Cancel"></a>
     </fieldset>
 </form>
 </body>

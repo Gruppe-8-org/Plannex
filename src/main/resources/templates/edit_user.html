@@ -6,23 +6,31 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+<form th:action="@{/employees/{uname}(username=${oldUsername})}">
+    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <h1>Edit User</h1>
-<form th:action="@{/employees/{username}/edit}" th:object="${user}" method="post">
+<form th:action="@{/employees/{uname}/edit(uname=${oldUsername})}" th:object="${user}" method="post">
     <fieldset>
         <label for="name">Name</label>
         <input id="name" th:field="*{employeeName}" th:value="${user.employeeName}" required>
 
         <label for="username">Username</label>
-        <input id="username" th:field="*{employeeUsername}" th:value="${user.employeeUsername}" required>
+        <input id="username" th:field="*{employeeUsername}" th:value="${oldUsername}" required>
 
         <label for="email">Email</label>
         <input id="email" th:field="*{employeeEmail}" th:value="${user.employeeEmail}" required>
 
         <label for="password">Password</label>
         <input id="password" th:field="*{employeePassword}" th:value="${user.employeePassword}" type="password" required>
+
+        <label for="workingHoursFrom">Works from: </label>
+        <input id="workingHoursFrom" th:field="*{workingHoursFrom}" type="time">
+
+        <label for="workingHoursTo">Works to: </label>
+        <input id="workingHoursTo" th:field="*{workingHoursTo}" type="time">
+
+        <input name="oldUsername" th:value="${oldUsername}" type="hidden">
 
         <!--
         <label for="team"></label>
@@ -37,7 +45,7 @@
         -->
 
         <button type="submit">Update</button>
-        <button th:href="@{/employees}">Cancel</button>
+        <a th:href="@{/employees/{uname}(uname=${oldUsername})}" class="btn" th:text="Cancel"></a>
     </fieldset>
 </form>
 </body>
