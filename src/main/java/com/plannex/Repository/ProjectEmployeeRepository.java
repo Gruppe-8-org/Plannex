@@ -47,7 +47,7 @@ public class ProjectEmployeeRepository {
         try {
             return jdbcTemplate.queryForObject("SELECT * FROM ProjectEmployees WHERE EmployeeUsername = ?;", projectEmployeeRowMapper, username);
         } catch (EmptyResultDataAccessException erdae) {
-            return null;
+            throw new EntityDoesNotExistException("No employee with username " + username + " exists.");
         }
     }
 
@@ -63,7 +63,7 @@ public class ProjectEmployeeRepository {
         try {
             return jdbcTemplate.queryForObject("SELECT PermissionTitle FROM Permissions WHERE PermissionHolder = ?;", String.class, username);
         } catch (EmptyResultDataAccessException erdae) {
-            return null;
+            throw new EntityDoesNotExistException("No permissions registered for user with username " + username + ".");
         }
     }
 

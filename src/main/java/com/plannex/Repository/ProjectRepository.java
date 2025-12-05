@@ -94,9 +94,14 @@ public class ProjectRepository {
             throw new EntityDoesNotExistException("No project with projectID " + projectID + " exists.");
         }
 
-        return jdbcTemplate.queryForObject("""
-                SELECT SUM(HoursSpent) FROM TimeSpent AS tc
+        try {
+            return jdbcTemplate.queryForObject("""
+                
+                    SELECT SUM(HoursSpent) FROM TimeSpent AS tc
                 JOIN Tasks AS t ON tc.OnTaskID = t.TaskID
                 WHERE t.ProjectID = ?""", Float.class, projectID);
+        } catch (NullPointerException npe) {
+            return 0.0f;
+        }
     }
 }

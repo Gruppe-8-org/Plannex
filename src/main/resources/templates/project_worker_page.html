@@ -5,6 +5,32 @@
     <title>Your profile</title>
 </head>
 <body>
-
+    <main>
+        <h1 th:text="${employee.employeeName}"></h1>
+        <div id="profile_grid_top">
+            <ul class="ul-no-bullets">
+                <li>
+                    <label for="profile-username" class="body-bold">Username</label>
+                    <p id="profile-username" th:text="${employee.employeeUsername}"></p>
+                </li>
+                <li>
+                    <label for="profile-email" class="body-bold">Email</label>
+                    <p id="profile-email" th:text="${employee.employeeEmail}"></p>
+                </li>
+                <li>
+                    <label for="profile-work-hours" class="body-bold">Work hours</label>
+                    <p id="profile-work-hours" th:text="${employee.workingHoursFrom} + ' - ' + ${employee.workingHoursTo}"></p>
+                </li>
+            </ul>
+            <div class="horizontal-group">
+                <form th:action="@{/employees/{username}/edit(username=${employee.employeeUsername})}">
+                    <button class="btn" th:text="Edit"></button>
+                </form>
+                <form th:action="@{/projects}">
+                    <button class="btn-primary" th:text="Work"></button>
+                </form>
+            </div>
+        </div>
+    </main>
 </body>
 </html>

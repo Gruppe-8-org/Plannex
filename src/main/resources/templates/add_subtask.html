@@ -7,7 +7,7 @@
 </head>
 <body>
 <form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <h1>Add subtask</h1>
 <form th:action="@{/projects/{pid}/tasks/{tid}/add-subtask(pid=${pid}, tid=${tid})}" th:object="${subtask}" method="post">
@@ -31,7 +31,7 @@
         <input type="text" id="duration" th:field="*{taskDurationHours}" required>
 
         <button type="submit">Add</button>
-        <button th:href="@{/projects/{pid}/tasks/{tid}/subtasks(pid=${pid}, tid=${tid})}">Cancel</button>
+        <a th:href="@{/projects/{pid}/tasks/{tid}(pid = ${pid}, tid = ${tid})}" class="btn" th:text="Cancel"></a>
     </fieldset>
 </form>
 </body>

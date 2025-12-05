@@ -36,11 +36,13 @@ public class SessionController {
         if (projectEmployeeService.login(username, pw)) {
             session.setAttribute("username", username);
 
+            model.addAttribute("employee", projectEmployeeService.getEmployeeByUsername(username));
+            model.addAttribute("username", username);
             if (projectEmployeeRepository.getEmployeePermissions(username).equals("Manager")) {
-                return "redirect:/employees/" + username;
+                return "project_leader_page";
             }
 
-            return "redirect:/projects";
+            return "project_worker_page";
         }
 
         model.addAttribute("wrongCredentials", true);

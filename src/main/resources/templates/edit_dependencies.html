@@ -7,7 +7,7 @@
 </head>
 <body>
 <form th:action="">
-    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <h1>Edit Dependencies</h1>
 <form th:action="@{/}" th:object="${dependencies}" method="post">
@@ -21,7 +21,7 @@
         </fieldset>
 
         <button type="submit">Update</button>
-        <button th:href="@{}">Cancel</button>
+        <a th:href="@{/}" class="btn" th:text="Cancel"></a>
     </fieldset>
 </form>
 </body>

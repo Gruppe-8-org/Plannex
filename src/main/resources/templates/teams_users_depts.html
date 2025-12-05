@@ -7,7 +7,7 @@
 </head>
 <body>
 <form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <h1>Teams, Users and Departments</h1>
 <fieldset>
@@ -38,14 +38,14 @@
     </fieldset>
     -->
     <fieldset>
-        <legend>Users <a th:href="@{/}">+</a></legend>
+        <legend>Employees <a th:href="@{/employees/add-employee}" title="Add an employee">+</a></legend>
         <div th:each="user, iter : ${allUsers}">
             <p th:text="${user.employeeUsername}"></p>
             <form th:action="@{/employees/{username}/edit(username=${allUsers[iter.index].getEmployeeUsername()})}">
-                <button type="submit" style="font-size:24px"><i class="fa fa-edit"></i></button>
+                <button type="submit" style="font-size:24px"><i class="fa fa-edit" title="Edit employee information"></i></button>
             </form>
             <form th:action="@{/employees/{username}/delete(username=${allUsers[iter.index].getEmployeeUsername()})}">
-                <button type="submit" style="font-size:24px"><i class="fa fa-remove"></i></button>
+                <button type="submit" style="font-size:24px"><i class="fa fa-remove" title="Delete employee"></i></button>
             </form>
         </div>
     </fieldset>

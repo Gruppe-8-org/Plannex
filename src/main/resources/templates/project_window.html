@@ -7,7 +7,7 @@
 </head>
 <body>
 <form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <div>
     <h1 th:text="${project.getProjectTitle()}"></h1>
@@ -45,7 +45,7 @@
 
         <fieldset th:if="${isManager}">
             <form th:action="@{/projects/{pid}/add-task(pid=${project.getID()})}">
-                <button type="submit" style="font-size:50px">+</button>
+                <button type="submit" style="font-size:50px" title="Add a task to this project">+</button>
             </form>
         </fieldset>
     </fieldset>
