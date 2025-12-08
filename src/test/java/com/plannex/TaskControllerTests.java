@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -53,6 +54,7 @@ public class TaskControllerTests {
         when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
         mockMvc.perform(get("/projects/1/add-task").session(sessionWithUser("MRY")))
                 .andExpect(status().isForbidden())
+                .andExpect(model().attribute("message", "Only managers may add tasks."))
                 .andExpect(view().name("error"));
         verify(projectEmployeeService, times(1)).getPermissions("MRY");
     }
@@ -60,18 +62,15 @@ public class TaskControllerTests {
     @Test
     void saveTaskRedirectsOnSuccess() throws Exception {
         mockMvc.perform(post("/projects/1/add-task")
-                        .param("TaskID", "17")
-                .param("ParentProjectID", "1")
-                .param("ParentTaskID", "0")
-                .param("TaskTitle", "Title")
-                .param("TaskDescription", "Description")
-                .param("Start", "2025-11-12")
-                .param("End", "2025-11-12")
-                .param("DurationInHours", "0.5"))
+                .param("parentTaskID", "0")
+                .param("taskTitle", "Title")
+                .param("taskDescription", "Description")
+                .param("taskStart", "2025-11-12")
+                .param("taskEnd", "2025-11-12")
+                .param("taskDurationHours", "0.5"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/projects/1"));
-        ArgumentCaptor<Task> captor = ArgumentCaptor.forClass(Task.class);
-        verify(taskService, times(1)).addTask(captor.capture());
+        verify(taskService, times(1)).addTask(new Task(0, 1, 0, "Title", "Description", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f));
     }
 
     @Test
@@ -89,6 +88,7 @@ public class TaskControllerTests {
         when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
         mockMvc.perform(get("/projects/1/tasks/1/add-subtask").session(sessionWithUser("MRY")))
                 .andExpect(status().isForbidden())
+                .andExpect(model().attribute("message", "Only managers may add subtasks."))
                 .andExpect(view().name("error"));
         verify(projectEmployeeService, times(1)).getPermissions("MRY");
     }
@@ -96,17 +96,14 @@ public class TaskControllerTests {
     @Test
     void saveSubtaskRedirectsOnSuccess() throws Exception {
         mockMvc.perform(post("/projects/1/tasks/1/add-subtask")
-                        .param("ParentProjectID", "1")
-                        .param("ParentTaskID", "1")
-                        .param("TaskTitle", "Title")
-                        .param("TaskDescription", "Description")
-                        .param("Start", "2025-11-12")
-                        .param("End", "2025-11-12")
-                        .param("DurationInHours", "0.5"))
+                        .param("taskTitle", "Title")
+                        .param("taskDescription", "Description")
+                        .param("taskStart", "2025-11-12")
+                        .param("taskEnd", "2025-11-12")
+                        .param("taskDurationHours", "0.5"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/projects/1/tasks/1"));
-        ArgumentCaptor<Task> captor = ArgumentCaptor.forClass(Task.class);
-        verify(taskService, times(1)).addSubtask(captor.capture());
+        verify(taskService, times(1)).addSubtask(new Task(0, 1, 1, "Title", "Description", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f));
     }
 
     @Test
@@ -123,6 +120,8 @@ public class TaskControllerTests {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/2"));
         verify(taskService, times(1)).addFollowsDependency(2, 1);
+        verify(taskService, times(1)).addFollowsDependency(2, 3);
+        verify(taskService, times(1)).addFollowsDependency(2, 4);
     }
 
     @Test
@@ -149,6 +148,7 @@ public class TaskControllerTests {
         when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/5/assign-workers").session(sessionWithUser("MRY")))
                 .andExpect(status().isForbidden())
+                .andExpect(model().attribute("message", "Only managers may assign workers tasks."))
                 .andExpect(view().name("error"));
         verify(projectEmployeeService, times(1)).getPermissions("MRY");
     }
@@ -159,10 +159,11 @@ public class TaskControllerTests {
                 .param("allUsers", "lildawg", "marqs", "bigdawg")
                 .param("usernames", "lildawg", "marqs"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/subtasks/5"));
+                .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/5"));
 
         verify(taskService, times(1)).assignTaskToEmployee(5, "lildawg");
         verify(taskService, times(1)).assignTaskToEmployee(5, "marqs");
+        verify(taskService, times(0)).assignTaskToEmployee(5, "bigdawg");
     }
 
     @Test
@@ -187,11 +188,19 @@ public class TaskControllerTests {
     void showTaskPageHasRightAttrsAndRoutesAsExpected() throws Exception {
         Task task = new Task(1, 1, 0, "Project startup", "Building a good foundation for the actual work to come later.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 13), 22.667f);
         when(taskService.getTaskByID(1)).thenReturn(task);
+        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
         mockMvc.perform(get("/projects/1/tasks/1").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("assignees"))
+                .andExpect(model().attributeExists("task"))
                 .andExpect(model().attributeExists("subtasks"))
+                .andExpect(model().attributeExists("assignees"))
                 .andExpect(model().attributeExists("timeSpent"))
+                .andExpect(model().attributeExists("artifacts"))
+                .andExpect(model().attributeExists("dependencies"))
+                .andExpect(model().attributeExists("subtaskAssignees"))
+                .andExpect(model().attributeExists("subtaskTimeSpents"))
+                .andExpect(model().attributeExists("isManager"))
+                .andExpect(model().attributeExists("sessionUser"))
                 .andExpect(view().name("task_window"));
     }
 
@@ -204,7 +213,8 @@ public class TaskControllerTests {
                 .andExpect(model().attributeExists("subtask"))
                 .andExpect(model().attributeExists("assignees"))
                 .andExpect(model().attributeExists("dependencies"))
-                .andExpect(model().attributeExists("artifacts"));
+                .andExpect(model().attributeExists("artifacts"))
+                .andExpect(model().attributeExists("sessionUser"));
     }
 
     @Test
@@ -214,6 +224,7 @@ public class TaskControllerTests {
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/edit").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("subtask"))
+                .andExpect(model().attributeExists("sessionUser"))
                 .andExpect(view().name("edit_subtask"));
     }
 
@@ -269,5 +280,88 @@ public class TaskControllerTests {
                 .andExpect(redirectedUrl("/projects/1/tasks/1"));
         ArgumentCaptor<Task> captor = ArgumentCaptor.forClass(Task.class);
         verify(taskService, times(1)).updateTask(captor.capture(), eq(2));
+    }
+
+    @Test
+    void showAddTimeContributionFormRoutesCorrectly() throws Exception {
+        Task t = new Task(2, 1, 1, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
+        when(taskService.getTaskByID(2)).thenReturn(t);
+        mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/contribute-time").session(sessionWithUser("MRY")))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("sessionUser", "MRY"))
+                .andExpect(model().attribute("subtaskTitle", "Set up GitHub project"))
+                .andExpect(view().name("add_time_contribution"));
+        verify(taskService, times(1)).getTaskByID(2);
+    }
+
+    @Test
+    void showAddTimeContributionRedirectsToLoginIfNoSession() throws Exception {
+        mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/contribute-time"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    void saveTimeContributionWorksAsExpected() throws Exception {
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/contribute-time").session(sessionWithUser("MRY"))
+                .param("timeSpent", "2.0"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/2"));
+        verify(taskService, times(1)).contributeTime(eq("MRY"), eq(2), eq(2.0f));
+    }
+
+    @Test
+    void deleteTimeContributionWorksAsExpected() throws Exception {
+        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-time-contribution").session(sessionWithUser("MRY"))
+                .param("byEmployee", "MRY")
+                .param("when", "2025-11-12T10:00:00"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/2"));
+        verify(taskService, times(1)).deleteTimeContribution(eq("MRY"), eq(2), eq(LocalDateTime.of(2025, 11, 12, 10, 0, 0)));
+    }
+
+    @Test
+    void deleteTimeThrowsOnWorkerTryingToDeleteOtherWorkersTC() throws Exception {
+        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-time-contribution").session(sessionWithUser("MRY"))
+                        .param("byEmployee", "MRY")
+                        .param("when", "2025-11-12T10:00:00"))
+                .andExpect(status().isForbidden())
+                .andExpect(model().attribute("message", "Managers may delete all time contributions, workers may only delete their own."))
+                .andExpect(view().name("error"));
+    }
+
+    @Test
+    void deleteArtifactWorksAsExpectedOnManager() throws Exception {
+        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-artifact").session(sessionWithUser("MRY"))
+                .param("author", "MRY")
+                .param("artifactPath", "/src/main/resources/example_artifact.pdf"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/2"));
+        verify(taskService, times(1)).deleteArtifact(2, "MRY", "/src/main/resources/example_artifact.pdf");
+    }
+
+    @Test
+    void deleteArtifactWorksAsExpectedOnAuthor() throws Exception {
+        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-artifact").session(sessionWithUser("MRY"))
+                        .param("author", "MRY")
+                        .param("artifactPath", "/src/main/resources/example_artifact.pdf"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/2"));
+        verify(taskService, times(1)).deleteArtifact(2, "MRY", "/src/main/resources/example_artifact.pdf");
+    }
+
+    @Test
+    void deleteArtifactThrowsOnInsufficientPermissions() throws Exception {
+        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-artifact").session(sessionWithUser("MRY"))
+                        .param("author", "lildawg")
+                        .param("artifactPath", "/src/main/resources/example_artifact.pdf"))
+                .andExpect(status().isForbidden())
+                .andExpect(model().attribute("message", "Managers may delete all artifacts, workers may only delete their own."))
+                .andExpect(view().name("error"));
     }
 }
