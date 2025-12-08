@@ -7,7 +7,7 @@
 </head>
 <body>
 <form th:action="">
-    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <h1>Add Comment</h1>
 <form th:action="@{/}" th:object="${comment}" method="post">
@@ -22,7 +22,7 @@
         </fieldset>
 
         <button type="submit">Add</button>
-        <button th:href="@{}">Cancel</button>
+        <button th:href="@{}" formnovalidate>Cancel</button>
     </fieldset>
 </form>
 </body>

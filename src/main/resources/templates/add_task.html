@@ -7,7 +7,7 @@
 </head>
 <body>
 <form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <h1>Add task</h1>
 <form th:action="@{/projects/{pid}/add-task(pid=${pid})}" th:object="${task}" method="post">
@@ -17,8 +17,6 @@
             <label for="description"></label>
             <input id="description" th:field="*{taskDescription}" required>
         </fieldset>
-
-        <input th:field="*{parentProjectID}" th:value="${pid}" type="hidden">
 
         <label for="title">Title</label>
         <input id="title" th:field="*{taskTitle}" required>
@@ -30,10 +28,10 @@
         <input type="date" id="endDate" th:field="*{taskEnd}" required>
 
         <label for="duration">Duration (hours)</label>
-        <input type="text" id="duration" th:field="*{taskDurationHours}" required>
+        <input type="text" id="duration" th:field="*{taskDurationHours}" pattern="\d+(\.\d+)?" title="Please enter a decimal number." required>
 
         <button type="submit">Add</button>
-        <button th:href="@{/projects/{pid}(pid=${pid})}">Cancel</button>
+        <a th:href="@{/projects/{pid}(pid = ${pid})}" class="btn" th:text="Cancel"></a>
     </fieldset>
 </form>
 </body>

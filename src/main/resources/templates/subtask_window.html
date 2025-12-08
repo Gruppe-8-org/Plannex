@@ -6,33 +6,33 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-<<form th:action="@{/employees/{username}(username=${sessionUser})}">
+<<form th:action="@{/employees/{username}(username=${sessionUser})}" title="Go to your profile">
     <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <fieldset>
     <fieldset>
-        <legend th:text="${subtask.ID} + ' - start/end '"> <a th:href="@{/}">edit</a></legend>
+        <legend th:text="${subtask.taskTitle} + ' - start/end '"> <a th:href="@{/}">edit</a></legend>
         <p th:text="${subtask.taskStart}"></p>
         <p th:text="${subtask.taskEnd}"></p>
         <p th:text="${subtask.taskDescription}"></p>
     </fieldset>
 
     <fieldset>
-        <legend>Assignees <a th:href="@{/}">+</a></legend>
+        <legend>Assignees <a th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/assign-workers(pid=${pid}, tid=${tid}, sid=${sid})}" title="Assign workers to this task">+</a></legend>
         <div th:each="assignee : ${assignees}">
             <p th:text="${assignee.employeeName}"></p>
         </div>
     </fieldset>
 
     <fieldset>
-        <legend>Dependencies <a th:href="@{/}">+</a></legend>
+        <legend>Dependencies <a th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/add-dependency(pid=${pid}, tid=${tid}, sid=${sid})}" title="Add dependencies to this task">+</a></legend>
         <div th:each="dependency : ${dependencies}">
             <p th:text="${dependency.first()} ' - blocked by ' + ${dependency.second()}"></p>
         </div>
     </fieldset>
 
     <fieldset>
-        <legend>Artifacts <a th:href="@{/}">+</a></legend>
+        <legend>Artifacts <a th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/add-artifact(pid=${pid}, tid=${tid}, sid=${sid})}" title="Add artifacts to this task">+</a></legend>
         <div th:each="artifact : ${artifacts}">
             <p th:text="${artifact.second()} + ' uploaded by ' + ${artifact.first()}"></p>
         </div>

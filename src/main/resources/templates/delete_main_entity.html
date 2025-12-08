@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add task</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<form th:action="@{/employees/{username}(username=${sessionUser})}">
+    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
+</form>
+<h1 th:text="'Delete ' + ${mainEntityType}"></h1>
+<form th:action="@{{wts}(wts=${whereToSubmit})}" th:object="${task}" method="post">
+    <fieldset>
+        <fieldset>
+            <label for="description" class="body-bold">Description</label>
+            <p id="description" th:text="${description}"></p>
+        </fieldset>
+
+        <label for="title" class="body-bold">Title</label>
+        <p id="title" th:text="${title}"></p>
+
+        <label for="startDate" class="body-bold">Start Date</label>
+        <p id="startDate" th:text="${start}"></p>
+
+        <label for="endDate" class="body-bold">End Date</label>
+        <p id="endDate" th:text="${end}" ></p>
+
+        <button type="submit">Add</button>
+        <a th:href="@{{wtgoc}(wtgoc=${whereToGoOnCancel})}" class="btn" th:text="Cancel"></a>
+    </fieldset>
+</form>
+</body>
+</html>

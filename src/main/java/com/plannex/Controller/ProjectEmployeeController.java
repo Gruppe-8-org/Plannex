@@ -77,7 +77,9 @@ public class ProjectEmployeeController {
         if (!isLoggedIn(session)) {
             return "redirect:/login";
         }
+
         model.addAttribute("allUsers", projectEmployeeService.getAllEmployees());
+        model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "teams_users_depts";
     }
 
@@ -92,13 +94,15 @@ public class ProjectEmployeeController {
         }
 
         model.addAttribute("user", getEmployeeOrThrow(username));
+        model.addAttribute("oldUsername", getEmployeeOrThrow(username).getEmployeeUsername()); // FK Integrity fails without this
         return "edit_user";
     }
 
     @PostMapping("/{username}/edit")
-    public String saveEditedEmployee(@ModelAttribute ProjectEmployee updatedEmployee, @PathVariable String username) {
-        projectEmployeeService.updateEmployee(updatedEmployee, username);
-        return "redirect:/employees/" + username;
+    public String saveEditedEmployee(@ModelAttribute ProjectEmployee updatedEmployee, @RequestParam("oldUsername") String oldUsername, HttpSession session) {
+        projectEmployeeService.updateEmployee(updatedEmployee, oldUsername);
+        session.setAttribute("username", updatedEmployee.getEmployeeUsername()); // Was a very confusing bug before this
+        return "redirect:/employees/" + updatedEmployee.getEmployeeUsername();
     }
 
     @GetMapping("/{username}/delete")

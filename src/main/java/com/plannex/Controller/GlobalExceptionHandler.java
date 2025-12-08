@@ -6,11 +6,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import javax.naming.OperationNotSupportedException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    @GetMapping("/error")
     private String handleBody(Model model, HttpStatus statusCode, String errorString, String errorMessage, HttpServletResponse response) {
         response.setStatus(statusCode.value());
         model.addAttribute("status", statusCode.value());

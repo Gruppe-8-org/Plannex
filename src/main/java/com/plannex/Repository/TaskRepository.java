@@ -328,4 +328,31 @@ public class TaskRepository {
 
         return jdbcTemplate.update("DELETE FROM Tasks WHERE TaskID = ?;", taskID);
     }
+
+    public float getTotalTimeSpent(int taskID) {
+        if (getTaskByID(taskID) == null) {
+            throw new EntityDoesNotExistException("No project with projectID " + taskID + " exists.");
+        }
+
+        try {
+            return jdbcTemplate.queryForObject("""
+                
+                    SELECT SUM(HoursSpent) FROM TimeSpent AS tc
+                JOIN Tasks AS t ON tc.OnTaskID = t.TaskID
+                WHERE t.ProjectID = ?""", Float.class, taskID);
+        } catch (NullPointerException npe) {
+            return 0.0f;
+        }
+    }
+
+    public Integer getAllInvolved(int taskID) {
+        if (getTaskByID(taskID) == null) {
+            throw new EntityDoesNotExistException("No project with ID " + taskID + " exists.");
+        }
+
+        return jdbcTemplate.queryForObject("""
+                SELECT COUNT(DISTINCT ta.EmployeeUsername) FROM TaskAssignees AS ta
+                JOIN Tasks AS t ON ta.TaskID = t.TaskID
+                WHERE t.ProjectID = ?""", Integer.class, taskID);
+    }
 }

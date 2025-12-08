@@ -7,7 +7,7 @@
 </head>
 <body>
 <form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
+    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <div>
     <h1 th:text="${project.getProjectTitle()}"></h1>
@@ -22,7 +22,7 @@
 
     <fieldset>
         <legend>Resource Use</legend>
-        <p th:text="${timeSpent} + 'hours'"></p>
+        <p th:text="${#numbers.formatDecimal(timeSpent, 0, 0)} + ' hours'"></p>
     </fieldset>
 
     <!--
@@ -36,16 +36,16 @@
     <fieldset>
         <legend>Tasks</legend>
         <fieldset th:each="task, iter : ${allTasks}">
-            <h2 th:text="'Task ' + ${task.getID()}"></h2>
+            <h2 th:text="${task.getTaskTitle()}"></h2>
             <fieldset>
-                <p th:text="${taskAssignees[iter.index].size()}" style="font-size:14px"><i class="fa fa-user"></i></p>
-                <p th:text="${taskTimeContributions[iter.index]}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
+                <p th:text="${#numbers.formatDecimal(taskAssignees[iter.index].size(), 0, 0)}" style="font-size:14px"><i class="fa fa-user"></i></p>
+                <p th:text="${#numbers.formatDecimal(taskTimeContributions[iter.index], 0, 0)}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
             </fieldset>
         </fieldset>
 
         <fieldset th:if="${isManager}">
             <form th:action="@{/projects/{pid}/add-task(pid=${project.getID()})}">
-                <button type="submit" style="font-size:50px">+</button>
+                <button type="submit" style="font-size:50px" title="Add a task to this project">+</button>
             </form>
         </fieldset>
     </fieldset>

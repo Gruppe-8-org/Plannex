@@ -57,6 +57,7 @@ public class ProjectController {
         model.addAttribute("allProjects", allProjects);
         model.addAttribute("employeesInvolved", allProjects.stream().map(project -> projectService.getAllInvolved(project.getID())).toList());
         model.addAttribute("startDates", allProjects.stream().map(project -> project.getProjectStart().toString()).toList());
+        model.addAttribute("timeSpents", allProjects.stream().map(project -> projectService.getTotalTimeSpent(project.getID())).toList());
         model.addAttribute("endDates", allProjects.stream().map(project -> project.getProjectEnd().toString()).toList());
         model.addAttribute("isManager", isManager(session));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
@@ -132,9 +133,17 @@ public class ProjectController {
             throw new InsufficientPermissionsException("Only managers may delete projects.");
         }
 
-        model.addAttribute("project", getProjectOrThrow(pid));
+        Project p = getProjectOrThrow(pid);
+        model.addAttribute("ID", pid);
+        model.addAttribute("title", p.getProjectTitle());
+        model.addAttribute("description", p.getProjectDescription());
+        model.addAttribute("start", p.getProjectStart());
+        model.addAttribute("end", p.getProjectEnd());
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
-        return "edit_project_window"; // No delete window????
+        model.addAttribute("mainEntityType", "project");
+        model.addAttribute("whereToSubmit", "/projects/" + pid + "/delete");
+        model.addAttribute("whereToGoOnCancel", "/projects/" + pid);
+        return "delete_main_entity";
     }
 
     @PostMapping("/{pid}/delete")
