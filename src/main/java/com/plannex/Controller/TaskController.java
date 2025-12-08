@@ -9,11 +9,8 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.naming.OperationNotSupportedException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -101,7 +98,6 @@ public class TaskController {
         if (!isLoggedIn(session)) return "redirect:/login";
 
         model.addAttribute("allTasks", taskService.getAllSubtasksForParentTask(tid));
-
         model.addAttribute("sid", sid);
         model.addAttribute("tid", tid);
         model.addAttribute("pid", pid);
@@ -243,8 +239,9 @@ public class TaskController {
             @PathVariable int tid,
             @PathVariable int sid,
             @RequestParam("byUsername") String byUsername,
-            @RequestParam("pathToArtifact") String pathToArtifact) {
-        if (!isManager(session) && !author.equals(session.getAttribute("username").toString())) {
+            @RequestParam("pathToArtifact") String pathToArtifact,
+            HttpSession session) {
+        if (!isManager(session) && !byUsername.equals(session.getAttribute("username").toString())) {
             throw new InsufficientPermissionsException("Managers may delete all artifacts, workers may only delete their own.");
         }
       
@@ -265,8 +262,8 @@ public class TaskController {
         model.addAttribute("timeSpent", taskService.getAllTimeContributionsForTask(tid));
         model.addAttribute("artifacts", taskService.getAllArtifactsForTask(tid));
         model.addAttribute("dependencies", taskService.getAllDependenciesForTask(tid));
-        model.addAttribute("subtaskAssignees", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllInvolved(task.getID())).toList());
-        model.addAttribute("subtaskTimeSpents", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getTotalTimeSpent(task.getID())).toList());
+        model.addAttribute("subtaskAssignees", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllAssigneesForSubtask(task.getID())).toList());
+        model.addAttribute("subtaskTimeSpents", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllTimeContributionsForTask(task.getID())).toList());
         model.addAttribute("isManager", isManager(session));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "task_window";
@@ -281,7 +278,7 @@ public class TaskController {
         model.addAttribute("subtask", taskService.getTaskByID(sid));
         model.addAttribute("artifacts", taskService.getAllArtifactsForTask(sid));
         model.addAttribute("dependencies", taskService.getAllDependenciesForTask(sid));
-        model.addAttribute("assignees", taskService.getAllAssigneesForTask(sid));
+        model.addAttribute("assignees", taskService.getAllAssigneesForSubtask(sid));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         model.addAttribute("isManager", isManager(session));
         return "subtask_window";
