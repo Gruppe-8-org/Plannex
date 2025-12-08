@@ -10,7 +10,7 @@
     <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <h1>Add Dependencies</h1>
-<form th:action="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/add-dependency(pid=${pid}, tid=${tid}, sid=${sid})}" method="post">
+<form th:action="@{/projects/{pid}/tasks/{tid}/add-dependency(pid=${pid}, tid=${tid})}" method="post">
     <fieldset>
         <fieldset>
             <legend>Tasks/subtasks</legend>
@@ -20,7 +20,7 @@
         </fieldset>
 
         <button type="submit">Add</button>
-        <button th:href="@{/projects/{pid}/tasks/{tid}/subtasks}">Cancel</button>
+        <button th:href="@{/projects/{pid}/tasks}">Cancel</button>
     </fieldset>
 </form>
 </body>

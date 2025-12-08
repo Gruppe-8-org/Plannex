@@ -6,29 +6,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-<form th:action="">
+<form th:action="@{/employees/{username}(username=${sessionUser})}">
     <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <h1>Edit Project</h1>
-<form th:action="@{/}" th:object="${project}" method="post">
+<form th:action="@{/projects/{pid}/edit(pid=${project.ID})}" th:object="${project}" method="post">
     <fieldset>
         <label for="title">Title</label>
-        <input id="title" th:field="*{title}" th:value="${project.getTitle()}" required>
+        <input id="title" th:field="*{projectTitle}" th:value="${project.getProjectTitle()}" required>
 
         <label for="startDate">Start Date</label>
-        <input type="date" id="startDate" th:field="*{projectStartDate}" th:value="${project.getStartDate()}" required>
+        <input type="date" id="startDate" th:field="*{projectStart}" th:value="${project.getProjectStart()}" required>
 
         <label for="endDate">End Date</label>
-        <input type="date" id="endDate" th:field="*{projectEndDate}" th:value="${project.getEndDate()}" required>
+        <input type="date" id="endDate" th:field="*{projectEnd}" th:value="${project.getProjectEnd()}" required>
 
         <fieldset>
             <legend>Description</legend>
             <label for="description"></label>
-            <input id="description" th:field="*{description}" th:value="${project.getDescription()}" required>
+            <input id="description" th:field="*{projectDescription}" th:value="${project.getProjectDescription()}" required>
         </fieldset>
 
         <button type="submit">Update</button>
-        <button th:href="@{}">Cancel</button>
+        <button th:href="@{/projects}">Cancel</button>
     </fieldset>
 </form>
 </body>

@@ -2,7 +2,10 @@ package com.plannex.Service;
 
 import com.plannex.Exception.EntityDoesNotExistException;
 import com.plannex.Model.Project;
+import com.plannex.Model.ProjectEmployee;
+import com.plannex.Model.Task;
 import com.plannex.Repository.ProjectRepository;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,5 +46,17 @@ public class ProjectService {
         }
 
         return projectRepository.deleteProjectByID(projectID);
+    }
+
+    public List<Task> getAllTasksForProject(int projectID) {
+        return projectRepository.getAllTasksForProject(projectID);
+    }
+
+    public Integer getAllInvolved(int projectID) {
+        return projectRepository.getAllInvolved(projectID);
+    }
+
+    public float getTotalTimeSpent(int projectID) {
+        return projectRepository.getTotalTimeSpent(projectID);
     }
 }

@@ -6,45 +6,45 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-<form th:action="">
+<form th:action="@{/employees/{username}(username=${sessionUser})}">
     <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <div>
-    <h1 th:text="Project ${project.getTitle()}"></h1>
+    <h1 th:text="${project.getProjectTitle()}"></h1>
     <label for="file">Status for project:</label>
     <progress id="file" value="30" max="100"> 30% </progress>
-    <p th:text="${project.getDoneTasks()} / ${project.getTasks()}" style="font-size:14px;color:green"><i class="fa fa-circle"></i></p>
-    <p th:text="${project.getLateTasks()}" style="font-size:14px;color:red"><i class="fa fa-circle"></i></p>
 </div>
 <fieldset>
     <fieldset>
         <legend>Description</legend>
-        <p th:text="${project.getDescription()}"></p>
+        <p th:text="${project.getProjectDescription()}"></p>
     </fieldset>
 
     <fieldset>
         <legend>Resource Use</legend>
-        <p th:text="${project.getResources()}"></p>
+        <p th:text="${timeSpent} + 'hours'"></p>
     </fieldset>
 
+    <!--
     <fieldset>
         <legend>Timeline</legend>
         <p th:text="${project.getTimeline()}"></p>
         //Man kan indsætte grafer, men det kræver javascript: https://www.w3schools.com/js/js_graphics_google_chart.asp
-    </fieldset>
+    </fieldset> !!!Sprint 2!!!
+    -->
 
     <fieldset>
         <legend>Tasks</legend>
-        <fieldset th:each="task, iter : ${project.getAllTasks()}">
-            <h2 th:text="Task ${task.getID()}"></h2>
+        <fieldset th:each="task, iter : ${allTasks}">
+            <h2 th:text="'Task ' + ${task.getID()}"></h2>
             <fieldset>
-                <p th:text="${task.getUserAmount()}" style="font-size:14px"><i class="fa fa-user"></i></p>
-                <p th:text="${task.getTimeEstimate}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
+                <p th:text="${taskAssignees[iter.index].size()}" style="font-size:14px"><i class="fa fa-user"></i></p>
+                <p th:text="${taskTimeContributions[iter.index]}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
             </fieldset>
         </fieldset>
 
-        <fieldset>
-            <form th:action="">
+        <fieldset th:if="${isManager}">
+            <form th:action="@{/projects/{pid}/add-task(pid=${project.getID()})}">
                 <button type="submit" style="font-size:50px">+</button>
             </form>
         </fieldset>

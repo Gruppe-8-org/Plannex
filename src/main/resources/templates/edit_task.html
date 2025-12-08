@@ -6,38 +6,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-<form th:action="">
+<form th:action="@{/employees/{username}(username=${sessionUser})}">
     <button type="submit" style="font-size:24px"><i class="fa fa-user-circle-o"></i></button>
 </form>
 <h1>Edit task</h1>
-<form th:action="@{/}" th:object="${task}" method="post">
+<form th:action="@{/projects/{pid}/tasks/{tid}/edit(pid=${pid}, tid=${tid})}" th:object="${task}" method="post">
     <fieldset>
         <fieldset>
             <legend>Description</legend>
             <label for="description"></label>
-            <input id="description" th:field="*{description}" th:value="${task.getDescription}" required>
+            <input id="description" th:field="*{taskDescription}" th:value="${task.taskDescription}" required>
         </fieldset>
 
+        <input type="hidden" th:field="*{parentTaskID}" th:value="${task.parentTaskID}">
+        <input type="hidden" th:field="*{parentProjectID}" th:value="${task.parentProjectID}">
+        <input type="hidden" th:field="*{ID}" th:value="${task.ID}">
+
         <label for="title">Title</label>
-        <input id="title" th:field="*{title}" required>
+        <input id="title" th:field="*{taskTitle}" required>
 
         <label for="startDate">Start Date</label>
-        <input type="date" id="startDate" th:field="*{StartDate}" th:value="${task.getStartDate}"  required>
+        <input type="date" id="startDate" th:field="*{taskStart}" th:value="${task.taskStart}"  required>
 
         <label for="endDate">End Date</label>
-        <input type="date" id="endDate" th:field="*{EndDate}" th:value="${task.getEndDate}"  required>
-
-        <label for="status">Status</label>
-        <input type="text" id="status" th:field="*{Status}" th:value="${task.getStatus}"  required>
-
-        <label for="priority">Priority</label>
-        <input type="text" id="priority" th:field="*{Importance}" th:value="${task.getImportance}"  required>
+        <input type="date" id="endDate" th:field="*{taskEnd}" th:value="${task.taskEnd}"  required>
 
         <label for="duration">Duration (hours)</label>
-        <input type="text" id="duration" th:field="*{Duration}" th:value="${task.getDuration}" required>
+        <input type="text" id="duration" th:field="*{taskDurationHours}" th:value="${task.taskDurationHours}" required>
 
         <button type="submit">Update</button>
-        <button th:href="@{}">Cancel</button>
+        <button th:href="@{/projects/{pid}/tasks/{tid}(pid=${pid}, tid=${tid})}">Cancel</button>
     </fieldset>
 </form>
 </body>
