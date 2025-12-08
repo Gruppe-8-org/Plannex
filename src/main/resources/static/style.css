@@ -1646,18 +1646,20 @@ footer {
     background: #4c94e6;
 }
 
-.cancel-btn {
+.add-artifact-page .cancel-btn {
     background: #bdbdbd;
-    padding: 1px 15px;
+    padding: 0px 15px;
     border-radius: 6px;
     text-decoration: none;
     color: black;
     font-weight: bold;
+    text-align: center;
 }
 
-.cancel-btn:hover {
+.add-artifact-page .cancel-btn:hover {
     background: #b9b7b7;
 }
+
 
 /* ========================= */
 /* EDIT SUBTASK PAGE        */
@@ -1810,7 +1812,7 @@ footer {
     font-weight: bold;
 }
 
-.cancel-btn {
+.add-deps-page .cancel-btn {
     background: #c7c7c7;
     padding: 1px 20px;
     border-radius: 4px;
@@ -1818,6 +1820,7 @@ footer {
     text-decoration: none;
     font-weight: bold;
 }
+
 
 .add-btn:hover {
     background: #2f8bff;
