@@ -2,34 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit Project</title>
+    <title>Edit project</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 </head>
-<body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
-<h1>Edit Project</h1>
-<form th:action="@{/projects/{pid}/edit(pid=${project.ID})}" th:object="${project}" method="post">
-    <fieldset>
-        <label for="title">Title</label>
-        <input id="title" th:field="*{projectTitle}" th:value="${project.getProjectTitle()}" required>
 
-        <label for="startDate">Start Date</label>
-        <input type="date" id="startDate" th:field="*{projectStart}" th:value="${project.getProjectStart()}" required>
+<body class="edit-project-page">
 
-        <label for="endDate">End Date</label>
-        <input type="date" id="endDate" th:field="*{projectEnd}" th:value="${project.getProjectEnd()}" required>
+<header>
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button class="profile-button"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+</header>
 
-        <fieldset>
-            <legend>Description</legend>
-            <label for="description"></label>
-            <input id="description" th:field="*{projectDescription}" th:value="${project.getProjectDescription()}" required>
-        </fieldset>
+<h1>Edit project</h1>
 
-        <button type="submit">Update</button>
-        <a th:href="@{/projects}" class="btn" th:text="Cancel"></a>
-    </fieldset>
-</form>
+<main class="edit-project-container">
+
+    <form class="edit-project-box"
+          th:action="@{/projects/{pid}/edit(pid=${project.ID})}"
+          th:object="${project}"
+          method="post">
+
+        <div class="edit-grid">
+
+            <div class="left-col">
+                <label>Title</label>
+                <input th:field="*{projectTitle}" required>
+
+                <label>Description</label>
+                <textarea class="desc-area" th:field="*{projectDescription}" required></textarea>
+            </div>
+
+            <div class="right-col">
+                <label>Start date</label>
+                <input type="date" th:field="*{projectStart}" required>
+
+                <label>End date</label>
+                <input type="date" th:field="*{projectEnd}" required>
+            </div>
+
+        </div>
+
+        <div class="button-row">
+            <a th:href="@{/projects/{pid}(pid=${project.ID})}" class="cancel-btn">Cancel</a>
+            <button type="submit" class="update-btn">Update</button>
+        </div>
+
+    </form>
+
+</main>
+
+<footer>© 2025 Plannex</footer>
+
 </body>
 </html>

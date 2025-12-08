@@ -2,54 +2,51 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Teams, Users and Departments</title>
+    <title>Employees</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
-<body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
-<h1>Teams, Users and Departments</h1>
-<fieldset>
-    <!--
-    <fieldset>
-        <legend>Teams <a th:href="@{/}">+</a></legend>
-        <div th:each="team, iter : ${allTeams}">
-            <p th:text="${team.title}"></p>
-            <form th:action="">
-                <button type="submit" style="font-size:24px"><i class="fa fa-edit"></i></button>
-            </form>
-            <form th:action="">
-                <button type="submit" style="font-size:24px"><i class="fa fa-remove"></i></button>
-            </form>
+
+<body class="employees-page">
+
+<header>
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button class="profile-button"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+</header>
+
+<div class="employees-container">
+
+    <h1>Employees</h1>
+
+    <section class="employees-box">
+
+        <div class="employees-box-header">
+            <span>Employees</span>
+            <a th:href="@{/employees/add-employee}" title="Add an employee" class="plus-btn">+</a>
         </div>
-    </fieldset>
-    <fieldset>
-        <legend>Departments <a th:href="@{/}">+</a></legend>
-        <div th:each="department, iter : ${allDepartments}">
-            <p th:text="${department.title}"></p>
-            <form th:action="">
-                <button type="submit" style="font-size:24px"><i class="fa fa-edit"></i></button>
-            </form>
-            <form th:action="">
-                <button type="submit" style="font-size:24px"><i class="fa fa-remove"></i></button>
-            </form>
+
+        <div class="employees-list" th:each="user : ${allUsers}">
+            <div class="employee-row">
+                <span th:text="${user.employeeUsername}"></span>
+
+                <a th:href="@{/employees/{username}/edit(username=${user.employeeUsername})}" title="Edit">
+                    <i class="fa fa-edit"></i>
+                </a>
+
+                <a th:href="@{/employees/{username}/delete(username=${user.employeeUsername})}" title="Delete">
+                    <i class="fa fa-remove"></i>
+                </a>
+            </div>
         </div>
-    </fieldset>
-    -->
-    <fieldset>
-        <legend>Employees <a th:href="@{/employees/add-employee}" title="Add an employee">+</a></legend>
-        <div th:each="user, iter : ${allUsers}">
-            <p th:text="${user.employeeUsername}"></p>
-            <form th:action="@{/employees/{username}/edit(username=${allUsers[iter.index].getEmployeeUsername()})}">
-                <button type="submit" style="font-size:24px"><i class="fa fa-edit" title="Edit employee information"></i></button>
-            </form>
-            <form th:action="@{/employees/{username}/delete(username=${allUsers[iter.index].getEmployeeUsername()})}">
-                <button type="submit" style="font-size:24px"><i class="fa fa-remove" title="Delete employee"></i></button>
-            </form>
-        </div>
-    </fieldset>
-</fieldset>
+
+    </section>
+
+</div>
+
+<footer>
+    © 2025 Plannex
+</footer>
 
 </body>
 </html>

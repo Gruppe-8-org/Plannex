@@ -2,22 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Add Artefact</title>
+    <title>Add Artifact</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 </head>
-<body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
-<h1>Add Artefact</h1>
-<form th:action="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/add-artifact(pid=${pid}, tid=${tid}, sid=${sid})}" enctype="multipart/form-data" method="post">
-    <fieldset>
-        <input name="author" th:value="${sessionUser}" type="hidden">
-        <label for="file-input">Please upload a file</label>
-        <input id="file-input" name="file" type="file" accept=".doc,.docx,.xls,xlsx,.pdf,.png" required>
-        <button type="submit">Add</button>
-        <a th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}(pid = ${pid}, tid = ${tid}, sid = ${sid})}" class="btn" th:text="Cancel"></a>
-    </fieldset>
-</form>
+
+<body class="add-artifact-page">
+
+<header>
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button class="profile-button">
+            <i class="fa fa-user-circle-o"></i>
+        </button>
+    </form>
+</header>
+
+<main class="add-artifact-container">
+
+    <h1>Add artifact</h1>
+
+    <form class="add-artifact-box"
+          th:action="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/add-artifact(pid=${pid}, tid=${tid}, sid=${sid})}"
+          method="post">
+
+        <div>
+            <label>Artifact path</label>
+            <input type="text" name="pathToArtifact" required>
+        </div>
+
+        <div>
+            <label>Uploaded by</label>
+            <input type="text" name="byUsername" th:value="${sessionUser}" required>
+        </div>
+
+        <div class="add-artifact-buttons">
+            <a th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}(pid=${pid}, tid=${tid}, sid=${sid})}"
+               class="cancel-btn">Cancel</a>
+
+            <button type="submit" class="add-btn">Add</button>
+        </div>
+
+    </form>
+</main>
+
+<footer>© 2025 Plannex</footer>
+
 </body>
 </html>

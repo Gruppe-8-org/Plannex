@@ -4,35 +4,72 @@
     <meta charset="UTF-8">
     <title>Add subtask</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 </head>
-<body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
-<h1>Add subtask</h1>
-<form th:action="@{/projects/{pid}/tasks/{tid}/add-subtask(pid=${pid}, tid=${tid})}" th:object="${subtask}" method="post">
-    <fieldset>
-        <fieldset>
-            <legend>Description</legend>
-            <label for="description"></label>
-            <input id="description" th:field="*{taskDescription}" required>
-        </fieldset>
 
-        <label for="title">Title</label>
-        <input id="title" th:field="*{taskTitle}" required>
+<body class="add-subtask-page">
 
-        <label for="startDate">Start Date</label>
-        <input type="date" id="startDate" th:field="*{taskStart}" required>
+<header>
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button class="profile-button"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+</header>
 
-        <label for="endDate">End Date</label>
-        <input type="date" id="endDate" th:field="*{taskEnd}" required>
+<main class="add-subtask-container">
 
-        <label for="duration">Duration (hours)</label>
-        <input type="text" id="duration" th:field="*{taskDurationHours}" pattern="\d+(\.\d+)?" title="Please enter a decimal number." required>
+    <h1>Add subtask</h1>
 
-        <button type="submit">Add</button>
-        <a th:href="@{/projects/{pid}/tasks/{tid}(pid = ${pid}, tid = ${tid})}" class="btn" th:text="Cancel"></a>
-    </fieldset>
-</form>
+    <form class="add-subtask-box"
+          th:action="@{/projects/{pid}/tasks/{tid}/add-subtask(pid=${pid}, tid=${tid})}"
+          th:object="${subtask}" method="post">
+
+        <input type="hidden" th:field="*{parentProjectID}">
+        <input type="hidden" th:field="*{parentTaskID}">
+
+        <div class="desc-column">
+            <label>Description</label>
+            <textarea th:field="*{taskDescription}" required></textarea>
+        </div>
+
+        <div class="right-column">
+
+            <label>Title</label>
+            <input th:field="*{taskTitle}" required>
+
+            <div class="date-row">
+                <div>
+                    <label>Start date</label>
+                    <input type="date" th:field="*{taskStart}" required>
+                </div>
+
+                <div>
+                    <label>End date</label>
+                    <input type="date" th:field="*{taskEnd}" required>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="bottom-row">
+
+            <div class="duration-field">
+                <label>Duration (hours)</label>
+                <input type="text" th:field="*{taskDurationHours}" required>
+            </div>
+
+            <a th:href="@{/projects/{pid}/tasks/{tid}(pid=${pid}, tid=${tid})}"
+               class="cancel-btn">Cancel</a>
+
+            <button type="submit" class="add-btn">Add</button>
+
+        </div>
+
+    </form>
+
+
+</main>
+
+<footer>© 2025 Plannex</footer>
+
 </body>
 </html>

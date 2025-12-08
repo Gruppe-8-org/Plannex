@@ -4,46 +4,64 @@
     <meta charset="UTF-8">
     <title>Create User</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 </head>
-<body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
-<h1>Create User</h1>
-<form th:action="@{/employees/add-employee}" th:object="${user}" method="post">
-    <fieldset>
-        <label for="name">Name</label>
-        <input id="name" th:field="*{employeeName}" required>
 
-        <label for="username">Username</label>
-        <input id="username" th:field="*{employeeUsername}" required>
+<body class="create-user-page">
 
-        <label for="email">Email</label>
-        <input id="email" th:field="*{employeeEmail}" required>
+<header>
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button class="profile-button" type="submit">
+            <i class="fa fa-user-circle-o"></i>
+        </button>
+    </form>
+</header>
 
-        <label for="password">Password</label>
-        <input id="password" th:field="*{employeePassword}" type="password" required>
+<main class="create-user-container">
 
-        <label for="workingHoursFrom">Works from: </label>
-        <input id="workingHoursFrom" th:field="*{workingHoursFrom}" type="time">
+    <h1>Create user</h1>
 
-        <label for="workingHoursTo">Works to: </label>
-        <input id="workingHoursTo" th:field="*{workingHoursTo}" type="time">
+    <form class="create-user-box"
+          th:action="@{/employees/add-employee}"
+          th:object="${user}"
+          method="post">
 
-        <!--
-        <label for="team"></label>
-        <select id="team" th:each="team, iter : ${allTeams}" required>
-            <option th:id="'team-' + ${team.getID()}" th:value="${team.getID()}" th:text="${team.getTitle()}"></option>
-        </select>
+        <!-- LEFT -->
+        <label>Name</label>
+        <input th:field="*{employeeName}" required>
 
-        <label for="department"></label>
-        <select id="department" th:each="department, iter : ${allDepartments}" required>
-            <option th:id="'department-' + ${department.getID()}" th:value="${department.getID()}" th:text="${department.getTitle()}"></option>
-        </select>
-        -->
-        <button type="submit">Create</button>
-        <a th:href="@{/employees}" class="btn" th:text="Cancel"></a>
-    </fieldset>
-</form>
+        <label>Email</label>
+        <input th:field="*{employeeEmail}" required>
+
+        <label>Bio</label>
+        <textarea class="bio-box"></textarea>
+
+        <!-- RIGHT -->
+        <label>Username</label>
+        <input th:field="*{employeeUsername}" required>
+
+        <label>Password</label>
+        <input type="password" th:field="*{employeePassword}" required>
+
+        <label>Works from</label>
+        <input type="time" th:field="*{workingHoursFrom}">
+
+        <label>Works to</label>
+        <input type="time" th:field="*{workingHoursTo}">
+
+        <!-- BUTTONS -->
+        <div class="create-user-buttons">
+            <a th:href="@{/employees}" class="cancel-btn">Cancel</a>
+            <button class="add-btn" type="submit">Create</button>
+        </div>
+
+    </form>
+
+</main>
+
+<footer>
+    © 2025 Plannex
+</footer>
+
 </body>
 </html>

@@ -4,52 +4,90 @@
     <meta charset="UTF-8">
     <title>Project Window</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 </head>
-<body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
-<div>
-    <h1 th:text="${project.getProjectTitle()}"></h1>
-    <label for="file">Status for project:</label>
-    <progress id="file" value="30" max="100"> 30% </progress>
-</div>
-<fieldset>
-    <fieldset>
-        <legend>Description</legend>
-        <p th:text="${project.getProjectDescription()}"></p>
-    </fieldset>
+<body class="project-page">
 
-    <fieldset>
-        <legend>Resource Use</legend>
-        <p th:text="${#numbers.formatDecimal(timeSpent, 0, 0)} + ' hours'"></p>
-    </fieldset>
+<header>
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button class="profile-button" type="submit"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+</header>
 
-    <!--
-    <fieldset>
-        <legend>Timeline</legend>
-        <p th:text="${project.getTimeline()}"></p>
-        //Man kan indsætte grafer, men det kræver javascript: https://www.w3schools.com/js/js_graphics_google_chart.asp
-    </fieldset> !!!Sprint 2!!!
-    -->
+<main class="project-container">
 
-    <fieldset>
-        <legend>Tasks</legend>
-        <fieldset th:each="task, iter : ${allTasks}">
-            <h2 th:text="${task.getTaskTitle()}"></h2>
-            <fieldset>
-                <p th:text="${#numbers.formatDecimal(taskAssignees[iter.index].size(), 0, 0)}" style="font-size:14px"><i class="fa fa-user"></i></p>
-                <p th:text="${#numbers.formatDecimal(taskTimeContributions[iter.index], 0, 0)}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
-            </fieldset>
-        </fieldset>
+    <!-- PROJECT TITLE -->
+    <div class="project-title-row">
+        <h1 th:text="${project.getProjectTitle()}"></h1>
 
-        <fieldset th:if="${isManager}">
+        <a th:if="${isManager}"
+           th:href="@{/projects/{pid}/edit(pid=${project.getID()})}"
+           class="project-edit-btn">
+            Edit
+        </a>
+    </div>
+
+
+    <!-- PROGRESS -->
+    <div class="progress-section">
+        <label>Status for project:</label>
+        <progress id="file" value="30" max="100">30%</progress>
+    </div>
+
+    <!-- DESCRIPTION + RESOURCE USE -->
+    <div class="info-grid">
+
+        <!-- LEFT: Description -->
+        <div class="description-box">
+            <legend>Description</legend>
+            <p th:text="${project.getProjectDescription()}"></p>
+        </div>
+
+        <!-- RIGHT: Resource Use -->
+        <div class="resource-box">
+            <legend>Resource use</legend>
+            <p th:text="${timeSpent} + ' hours'"></p>
+        </div>
+
+    </div>
+
+    <!-- TASKS -->
+    <h2 class="tasks-title">Tasks</h2>
+
+    <div class="task-grid">
+
+        <!-- TASK CARD -->
+        <!-- TASK CARD (CLICKABLE) -->
+        <a class="task-card-link"
+           th:href="@{/projects/{pid}/tasks/{tid}(pid=${project.getID()}, tid=${task.getID()})}"
+           th:each="task, iter : ${allTasks}">
+
+            <div class="task-card">
+                <div class="card-bg">
+                    <h3 th:text="'Task ' + ${task.getID()}"></h3>
+                    <div class="card-fg">
+                        <p><i class="fa fa-user"></i> <span th:text="${taskAssignees[iter.index].size()}"></span></p>
+                        <p><i class="fa fa-clock-o"></i> <span th:text="${taskTimeContributions[iter.index]}"></span></p>
+                    </div>
+                </div>
+            </div>
+
+        </a>
+
+
+        <!-- ADD TASK -->
+        <div class="add-task-card" th:if="${isManager}">
             <form th:action="@{/projects/{pid}/add-task(pid=${project.getID()})}">
-                <button type="submit" style="font-size:50px" title="Add a task to this project">+</button>
+                <button type="submit" class="add-task-button">+</button>
             </form>
-        </fieldset>
-    </fieldset>
-</fieldset>
+        </div>
 
+    </div>
+
+</main>
+<footer>
+    © 2025 Plannex
+</footer>
 </body>
+
 </html>

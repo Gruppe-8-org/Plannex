@@ -4,39 +4,79 @@
     <meta charset="UTF-8">
     <title>Edit task</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 </head>
-<body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
-<h1>Edit task</h1>
-<form th:action="@{/projects/{pid}/tasks/{tid}/edit(pid=${pid}, tid=${tid})}" th:object="${task}" method="post">
-    <fieldset>
-        <fieldset>
-            <legend>Description</legend>
-            <label for="description"></label>
-            <input id="description" th:field="*{taskDescription}" th:value="${task.taskDescription}" required>
-        </fieldset>
 
-        <input type="hidden" th:field="*{parentTaskID}" th:value="${task.parentTaskID}">
-        <input type="hidden" th:field="*{parentProjectID}" th:value="${task.parentProjectID}">
-        <input type="hidden" th:field="*{ID}" th:value="${task.ID}">
+<body class="task-edit-page">
 
-        <label for="title">Title</label>
-        <input id="title" th:field="*{taskTitle}" required>
+<header>
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button class="profile-button"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+</header>
 
-        <label for="startDate">Start Date</label>
-        <input type="date" id="startDate" th:field="*{taskStart}" th:value="${task.taskStart}"  required>
+<main class="task-edit-container">
 
-        <label for="endDate">End Date</label>
-        <input type="date" id="endDate" th:field="*{taskEnd}" th:value="${task.taskEnd}"  required>
+    <h1>Edit task</h1>
 
-        <label for="duration">Duration (hours)</label>
-        <input type="text" id="duration" th:field="*{taskDurationHours}" th:value="${task.taskDurationHours}" required>
+    <form class="task-edit-box"
+          th:action="@{/projects/{pid}/tasks/{tid}/edit(pid=${pid}, tid=${tid})}"
+          th:object="${task}" method="post">
 
-        <button type="submit">Update</button>
-        <a th:href="@{/projects/{pid}/tasks/{tid}(pid=${pid}, tid=${tid})}" class="btn" th:text="Cancel"></a>
-    </fieldset>
-</form>
+        <div class="edit-grid">
+
+            <div class="edit-left">
+                <label>Description</label>
+                <textarea class="description-input"
+                          th:field="*{taskDescription}"
+                          required></textarea>
+            </div>
+
+            <div class="edit-right">
+
+                <label>Title</label>
+                <input type="text" th:field="*{taskTitle}" required>
+
+                <label>Start date</label>
+                <input type="date" th:field="*{taskStart}" required>
+
+                <label>End date</label>
+                <input type="date" th:field="*{taskEnd}" required>
+
+                <label>Duration (hours)</label>
+                <input type="text" th:field="*{taskDurationHours}" required>
+            </div>
+
+        </div>
+
+        <input type="hidden" th:field="*{parentTaskID}">
+        <input type="hidden" th:field="*{parentProjectID}">
+        <input type="hidden" th:field="*{ID}">
+
+        <div class="button-row">
+
+            <a class="cancel-btn"
+               th:href="@{/projects/{pid}/tasks/{tid}(pid=${pid}, tid=${tid})}">
+                Cancel
+            </a>
+
+            <a class="task-edit-delete-btn"
+               th:if="${isManager}"
+               th:href="@{/projects/{pid}/tasks/{tid}/delete(pid=${pid}, tid=${tid})}">
+                Delete
+            </a>
+
+
+            <button type="submit" class="update-btn">Update</button>
+
+        </div>
+
+
+    </form>
+
+</main>
+
+<footer>© 2025 Plannex</footer>
+
 </body>
 </html>

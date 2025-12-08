@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Delete User</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+</head>
+
+<body class="delete-user-page">
+
+
+<header>
+  <form th:action="@{/employees/{username}(username=${sessionUser})}">
+    <button class="profile-button" type="submit">
+      <i class="fa fa-user-circle-o"></i>
+    </button>
+  </form>
+</header>
+
+<main class="delete-user-container">
+  <h1>Slet bruger</h1>
+
+  <div class="delete-user-box">
+    <p>
+      Er du sikker på, at du vil slette brugeren:
+      <strong th:text="${user.employeeUsername}"></strong>?
+    </p>
+
+    <div class="delete-buttons">
+      <a th:href="@{/employees}" class="cancel-btn">Tilbage</a>
+
+      <form th:action="@{/employees/{username}/delete(username=${user.employeeUsername})}" method="post">
+        <button class="delete-user-btn">Slet bruger</button>
+
+      </form>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  © 2025 Plannex
+</footer>
+
+</body>
+</html>

@@ -4,23 +4,55 @@
     <meta charset="UTF-8">
     <title>Add Assignees</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 </head>
-<body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
-<h1>Add Assignees</h1>
-<form th:action="@{/project/{pid}/tasks/{tid}/subtasks/{sid}/assign-workers(pid = ${pid}, tid = ${tid}, sid = ${sid})}" method="post">
-    <fieldset>
-        <fieldset>
-            <legend>Check off which employees you wish to assign to this project/team/department/task/subtask</legend>
-            <div th:each="user : ${allUsers}">
-                <input type="checkbox" th:id="'Employee -' + ${user.employeeName}" th:value="${user.employeeUsername}" th:text="${user.employeeName}" name="usernames">
+
+<body class="add-assignees-page">
+
+
+<header>
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button class="profile-button"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+</header>
+
+<main class="assign-container">
+
+    <h1>Add assignees</h1>
+
+    <form class="assign-box"
+          th:action="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/assign-workers(pid=${pid}, tid=${tid}, sid=${sid})}"
+          method="post">
+
+        <fieldset class="assign-list">
+            <legend>Select employees to assign</legend>
+
+            <div class="checkbox-column"
+                 th:each="user : ${allUsers}">
+                <label class="checkbox-row">
+                    <input type="checkbox"
+                           name="usernames"
+                           th:value="${user.employeeUsername}">
+                    <span th:text="${user.employeeName}"></span>
+                </label>
             </div>
+
         </fieldset>
-        <button type="submit">Assign</button>
-        <a th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}(pid = ${pid}, tid = ${tid}, sid = ${sid})}" class="btn" th:text="Cancel"></a>
-    </fieldset>
-</form>
+
+        <div class="assign-buttons">
+            <a th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}(pid=${pid}, tid=${tid}, sid=${sid})}"
+               class="cancel-btn">
+                Cancel
+            </a>
+
+            <button type="submit" class="add-btn">Assign</button>
+        </div>
+
+    </form>
+
+</main>
+
+<footer>© 2025 Plannex</footer>
+
 </body>
 </html>

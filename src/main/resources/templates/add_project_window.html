@@ -3,34 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <title>Create Project</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-</head>
-<body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
 
-<h1>Create a Project</h1>
-<form th:action="@{/projects/add-project}" th:object="${project}" method="post">
-    <fieldset>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+</head>
+
+<body class="create-project-page">
+
+<header>
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button class="profile-button" type="submit">
+            <i class="fa fa-user-circle-o"></i>
+        </button>
+    </form>
+</header>
+
+<main class="create-project-container">
+
+    <h1>Create a project</h1>
+
+    <form class="create-box"
+          th:action="@{/projects/add-project}"
+          th:object="${project}"
+          method="post">
+
+
         <label for="title">Title</label>
         <input id="title" th:field="*{projectTitle}" required>
 
-        <label for="startDate">Start Date</label>
-        <input type="date" id="startDate" th:field="*{projectStart}" required>
 
-        <label for="endDate">End Date</label>
-        <input type="date" id="endDate" th:field="*{projectEnd}" required>
+        <div class="date-row">
+            <div>
+                <label for="startDate">Start date</label>
+                <input type="date" id="startDate" th:field="*{projectStart}" required>
+            </div>
 
-        <fieldset>
-            <legend>Description</legend>
-            <label for="description"></label>
-            <input id="description" th:field="*{projectDescription}" required>
-        </fieldset>
+            <div>
+                <label for="endDate">End date</label>
+                <input type="date" id="endDate" th:field="*{projectEnd}" required>
+            </div>
+        </div>
 
-        <button type="submit">Create</button>
-        <a th:href="@{/projects}" class="btn" th:text="Cancel"></a>
-    </fieldset>
-</form>
+
+        <label for="description">Description</label>
+        <textarea id="description" th:field="*{projectDescription}" required></textarea>
+
+
+        <div class="create-buttons">
+            <a class="cancel-btn" th:href="@{/projects}">Cancel</a>
+            <button type="submit">Create</button>
+        </div>
+
+    </form>
+
+</main>
+
+<footer>© 2025 Plannex</footer>
+
 </body>
 </html>

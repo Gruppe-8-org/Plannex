@@ -3,50 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <title>Edit User</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 </head>
-<body>
-<form th:action="@{/employees/{uname}(username=${oldUsername})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
-<h1>Edit User</h1>
-<form th:action="@{/employees/{uname}/edit(uname=${oldUsername})}" th:object="${user}" method="post">
-    <fieldset>
+
+<body class="edit-page">
+
+<header>
+    <form th:action="@{/employees/{username}(username=${username})}">
+        <button class="profile-button" type="submit">
+            <i class="fa fa-user-circle-o"></i>
+        </button>
+    </form>
+</header>
+
+
+<main class="edit-container">
+
+    <h1>Edit user</h1>
+
+    <form class="edit-box"
+          th:action="@{/employees/{uname}/edit(uname=${oldUsername})}"
+          th:object="${user}"
+          method="post">
+
         <label for="name">Name</label>
-        <input id="name" th:field="*{employeeName}" th:value="${user.employeeName}" required>
+        <input id="name"
+               th:field="*{employeeName}"
+               th:value="${user.employeeName}"
+               required>
 
         <label for="username">Username</label>
-        <input id="username" th:field="*{employeeUsername}" th:value="${oldUsername}" required>
+        <input id="username"
+               th:field="*{employeeUsername}"
+               th:value="${oldUsername}"
+               required>
 
         <label for="email">Email</label>
-        <input id="email" th:field="*{employeeEmail}" th:value="${user.employeeEmail}" required>
+        <input id="email"
+               th:field="*{employeeEmail}"
+               th:value="${user.employeeEmail}"
+               required>
 
         <label for="password">Password</label>
-        <input id="password" th:field="*{employeePassword}" th:value="${user.employeePassword}" type="password" required>
+        <input id="password"
+               type="password"
+               th:field="*{employeePassword}"
+               required>
 
-        <label for="workingHoursFrom">Works from: </label>
-        <input id="workingHoursFrom" th:field="*{workingHoursFrom}" type="time">
+        <!-- placeholders, føler ikke jeg kan finde koden til det endnu -->
+        <label for="bio">Bio</label>
+        <textarea id="bio"></textarea>
 
-        <label for="workingHoursTo">Works to: </label>
-        <input id="workingHoursTo" th:field="*{workingHoursTo}" type="time">
-
-        <input name="oldUsername" th:value="${oldUsername}" type="hidden">
-
-        <!--
-        <label for="team"></label>
-        <select id="team" th:each="team, iter : ${allTeams}" th:value="${user.getTeam()}" required>
-            <option th:id="'team-' + ${team.getID()}" th:value="${team.getID()}" th:text="${team.getTitle()}"></option>
+        <!-- placeholders, føler ikke jeg kan finde koden til det endnu -->
+        <label for="team">Team</label>
+        <select id="team" disabled>
+            <option>Skal implementeres</option>
         </select>
 
-        <label for="department"></label>
-        <select id="department" th:each="department, iter : ${allDepartments}" th:value="${user.getDepartment()}" required>
-            <option th:id="'department-' + ${department.getID()}" th:value="${department.getID()}" th:text="${department.getTitle()}"></option>
+        <label for="department">Department</label>
+        <select id="department" disabled>
+            <option>Skal implementeres</option>
         </select>
-        -->
 
-        <button type="submit">Update</button>
-        <a th:href="@{/employees/{uname}(uname=${oldUsername})}" class="btn" th:text="Cancel"></a>
-    </fieldset>
-</form>
+        <input type="hidden"
+               name="oldUsername"
+               th:value="${oldUsername}">
+
+        <div class="edit-buttons">
+            <a th:href="@{/employees/{uname}(uname=${oldUsername})}"
+               class="cancel-btn">Cancel</a>
+
+            <button type="submit">Update</button>
+        </div>
+
+    </form>
+
+</main>
+<footer>
+    © 2025 Plannex
+</footer>
+
 </body>
 </html>

@@ -116,7 +116,7 @@ public class ProjectEmployeeController {
         }
 
         model.addAttribute("user", getEmployeeOrThrow(username));
-        return "edit_user"; // Add delete plz
+        return "delete_user"; // Add delete plz
     }
 
     @PostMapping("/{username}/delete")

@@ -4,64 +4,100 @@
     <meta charset="UTF-8">
     <title>Task Window</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 </head>
-<body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
-<fieldset>
-    <fieldset>
-        <legend th:text="${task.getTaskTitle}"></legend>
-        <p th:text="${task.taskStart}"></p>
-        <p th:text="${task.taskEnd}"></p>
-    </fieldset>
 
-    <!--
-    <fieldset>
-        <legend>Teams</legend>
-        <p th:text="${task.getTaskMembers()}"></p>
-    </fieldset>
-    -->
-    <fieldset>
-        <legend>Dependencies</legend>
-        <div th:each="dependency : ${dependencies}">
-            <p th:text="${dependency.first()} + ' blocked by ' + ${dependency.second()}"></p>
+<body class="task-page">
+
+<header>
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button class="profile-button"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+</header>
+
+<main class="task-container">
+
+    <div class="task-header-row">
+
+        <div class="task-box">
+            <legend>
+                <span th:text="'Task ' + ${task.ID}"></span>
+                <a class="edit-btn"
+                   th:if="${isManager}"
+                   th:href="@{/projects/{pid}/tasks/{tid}/edit(pid=${pid}, tid=${task.ID})}">
+                    Edit
+                </a>
+
+            </legend>
+
+            <div class="task-info-body">
+                <p th:text="'Start: ' + ${task.taskStart}"></p>
+                <p th:text="'End: ' + ${task.taskEnd}"></p>
+            </div>
         </div>
 
-    </fieldset>
+        <div class="task-box small-box">
+            <legend>Dependencies</legend>
 
-
-    <fieldset>
-        <legend>Artifacts</legend>
-        <div th:each="artifact : ${artifacts}">
-            <p th:text="${artifact.second()} + ' uploaded by ' + ${artifact.first()}"></p>
+            <div class="list-area">
+                <p th:each="dependency : ${dependencies}"
+                   th:text="${dependency.first()} + ' blocked by ' + ${dependency.second()}"></p>
+            </div>
         </div>
 
-    </fieldset>
+    </div>
 
-    <fieldset>
-        <legend>Resources</legend>
-        <p th:text="${#numbers.formatDecimal(timeSpent, 0, 0)} + ' hours'"></p>
-        <p th:text="${assignees.size()} + ' employees'"></p>
-    </fieldset>
+    <div class="task-resources-row">
 
-    <fieldset>
+        <div class="task-box">
+            <legend>Artifacts</legend>
+            <div class="list-area">
+                <p th:each="artifact : ${artifacts}"
+                   th:text="${artifact.second()} + ' uploaded by ' + ${artifact.first()}"></p>
+            </div>
+        </div>
+
+        <div class="task-box">
+            <legend>Resources</legend>
+
+            <div class="list-area">
+                <p><i class="fa fa-clock-o"></i> <span th:text="${timeSpent} + ' hours'"></span></p>
+                <p><i class="fa fa-user"></i> <span th:text="${assignees.size()} + ' employees'"></span></p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="subtasks-section">
         <legend>Subtasks</legend>
-        <fieldset th:each="subtask, iter : ${subtasks}">
-            <h2 th:text="${subtask.taskTitle}"></h2>
-            <fieldset>
-                <p th:text="${#numbers.formatDecimal(subtaskAssignees[iter.index], 0, 0)}" style="font-size:14px"><i class="fa fa-user"></i></p>
-                <p th:text="${#numbers.formatDecimal(subtaskTimeSpents[iter.index], 0, 0)}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
-            </fieldset>
-        </fieldset>
 
-        <fieldset th:if="${isManager}">
-            <form th:action="@{/projects/{pid}/tasks/{tid}/add-subtask(pid = ${pid}, tid = ${tid})}">
-                <button type="submit" style="font-size:50px" title="Add a subtask">+</button>
-            </form>
-        </fieldset>
-    </fieldset>
-</fieldset>
+        <div class="subtask-grid">
+
+            <div class="subtask-card"
+                 th:each="subtask, iter : ${subtasks}"
+                 th:onclick="|window.location='@{/projects/{pid}/tasks/{tid}/subtasks/{sid}(pid=${pid}, tid=${task.ID}, sid=${subtask.ID})}'|">
+
+                <h3 th:text="'Sub ' + ${subtask.ID}"></h3>
+
+                <div class="subtask-meta">
+                    <p><i class="fa fa-user"></i> <span th:text="${subtaskAssignees[iter.index].size()}"></span></p>
+                    <p><i class="fa fa-clock-o"></i> <span th:text="${subtaskTimeSpents[iter.index]} + ' h'"></span></p>
+                </div>
+            </div>
+
+
+            <div class="subtask-card add-subtask" th:if="${isManager}">
+                <form th:action="@{/projects/{pid}/tasks/{tid}/add-subtask(pid=${pid}, tid=${task.ID})}">
+                    <button type="submit">+</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</main>
+
+<footer>© 2025 Plannex</footer>
 
 </body>
 </html>

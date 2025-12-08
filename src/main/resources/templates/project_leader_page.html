@@ -4,17 +4,30 @@
     <meta charset="UTF-8">
     <title>Administration Page</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 </head>
+
 <body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
 
-<h1>Administration Page</h1>
+<header>
+    <form th:action="@{/employees/{username}(username=${username})}">
+        <button type="submit" class="profile-button" title="Go to your profile">
+            <i class="fa fa-user-circle-o"></i>
+        </button>
+    </form>
+</header>
 
-<a th:href="@{/employees}">Users, Teams and Departments</a>
+<main class="admin-container">
+    <h1>Administration page</h1>
 
-<a th:href="@{/projects}">Projects</a>
+    <a th:href="@{/employees}">Users, teams and departments</a>
+    <br>
+    <a th:href="@{/projects}">Projects</a>
+</main>
+
+<footer>
+    © 2025 Plannex
+</footer>
 
 </body>
 </html>
