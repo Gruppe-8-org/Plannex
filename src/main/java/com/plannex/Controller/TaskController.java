@@ -69,9 +69,13 @@ public class TaskController {
             throw new InsufficientPermissionsException("Only managers may add subtasks.");
         }
 
+        Task sub = new Task();
+        sub.setParentProjectID(pid);
+        sub.setParentTaskID(tid);
+
         model.addAttribute("parentProjectID", pid);
         model.addAttribute("parentTaskID", tid);
-        model.addAttribute("subtask", new Task());
+        model.addAttribute("subtask", sub);
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "add_subtask";
     }
@@ -83,28 +87,44 @@ public class TaskController {
     }
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}/add-dependency")
-    public String showAddDependency(@PathVariable int pid, @PathVariable int sid, Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
-            return "redirect:/login";
-        }
+    public String showAddDependency(
+            @PathVariable int pid,
+            @PathVariable int tid,
+            @PathVariable int sid,
+            Model model,
+            HttpSession session) {
 
-        model.addAttribute("allTasks", taskService.getAllSubtasksForParentTask(pid));
-        model.addAttribute("blockedByTaskIDs", 0);
+        if (!isLoggedIn(session)) return "redirect:/login";
+
+        model.addAttribute("allTasks", taskService.getAllSubtasksForParentTask(tid));
+
+        model.addAttribute("sid", sid);
+        model.addAttribute("tid", tid);
+        model.addAttribute("pid", pid);
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
+
         return "add_dependencies";
     }
 
+
     @PostMapping("/tasks/{tid}/subtasks/{sid}/add-dependency")
-    public String saveDependency(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, @RequestParam(name="blockedByTaskIDs") List<Integer> blockedByTaskIDs) throws OperationNotSupportedException {
-        for (Integer blockedByTaskID : blockedByTaskIDs) {
-            taskService.addFollowsDependency(sid, blockedByTaskID);
+    public String saveDependency(
+            @PathVariable int pid,
+            @PathVariable int tid,
+            @PathVariable int sid,
+            @RequestParam(name="blockedByTaskIDs") List<Integer> blockedByTaskIDs)
+            throws OperationNotSupportedException {
+
+        for (Integer blockedID : blockedByTaskIDs) {
+            taskService.addFollowsDependency(sid, blockedID);
         }
 
         return "redirect:/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
     }
 
+
     @GetMapping("/tasks/{tid}/add-dependency")
-    public String showAddDependencyTask(@PathVariable int pid, Model model, HttpSession session) {
+    public String showAddDependencyTask(@PathVariable int pid, Model model, HttpSession session, @PathVariable String tid) {
         if (!isLoggedIn(session)) {
             return "redirect:/login";
         }
@@ -115,7 +135,7 @@ public class TaskController {
     }
 
     @PostMapping("/tasks/{tid}/add-dependency")
-    public String saveDependencyTask(@PathVariable int tid, @RequestParam(name="blockedByTaskIDs") List<Integer> blockedByTaskIDs) throws OperationNotSupportedException {
+    public String saveDependencyTask(@PathVariable int tid, @RequestParam(name="blockedByTaskIDs") List<Integer> blockedByTaskIDs, @PathVariable String pid) throws OperationNotSupportedException {
         for (Integer blockedByTaskID : blockedByTaskIDs) {
             taskService.addFollowsDependency(tid, blockedByTaskID);
         }
@@ -130,7 +150,11 @@ public class TaskController {
     }
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}/assign-workers")
-    public String showAddAssignment(HttpSession session, Model model) {
+    public String showAddAssignment(HttpSession session, Model model,
+                                    @PathVariable int pid,
+                                    @PathVariable int tid,
+                                    @PathVariable int sid) {
+
         if (!isLoggedIn(session)) {
             return "redirect:/login";
         }
@@ -140,18 +164,27 @@ public class TaskController {
         }
 
         model.addAttribute("allUsers", projectEmployeeService.getAllEmployees());
+        model.addAttribute("pid", pid);
+        model.addAttribute("tid", tid);
+        model.addAttribute("sid", sid);
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
+
         return "add_assignee";
     }
 
     @PostMapping("/tasks/{tid}/subtasks/{sid}/assign-workers")
-    public String saveAssignments(@PathVariable int sid, @RequestParam(name="usernames") List<String> usernames) {
+    public String saveAssignments(@PathVariable int pid,
+                                  @PathVariable int tid,
+                                  @PathVariable int sid,
+                                  @RequestParam(name = "usernames") List<String> usernames) {
+
         for (String username : usernames) {
             taskService.assignTaskToEmployee(sid, username);
         }
 
-        return "redirect:/subtasks/" + sid;
+        return "redirect:/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
     }
+
 
     @PostMapping("/tasks/{tid}/subtasks/{sid}/unassign-worker/{username}")
     public String unassignWorker(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, @PathVariable String username, HttpSession session) {
@@ -164,11 +197,11 @@ public class TaskController {
     }
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}/edit")
-    public String showEditSubtasks(@PathVariable int sid, Model model, HttpSession session) {
+    public String showEditSubtasks(@PathVariable int sid, Model model, HttpSession session, @PathVariable String pid, @PathVariable String tid) {
         if (!isLoggedIn(session)) {
             return "redirect:/login";
         }
-
+        model.addAttribute("isManager", isManager(session));
         model.addAttribute("subtask", taskService.getTaskByID(sid));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "edit_subtask";
@@ -181,25 +214,41 @@ public class TaskController {
     }
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}/add-artifact")
-    public String showAddArtifactPage(Model model, HttpSession session) {
+    public String showAddArtifactPage(
+            @PathVariable int pid,
+            @PathVariable int tid,
+            @PathVariable int sid,
+            HttpSession session,
+            Model model) {
+
         if (!isLoggedIn(session)) {
             return "redirect:/login";
         }
 
-        model.addAttribute("sessionUser", session.getAttribute("username").toString());
+        model.addAttribute("pid", pid);
+        model.addAttribute("tid", tid);
+        model.addAttribute("sid", sid);
+        model.addAttribute("sessionUser", session.getAttribute("username"));
         return "add_artefact";
     }
 
+
     @PostMapping("/tasks/{tid}/subtasks/{sid}/add-artifact")
-    public String saveArtifact(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, @RequestParam("byUsername") String byUsername, @RequestParam("pathToArtifact") String pathToArtifact) {
-        taskService.addArtifact(tid, byUsername, pathToArtifact);
-        final String pathToSaveAt = "artifacts/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
+    public String saveArtifact(
+            @PathVariable int pid,
+            @PathVariable int tid,
+            @PathVariable int sid,
+            @RequestParam("byUsername") String byUsername,
+            @RequestParam("pathToArtifact") String pathToArtifact) {
+
+        taskService.addArtifact(sid, byUsername, pathToArtifact);
 
         return "redirect:/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
     }
 
+
     @GetMapping("/tasks/{tid}")
-    public String showTaskPage(@PathVariable int tid, Model model, HttpSession session) {
+    public String showTaskPage(@PathVariable int tid, Model model, HttpSession session, @PathVariable String pid) {
         if (!isLoggedIn(session)) {
             return "redirect:/login";
         }
@@ -218,7 +267,7 @@ public class TaskController {
     }
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}")
-    public String showSubtaskPage(@PathVariable int sid, Model model, HttpSession session) {
+    public String showSubtaskPage(@PathVariable int sid, Model model, HttpSession session, @PathVariable String pid, @PathVariable String tid) {
         if (!isLoggedIn(session)) {
             return "redirect:/login";
         }
@@ -228,6 +277,7 @@ public class TaskController {
         model.addAttribute("dependencies", taskService.getAllDependenciesForTask(sid));
         model.addAttribute("assignees", taskService.getAllAssigneesForTask(sid));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
+        model.addAttribute("isManager", isManager(session));
         return "subtask_window";
     }
 
@@ -240,7 +290,7 @@ public class TaskController {
         if (!isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may edit tasks.");
         }
-
+        model.addAttribute("isManager", isManager(session));
         model.addAttribute("task", taskService.getTaskByID(tid));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "edit_task";

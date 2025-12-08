@@ -4,25 +4,65 @@
     <meta charset="UTF-8">
     <title>Add Dependencies</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 </head>
-<body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
-<h1>Add Dependencies</h1>
-<form th:action="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/add-dependency(pid=${pid}, tid=${tid}, sid=${sid})}" method="post">
-    <fieldset>
-        <fieldset>
-            <legend>Tasks/subtasks</legend>
-            <p>Mark subtasks this subtask is blocked by</p>
-            <div th:each="task, iter : ${allTasks}">
-                <input type="checkbox" th:id="'blocked by task/subtask-' + ${task.getID()}" th:value="${task.getID()}" th:text="${task.taskTitle}" name="blockedByTaskIDs">
+
+<body class="add-deps-page">
+
+<header>
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button class="profile-button" title="Go to your profile">
+            <i class="fa fa-user-circle-o"></i>
+        </button>
+    </form>
+</header>
+
+<main class="deps-container">
+
+    <h1>Add Dependencies</h1>
+
+    <form class="deps-box"
+          th:action="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/add-dependency(pid=${pid}, tid=${tid}, sid=${sid})}"
+          method="post">
+
+        <fieldset class="deps-fieldset">
+            <legend>Select tasks this subtask is blocked by</legend>
+
+            <p class="note">Choose subtasks that must be completed before this one.</p>
+
+            <div class="task-list">
+
+                <div th:each="task : ${allTasks}">
+
+                    <div th:if="${task.ID != sid}" class="task-option">
+                        <input type="checkbox"
+                               name="blockedByTaskIDs"
+                               th:value="${task.ID}"
+                               th:id="'dep-' + ${task.ID}">
+                        <label th:for="'dep-' + ${task.ID}"
+                               th:text="${task.taskTitle}"></label>
+                    </div>
+
+                </div>
+
             </div>
+
         </fieldset>
 
-        <button type="submit">Add</button>
-        <a th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}(pid = ${pid}, tid = ${tid}, sid = ${sid})}" class="btn" th:text="Cancel"></a>
-    </fieldset>
-</form>
+        <div class="button-row">
+            <a class="cancel-btn"
+               th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}(pid=${pid}, tid=${tid}, sid=${sid})}">
+                Cancel
+            </a>
+
+            <button type="submit" class="add-btn">Add</button>
+        </div>
+
+    </form>
+
+</main>
+
+<footer>© 2025 Plannex</footer>
+
 </body>
 </html>

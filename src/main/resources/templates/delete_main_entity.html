@@ -2,33 +2,60 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Add task</title>
+    <title th:text="'Delete ' + ${mainEntityType}"></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 </head>
-<body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
+
+<body class="delete-entity-page">
+
+<header>
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button class="profile-button"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+</header>
+
 <h1 th:text="'Delete ' + ${mainEntityType}"></h1>
-<form th:action="@{{wts}(wts=${whereToSubmit})}" th:object="${task}" method="post">
-    <fieldset>
-        <fieldset>
-            <label for="description" class="body-bold">Description</label>
-            <p id="description" th:text="${description}"></p>
-        </fieldset>
 
-        <label for="title" class="body-bold">Title</label>
-        <p id="title" th:text="${title}"></p>
+<main class="delete-container">
 
-        <label for="startDate" class="body-bold">Start Date</label>
-        <p id="startDate" th:text="${start}"></p>
+    <form class="delete-box"
+          th:action="@{{wts}(wts=${whereToSubmit})}"
+          method="post">
 
-        <label for="endDate" class="body-bold">End Date</label>
-        <p id="endDate" th:text="${end}" ></p>
+        <div class="delete-grid">
 
-        <button type="submit">Add</button>
-        <a th:href="@{{wtgoc}(wtgoc=${whereToGoOnCancel})}" class="btn" th:text="Cancel"></a>
-    </fieldset>
-</form>
+            <!-- LEFT: Description -->
+            <div class="left-col">
+                <label>Description</label>
+                <div class="desc-area readonly-block">
+                    <p th:text="${description}"></p>
+                </div>
+            </div>
+
+            <!-- RIGHT: Title, Dates -->
+            <div class="right-col">
+                <label>Title</label>
+                <div class="readonly-block"><p th:text="${title}"></p></div>
+
+                <label>Start date</label>
+                <div class="readonly-block"><p th:text="${start}"></p></div>
+
+                <label>End date</label>
+                <div class="readonly-block"><p th:text="${end}"></p></div>
+            </div>
+
+        </div>
+
+        <div class="button-row">
+            <a th:href="@{{wtgoc}(wtgoc=${whereToGoOnCancel})}" class="cancel-btn">Cancel</a>
+            <button type="submit" class="delete-btn">Delete</button>
+        </div>
+
+    </form>
+
+</main>
+
+<footer>© 2025 Plannex</footer>
 </body>
 </html>

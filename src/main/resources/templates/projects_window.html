@@ -2,28 +2,62 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Projects Window</title>
+    <title>Your Projects</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
-<body>
-<h1>Your Projects</h1>
-<fieldset th:each="project, iter : ${allProjects}">
-    <h2 th:text="${project.getProjectTitle()}"></h2>
-    <fieldset>
-        <p th:text="${employeesInvolved[iter.index]}" style="font-size:14px"><i class="fa fa-user"></i></p>
-        <p th:text="${timeSpents[iter.index]}"><i class="fa fa-clock-o"></i></p>
-        <p th:text="${startDates[iter.index]}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
-        <p th:text="${endDates[iter.index]}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
-    </fieldset>
-</fieldset>
 
-    <fieldset th:if="${isManager}">
-        <form th:action="@{/projects/add-project}">
-            <button type="submit" style="font-size:50px" title="Add a project">+</button>
-        </form>
-    </fieldset>
+<body class="projects-page">
+
+<!-- HEADER -->
+<header class="header">
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button type="submit" class="profile-button"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+</header>
+
+<div class="projects-container">
+
+    <h1>Your projects</h1>
+
+    <!-- PROJECT GRID -->
+    <div class="project-grid">
+
+        <!-- PROJECT CARD -->
+        <a class="project-card-link"
+           th:each="project, iter : ${allProjects}"
+           th:href="@{/projects/{pid}(pid=${project.ID})}">
+
+            <div class="project-card">
+                <div class="card-bg">
+                    <h2 th:text="${project.projectTitle}"></h2>
+
+                    <div class="card-fg">
+                        <div class="icons">
+                            <p><i class="fa fa-user"></i> <span th:text="${employeesInvolved[iter.index]}"></span></p>
+                            <p><i class="fa fa-clock-o"></i> <span th:text="${timeSpents[iter.index]}"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </a>
+
+
+        <!-- ADD PROJECT CARD -->
+        <div class="project-card add-card" th:if="${isManager}">
+            <form th:action="@{/projects/add-project}">
+                <button class="add-button" type="submit">+</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+    © 2025 Plannex
+</footer>
+
 </body>
 </html>

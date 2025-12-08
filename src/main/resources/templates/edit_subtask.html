@@ -2,42 +2,79 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit subtask</title>
+    <title>Edit Subtask</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 </head>
-<body>
-<form th:action="@{/employees/{username}(username=${sessionUser})}">
-    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
-</form>
-<h1>Edit subtask</h1>
-<form th:action="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/edit(pid=${pid}, tid=${tid}, sid=${sid})}" th:object="${subtask}" method="post">
-    <fieldset>
-        <fieldset>
-            <legend>Description</legend>
-            <label for="description"></label>
-            <input id="description" th:field="*{taskDescription}" th:value="${subtask.taskDescription}" required>
-        </fieldset>
 
-        <input type="hidden" th:field="*{parentTaskID}" th:value="${subtask.parentTaskID}">
-        <input type="hidden" th:field="*{parentProjectID}" th:value="${subtask.parentProjectID}">
-        <input type="hidden" th:field="*{ID}" th:value="${subtask.ID}">
+<body class="edit-subtask-page">
 
-        <label for="title">Title</label>
-        <input id="title" th:field="*{taskTitle}" th:value="${subtask.taskTitle}" required>
+<!-- Profile button -->
+<header>
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button class="profile-button"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+</header>
 
-        <label for="startDate">Start Date</label>
-        <input type="date" id="startDate" th:field="*{taskStart}" th:value="${subtask.taskStart}"  required>
+<main class="edit-subtask-container">
 
-        <label for="endDate">End Date</label>
-        <input type="date" id="endDate" th:field="*{taskEnd}" th:value="${subtask.taskEnd}"  required>
+    <h1>Edit subtask</h1>
+
+    <!-- FORM START -->
+    <form th:action="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/edit(pid=${pid}, tid=${tid}, sid=${sid})}"
+          th:object="${subtask}" method="post"
+          class="edit-subtask-box">
+
+        <!-- LEFT COLUMN -->
+        <div class="edit-left">
+            <label>Description</label>
+            <textarea th:field="*{taskDescription}" required></textarea>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="edit-right">
+
+            <label>Title</label>
+            <input th:field="*{taskTitle}" required>
+
+            <label>Start date</label>
+            <input type="date" th:field="*{taskStart}" required>
+
+            <label>End date</label>
+            <input type="date" th:field="*{taskEnd}" required>
+
+            <label>Duration (hours)</label>
+            <input type="text" th:field="*{taskDurationHours}" required>
+
+        </div>
+
+        <!-- Hidden fields -->
+        <input type="hidden" th:field="*{parentTaskID}">
+        <input type="hidden" th:field="*{parentProjectID}">
+        <input type="hidden" th:field="*{ID}">
+
+        <!-- BUTTON ROW -->
+        <div class="edit-button-row">
+
+            <a th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}(pid=${pid}, tid=${tid}, sid=${sid})}"
+               class="cancel-btn">
+                Cancel
+            </a>
+
+            <a th:if="${isManager}"
+               th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/delete(pid=${pid}, tid=${tid}, sid=${sid})}"
+               class="subtask-edit-delete-btn">
+                Delete
+            </a>
+
+            <button type="submit" class="update-btn">Update</button>
+        </div>
 
 
-        <label for="duration">Duration (hours)</label>
-        <input type="text" id="duration" th:field="*{taskDurationHours}" th:value="${subtask.taskDurationHours}" required>
+    </form>
+</main>
 
-        <button type="submit">Update</button>
-        <a th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}(pid=${pid}, tid=${tid}, sid=${sid})}" class="btn" th:text="Cancel"></a>
-    </fieldset>
-</form>
+<footer>© 2025 Plannex</footer>
+
 </body>
 </html>

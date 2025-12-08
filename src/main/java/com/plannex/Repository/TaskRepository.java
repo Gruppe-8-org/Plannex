@@ -197,15 +197,19 @@ public class TaskRepository {
 
     public List<ProjectEmployee> getAllAssigneesForTask(int taskID) {
         try {
-            return jdbcTemplate.query("SELECT DISTINCT ProjectEmployees.* FROM Tasks\n" +
-                            "LEFT JOIN TaskAssignees ON TaskAssignees.TaskID = Tasks.TaskID\n" +
-                            "LEFT JOIN ProjectEmployees ON ProjectEmployees.EmployeeUsername = TaskAssignees.EmployeeUsername\n" +
-                            "WHERE ParentTaskID = ?;",
-                    projectEmployeeRowMapper, taskID);
+            return jdbcTemplate.query(
+                    "SELECT DISTINCT ProjectEmployees.* " +
+                            "FROM TaskAssignees " +
+                            "LEFT JOIN ProjectEmployees " +
+                            "ON ProjectEmployees.EmployeeUsername = TaskAssignees.EmployeeUsername " +
+                            "WHERE TaskAssignees.TaskID = ?;",
+                    projectEmployeeRowMapper, taskID
+            );
         } catch (EmptyResultDataAccessException erdae) {
-            return null;
+            return List.of(); // return empty list instead of null
         }
     }
+
 
     private boolean artifactWithValuesExists(int taskID, String username, String pathToArtifact) {
         return Boolean.TRUE.equals(jdbcTemplate.queryForObject("SELECT COUNT(*) > 0 FROM Artifacts WHERE TaskID = ? AND ArtifactAuthor = ? AND PathToArtifact = ?;",

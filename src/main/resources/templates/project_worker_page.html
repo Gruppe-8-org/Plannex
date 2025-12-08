@@ -3,34 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <title>Your profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 </head>
-<body>
-    <main>
-        <h1 th:text="${employee.employeeName}"></h1>
-        <div id="profile_grid_top">
+
+<body class="profile-page">
+
+
+<header>
+    <form th:action="@{/employees/{username}(username=${username})}">
+        <button class="profile-button">
+            <i class="fa fa-user-circle-o"></i>
+        </button>
+    </form>
+</header>
+
+<main class="profile-container">
+
+    <!-- NAME ONLY (team/role removed because model doesn't have those yet) -->
+    <h1 th:text="${employee.employeeName}"></h1>
+
+    <section class="profile-box">
+        <!-- LEFT SIDE — ONLY FIELDS THAT EXIST IN MODEL -->
+        <div class="profile-left">
             <ul class="ul-no-bullets">
+
                 <li>
-                    <label for="profile-username" class="body-bold">Username</label>
-                    <p id="profile-username" th:text="${employee.employeeUsername}"></p>
+                    <label class="body-bold">Username</label>
+                    <p th:text="${employee.employeeUsername}"></p>
                 </li>
+
                 <li>
-                    <label for="profile-email" class="body-bold">Email</label>
-                    <p id="profile-email" th:text="${employee.employeeEmail}"></p>
+                    <label class="body-bold">Email</label>
+                    <p th:text="${employee.employeeEmail}"></p>
                 </li>
+
                 <li>
-                    <label for="profile-work-hours" class="body-bold">Work hours</label>
-                    <p id="profile-work-hours" th:text="${employee.workingHoursFrom} + ' - ' + ${employee.workingHoursTo}"></p>
+                    <label class="body-bold">Work Hours</label>
+                    <p th:text="${employee.workingHoursFrom} + ' - ' + ${employee.workingHoursTo}"></p>
                 </li>
+
             </ul>
+
             <div class="horizontal-group">
                 <form th:action="@{/employees/{username}/edit(username=${employee.employeeUsername})}">
-                    <button class="btn" th:text="Edit"></button>
+                    <button class="btn">Edit</button>
                 </form>
+
                 <form th:action="@{/projects}">
-                    <button class="btn-primary" th:text="Work"></button>
+                    <button class="btn-primary">Work</button>
                 </form>
             </div>
         </div>
-    </main>
+
+
+        <div class="profile-right">
+            <h3>Short bio</h3>
+            <div class="bio-box">
+            </div>
+        </div>
+    </section>
+
+    <section class="activity-box">
+        <h3>Recent Activity</h3>
+        <div class="big-panel"></div>
+
+        <h3>Upcoming tasks</h3>
+        <div class="big-panel"></div>
+    </section>
+
+</main>
+
+<footer>
+    © 2025 Plannex
+</footer>
+
 </body>
 </html>
