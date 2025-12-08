@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add time contribution</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<form th:action="@{/employees/{username}(username=${sessionUser})}">
+    <button type="submit" style="font-size:24px" title="Go to your profile"><i class="fa fa-user-circle-o"></i></button>
+</form>
+<h1 th:text="'Add time spent on ' + ${subtaskTitle}"></h1>
+<form th:action="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/contribute-time(pid=${pid}, tid=${tid}, sid=${sid})}" method="post">
+    <fieldset>
+        <label for="time-spent" class="body-bold">How many hours did you spend?</label>
+        <!-- Odd, I know, but type="number" doesn't conform to the regex pattern. Text does for some reason. -->
+        <input id="time-spent" type="text" min="0" placeholder="A decimal number" pattern="\d+(\.\d+)?" title="Please enter a decimal number." name="timeSpent" required>
+
+        <button type="submit">Add time</button>
+        <a th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}(pid = ${pid}, tid=${tid}, sid=${sid})}" class="btn" th:text="Cancel"></a>
+    </fieldset>
+</form>
+</body>
+</html>

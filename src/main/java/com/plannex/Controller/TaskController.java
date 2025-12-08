@@ -1,7 +1,6 @@
 package com.plannex.Controller;
 
 import com.plannex.Exception.InsufficientPermissionsException;
-import com.plannex.Model.Project;
 import com.plannex.Model.Task;
 import com.plannex.Service.ProjectEmployeeService;
 import com.plannex.Service.ProjectService;
@@ -10,8 +9,12 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.naming.OperationNotSupportedException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -46,7 +49,6 @@ public class TaskController {
             throw new InsufficientPermissionsException("Only managers may add tasks.");
         }
 
-        model.addAttribute("parentProjectID", pid);
         model.addAttribute("task", new Task());
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "add_task";
@@ -69,8 +71,6 @@ public class TaskController {
             throw new InsufficientPermissionsException("Only managers may add subtasks.");
         }
 
-        model.addAttribute("parentProjectID", pid);
-        model.addAttribute("parentTaskID", tid);
         model.addAttribute("subtask", new Task());
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "add_subtask";
@@ -78,6 +78,8 @@ public class TaskController {
 
     @PostMapping("/tasks/{tid}/add-subtask")
     public String saveSubtask(@PathVariable int pid, @PathVariable int tid, @ModelAttribute Task task) throws OperationNotSupportedException {
+        task.setParentProjectID(pid);
+        task.setParentTaskID(tid);
         taskService.addSubtask(task);
         return "redirect:/projects/" + pid + "/tasks/" + tid;
     }
@@ -145,12 +147,12 @@ public class TaskController {
     }
 
     @PostMapping("/tasks/{tid}/subtasks/{sid}/assign-workers")
-    public String saveAssignments(@PathVariable int sid, @RequestParam(name="usernames") List<String> usernames) {
+    public String saveAssignments(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, @RequestParam(name="usernames") List<String> usernames) {
         for (String username : usernames) {
             taskService.assignTaskToEmployee(sid, username);
         }
 
-        return "redirect:/subtasks/" + sid;
+        return "redirect:/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
     }
 
     @PostMapping("/tasks/{tid}/subtasks/{sid}/unassign-worker/{username}")
@@ -181,7 +183,7 @@ public class TaskController {
     }
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}/add-artifact")
-    public String showAddArtifactPage(Model model, HttpSession session) {
+    public String showAddArtifactPage(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, Model model, HttpSession session) {
         if (!isLoggedIn(session)) {
             return "redirect:/login";
         }
@@ -191,10 +193,24 @@ public class TaskController {
     }
 
     @PostMapping("/tasks/{tid}/subtasks/{sid}/add-artifact")
-    public String saveArtifact(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, @RequestParam("byUsername") String byUsername, @RequestParam("pathToArtifact") String pathToArtifact) {
-        taskService.addArtifact(tid, byUsername, pathToArtifact);
+    public String saveArtifact(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, @RequestParam("author") String byUsername, @RequestParam("file") MultipartFile file) {
         final String pathToSaveAt = "artifacts/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
+        Path filenameAndPath = Paths.get(pathToSaveAt, file.getOriginalFilename());
+        taskService.addArtifact(tid, byUsername, String.valueOf(filenameAndPath));
+        return "redirect:/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
+    }
 
+    @PostMapping("/tasks/{tid}/subtasks/{sid}/delete-artifact")
+    public String deleteArtifact(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, @RequestParam("artifactPath") String artifactPath, @RequestParam("author") String author, HttpSession session) {
+        if (!isLoggedIn(session)) {
+            return "redirect:/login";
+        }
+
+        if (!isManager(session) && !author.equals(session.getAttribute("username").toString())) {
+            throw new InsufficientPermissionsException("Managers may delete all artifacts, workers may only delete their own.");
+        }
+
+        taskService.deleteArtifact(sid, author, artifactPath);
         return "redirect:/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
     }
 
@@ -306,5 +322,36 @@ public class TaskController {
     public String deleteSubtask(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid) {
         taskService.deleteTaskByID(sid);
         return "redirect:/projects/" + pid + "/tasks/" + tid;
+    }
+
+    @GetMapping("/tasks/{tid}/subtasks/{sid}/contribute-time")
+    public String showTimeContributionForm(HttpSession session, Model model, @PathVariable int pid, @PathVariable int tid, @PathVariable int sid) {
+        if (!isLoggedIn(session)) {
+            return "redirect:/login";
+        }
+
+        model.addAttribute("subtaskTitle", taskService.getTaskByID(sid).getTaskTitle());
+        model.addAttribute("sessionUser", session.getAttribute("username").toString());
+        return "add_time_contribution";
+    }
+
+    @PostMapping("/tasks/{tid}/subtasks/{sid}/contribute-time")
+    public String saveTimeContribution(HttpSession session, @RequestParam("timeSpent") float timeSpent, @PathVariable int pid, @PathVariable int tid, @PathVariable int sid) {
+        taskService.contributeTime(session.getAttribute("username").toString(), sid, timeSpent);
+        return "redirect:/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
+    }
+
+    @PostMapping("/tasks/{tid}/subtasks/{sid}/delete-time-contribution")
+    public String deleteTimeContribution(HttpSession session, @RequestParam("byEmployee") String byUser, @RequestParam("when") LocalDateTime when, @PathVariable int pid, @PathVariable int tid, @PathVariable int sid) {
+        if (!isLoggedIn(session)) {
+            return "redirect:/login";
+        }
+
+        if (!isManager(session) || !byUser.equals(session.getAttribute("username").toString())) {
+            throw new InsufficientPermissionsException("Managers may delete all time contributions, workers may only delete their own.");
+        }
+
+        taskService.deleteTimeContribution(byUser, sid, when);
+        return "redirect:/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
     }
 }

@@ -28,7 +28,7 @@
         <input type="date" id="endDate" th:field="*{taskEnd}" required>
 
         <label for="duration">Duration (hours)</label>
-        <input type="text" id="duration" th:field="*{taskDurationHours}" required>
+        <input type="text" id="duration" th:field="*{taskDurationHours}" pattern="\d+(\.\d+)?" title="Please enter a decimal number." required>
 
         <button type="submit">Add</button>
         <a th:href="@{/projects/{pid}/tasks/{tid}(pid = ${pid}, tid = ${tid})}" class="btn" th:text="Cancel"></a>

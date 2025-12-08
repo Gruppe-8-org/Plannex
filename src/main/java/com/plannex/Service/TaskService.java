@@ -1,11 +1,9 @@
 package com.plannex.Service;
 
 import com.plannex.Exception.EntityDoesNotExistException;
-import com.plannex.Exception.EntityAlreadyExistsException;
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Model.Task;
 import com.plannex.Repository.TaskRepository;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import javax.naming.OperationNotSupportedException;
