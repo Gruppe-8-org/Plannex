@@ -187,8 +187,11 @@ public class TaskRepository {
 
     public List<ProjectEmployee> getAllAssigneesForSubtask(int subtaskID) {
         try {
-            return jdbcTemplate.query("SELECT DISTINCT ProjectEmployees.* FROM TaskAssignees\n" +
-                            "LEFT JOIN ProjectEmployees on TaskAssignees.EmployeeUsername = ProjectEmployees.EmployeeUsername WHERE TaskID = ?;",
+            return jdbcTemplate.query("""
+            SELECT DISTINCT pe.*
+            FROM ProjectEmployees pe
+            LEFT JOIN TaskAssignees ta ON ta.EmployeeUsername = pe.EmployeeUsername
+            WHERE ta.TaskID=?;""",
                     projectEmployeeRowMapper, subtaskID);
         } catch (EmptyResultDataAccessException erdae) {
             return null;
@@ -198,15 +201,18 @@ public class TaskRepository {
     public List<ProjectEmployee> getAllAssigneesForTask(int taskID) {
         try {
             return jdbcTemplate.query(
-                    "SELECT DISTINCT ProjectEmployees.* " +
-                            "FROM TaskAssignees " +
-                            "LEFT JOIN ProjectEmployees " +
-                            "ON ProjectEmployees.EmployeeUsername = TaskAssignees.EmployeeUsername " +
-                            "WHERE TaskAssignees.TaskID = ?;",
+                    """
+                       SELECT DISTINCT pe.*
+                               FROM Tasks p
+                       JOIN Tasks s     ON s.ParentTaskID = p.TaskID
+                       JOIN TaskAssignees ta  ON ta.TaskID = s.TaskID
+                       JOIN ProjectEmployees pe  ON pe.EmployeeUsername = ta.EmployeeUsername
+                       WHERE p.TaskID = ?;""",
+
                     projectEmployeeRowMapper, taskID
             );
         } catch (EmptyResultDataAccessException erdae) {
-            return List.of(); // return empty list instead of null
+            return List.of();
         }
     }
 

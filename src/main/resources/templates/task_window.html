@@ -61,7 +61,7 @@
             <legend>Resources</legend>
 
             <div class="list-area">
-                <p><i class="fa fa-clock-o"></i> <span th:text="${timeSpent} + ' hours'"></span></p>
+                <p><i class="fa fa-clock-o"></i> <span th:text="${timeSpent.size()} + ' hours'"></span></p>
                 <p><i class="fa fa-user"></i> <span th:text="${assignees.size()} + ' employees'"></span></p>
             </div>
         </div>
@@ -81,7 +81,7 @@
 
                 <div class="subtask-meta">
                     <p><i class="fa fa-user"></i> <span th:text="${subtaskAssignees[iter.index].size()}"></span></p>
-                    <p><i class="fa fa-clock-o"></i> <span th:text="${subtaskTimeSpents[iter.index]} + ' h'"></span></p>
+                    <p><i class="fa fa-clock-o"></i> <span th:text="${subtaskTimeSpents[iter.index].size()} + ' h'"></span></p>
                 </div>
             </div>
 

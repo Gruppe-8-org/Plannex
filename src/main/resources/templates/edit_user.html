@@ -52,20 +52,11 @@
                th:field="*{employeePassword}"
                required>
 
-        <!-- placeholders, føler ikke jeg kan finde koden til det endnu -->
-        <label for="bio">Bio</label>
-        <textarea id="bio"></textarea>
+        <label>Works from</label>
+        <input type="time" th:field="*{workingHoursFrom}">
 
-        <!-- placeholders, føler ikke jeg kan finde koden til det endnu -->
-        <label for="team">Team</label>
-        <select id="team" disabled>
-            <option>Skal implementeres</option>
-        </select>
-
-        <label for="department">Department</label>
-        <select id="department" disabled>
-            <option>Skal implementeres</option>
-        </select>
+        <label>Works to</label>
+        <input type="time" th:field="*{workingHoursTo}">
 
         <input type="hidden"
                name="oldUsername"
