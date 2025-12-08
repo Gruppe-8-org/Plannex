@@ -11,7 +11,7 @@
 </form>
 <fieldset>
     <fieldset>
-        <legend th:text="${subtask.ID} + ' - start/end '"> <a th:href="@{/}">edit</a></legend>
+        <legend th:text="${subtask.taskTitle} + ' - start/end '"> <a th:href="@{/}">edit</a></legend>
         <p th:text="${subtask.taskStart}"></p>
         <p th:text="${subtask.taskEnd}"></p>
         <p th:text="${subtask.taskDescription}"></p>

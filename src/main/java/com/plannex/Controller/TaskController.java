@@ -226,8 +226,8 @@ public class TaskController {
         model.addAttribute("timeSpent", taskService.getAllTimeContributionsForTask(tid));
         model.addAttribute("artifacts", taskService.getAllArtifactsForTask(tid));
         model.addAttribute("dependencies", taskService.getAllDependenciesForTask(tid));
-        model.addAttribute("subtaskAssignees", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllAssigneesForTask(task.getID())).toList());
-        model.addAttribute("subtaskTimeSpents", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllTimeContributionsForTask(task.getID())).toList());
+        model.addAttribute("subtaskAssignees", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllInvolved(task.getID())).toList());
+        model.addAttribute("subtaskTimeSpents", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getTotalTimeSpent(task.getID())).toList());
         model.addAttribute("isManager", isManager(session));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "task_window";

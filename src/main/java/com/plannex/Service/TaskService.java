@@ -114,4 +114,12 @@ public class TaskService {
     public List<ProjectEmployee> getAllAssigneesForTask(int taskID) {
         return taskRepository.getAllAssigneesForTask(taskID);
     }
+
+    public Integer getAllInvolved(int taskID) {
+        return taskRepository.getAllInvolved(taskID);
+    }
+
+    public float getTotalTimeSpent(int taskID) {
+        return taskRepository.getTotalTimeSpent(taskID);
+    }
 }

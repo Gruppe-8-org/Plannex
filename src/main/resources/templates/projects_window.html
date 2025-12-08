@@ -13,8 +13,8 @@
 <fieldset th:each="project, iter : ${allProjects}">
     <h2 th:text="${project.getProjectTitle()}"></h2>
     <fieldset>
-        <p th:text="${employeesInvolved[iter.index]}" style="font-size:14px"><i class="fa fa-user"></i></p>
-        <p th:text="${timeSpents[iter.index]}"><i class="fa fa-clock-o"></i></p>
+        <p th:text="${#numbers.formatDecimal(employeesInvolved[iter.index], 0 , 0)}" style="font-size:14px"><i class="fa fa-user"></i></p>
+        <p th:text="${#numbers.formatDecimal(timeSpents[iter.index], 0, 0)}"><i class="fa fa-clock-o"></i></p>
         <p th:text="${startDates[iter.index]}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
         <p th:text="${endDates[iter.index]}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
     </fieldset>

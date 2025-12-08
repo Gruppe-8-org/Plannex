@@ -11,7 +11,7 @@
 </form>
 <fieldset>
     <fieldset>
-        <legend th:text="'Task ' + ${task.ID}"></legend>
+        <legend th:text="${task.getTaskTitle}"></legend>
         <p th:text="${task.taskStart}"></p>
         <p th:text="${task.taskEnd}"></p>
     </fieldset>
@@ -41,17 +41,17 @@
 
     <fieldset>
         <legend>Resources</legend>
-        <p th:text="${timeSpent} + ' hours'"></p>
-        <p th:text="${assignees.size()} + 'employees'"></p>
+        <p th:text="${#numbers.formatDecimal(timeSpent, 0, 0)} + ' hours'"></p>
+        <p th:text="${assignees.size()} + ' employees'"></p>
     </fieldset>
 
     <fieldset>
-        <legend>Subtasks (x/y)</legend>
+        <legend>Subtasks</legend>
         <fieldset th:each="subtask, iter : ${subtasks}">
-            <h2 th:text="'Subtask ' + ${subtask.ID}"></h2>
+            <h2 th:text="${subtask.taskTitle}"></h2>
             <fieldset>
-                <p th:text="${subtaskAssignees[iter.index]}" style="font-size:14px"><i class="fa fa-user"></i></p>
-                <p th:text="${subtaskTimeSpents[iter.index]}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
+                <p th:text="${#numbers.formatDecimal(subtaskAssignees[iter.index], 0, 0)}" style="font-size:14px"><i class="fa fa-user"></i></p>
+                <p th:text="${#numbers.formatDecimal(subtaskTimeSpents[iter.index], 0, 0)}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
             </fieldset>
         </fieldset>
 

@@ -22,7 +22,7 @@
 
     <fieldset>
         <legend>Resource Use</legend>
-        <p th:text="${timeSpent} + 'hours'"></p>
+        <p th:text="${#numbers.formatDecimal(timeSpent, 0, 0)} + ' hours'"></p>
     </fieldset>
 
     <!--
@@ -36,10 +36,10 @@
     <fieldset>
         <legend>Tasks</legend>
         <fieldset th:each="task, iter : ${allTasks}">
-            <h2 th:text="'Task ' + ${task.getID()}"></h2>
+            <h2 th:text="${task.getTaskTitle()}"></h2>
             <fieldset>
-                <p th:text="${taskAssignees[iter.index].size()}" style="font-size:14px"><i class="fa fa-user"></i></p>
-                <p th:text="${taskTimeContributions[iter.index]}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
+                <p th:text="${#numbers.formatDecimal(taskAssignees[iter.index].size(), 0, 0)}" style="font-size:14px"><i class="fa fa-user"></i></p>
+                <p th:text="${#numbers.formatDecimal(taskTimeContributions[iter.index], 0, 0)}" style="font-size:14px"><i class="fa fa-clock-o"></i></p>
             </fieldset>
         </fieldset>
 
