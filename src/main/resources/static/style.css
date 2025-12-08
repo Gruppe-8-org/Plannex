@@ -964,7 +964,7 @@ footer {
 .delete-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr; /* To lige store knapper */
-    gap: 20px;
+    gap: 40px;
     width: 60%;
     margin: 0 auto; /* Centrer knap-rækken i boksen */
 }
@@ -985,6 +985,26 @@ footer {
     width: 100%; /* Sikrer samme bredde */
     text-decoration: none;
 }
+
+.delete-user-btn {
+    background: #ff7171;
+    color: black;
+    border-radius: 6px;
+    height: 65px;
+    width: 100%;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    border: none;
+}
+
+.delete-user-btn:hover {
+    background: #ff5c5c;
+}
+
 
 /* Cancel button */
 .delete-buttons .cancel-btn {
@@ -1871,13 +1891,15 @@ footer {
     gap: 10px;
 }
 
-.cancel-btn {
-    background: #c2c2c2;
-    padding: 6px 14px;
-    border-radius: 5px;
-    text-decoration: none;
+.add-assignees-page .cancel-btn {
+    background: #c7c7c7;
+    padding: 1px 20px;
+    border-radius: 4px;
     color: black;
+    text-decoration: none;
+    font-weight: bold;
 }
+
 
 .update-btn {
     background: #64aaff;

@@ -31,7 +31,8 @@
       <a th:href="@{/employees}" class="cancel-btn">Tilbage</a>
 
       <form th:action="@{/employees/{username}/delete(username=${user.employeeUsername})}" method="post">
-        <button type="submit" class="delete-btn">Slet bruger</button>
+        <button class="delete-user-btn">Slet bruger</button>
+
       </form>
     </div>
   </div>
