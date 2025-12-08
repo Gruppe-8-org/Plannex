@@ -10,7 +10,6 @@
 
 <body class="edit-page">
 
-<!-- top header with profile button -->
 <header>
     <form th:action="@{/employees/{username}(username=${username})}">
         <button class="profile-button" type="submit">
@@ -24,34 +23,29 @@
 
     <h1>Edit user</h1>
 
-    <!-- main form box -->
     <form class="edit-box"
           th:action="@{/employees/{uname}/edit(uname=${oldUsername})}"
           th:object="${user}"
           method="post">
 
-        <!-- LEFT COLUMN -->
         <label for="name">Name</label>
         <input id="name"
                th:field="*{employeeName}"
                th:value="${user.employeeName}"
                required>
 
-        <!-- RIGHT COLUMN -->
         <label for="username">Username</label>
         <input id="username"
                th:field="*{employeeUsername}"
                th:value="${oldUsername}"
                required>
 
-        <!-- EMAIL -->
         <label for="email">Email</label>
         <input id="email"
                th:field="*{employeeEmail}"
                th:value="${user.employeeEmail}"
                required>
 
-        <!-- PASSWORD -->
         <label for="password">Password</label>
         <input id="password"
                type="password"
@@ -73,12 +67,10 @@
             <option>Skal implementeres</option>
         </select>
 
-        <!-- hidden oldUsername -->
         <input type="hidden"
                name="oldUsername"
                th:value="${oldUsername}">
 
-        <!-- BUTTONS -->
         <div class="edit-buttons">
             <a th:href="@{/employees/{uname}(uname=${oldUsername})}"
                class="cancel-btn">Cancel</a>

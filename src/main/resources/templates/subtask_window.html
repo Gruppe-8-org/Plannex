@@ -17,10 +17,8 @@
 
 <main class="subtask-container">
 
-    <!-- HEADER ROW -->
     <div class="subtask-header-row">
 
-        <!-- TITLE + DESCRIPTION -->
         <div class="subtask-box large-box">
             <legend>
                 <span th:text="${subtask.taskTitle} + ' — ' + ${subtask.taskStart} + ' / ' + ${subtask.taskEnd}"></span>
@@ -35,7 +33,6 @@
             </div>
         </div>
 
-        <!-- PEOPLE -->
         <div class="subtask-box small-box">
             <legend>
                 People
@@ -54,7 +51,6 @@
             </div>
         </div>
 
-        <!-- DEPENDENCIES -->
         <div class="subtask-box small-box">
             <legend>
                 Dependencies
@@ -73,10 +69,8 @@
 
     </div>
 
-    <!-- ARTIFACTS & RESOURCES -->
     <div class="subtask-middle-row">
 
-        <!-- ARTIFACTS -->
         <div class="subtask-box medium-box">
             <legend>
                 Artifacts
@@ -93,7 +87,6 @@
             </div>
         </div>
 
-        <!-- RESOURCES -->
         <div class="subtask-box medium-box">
             <legend>
                 Resources
@@ -110,7 +103,6 @@
 
     </div>
 
-    <!-- COMMENTS -->
     <div class="subtask-comments-box">
         <legend>
             Comments

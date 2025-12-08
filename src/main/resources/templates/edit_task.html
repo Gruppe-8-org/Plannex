@@ -25,7 +25,6 @@
 
         <div class="edit-grid">
 
-            <!-- DESCRIPTION LEFT -->
             <div class="edit-left">
                 <label>Description</label>
                 <textarea class="description-input"
@@ -33,7 +32,6 @@
                           required></textarea>
             </div>
 
-            <!-- RIGHT COLUMN -->
             <div class="edit-right">
 
                 <label>Title</label>
@@ -51,12 +49,10 @@
 
         </div>
 
-        <!-- HIDDEN FIELDS -->
         <input type="hidden" th:field="*{parentTaskID}">
         <input type="hidden" th:field="*{parentProjectID}">
         <input type="hidden" th:field="*{ID}">
 
-        <!-- BUTTONS -->
         <div class="button-row">
 
             <a class="cancel-btn"

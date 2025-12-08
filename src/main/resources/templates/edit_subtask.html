@@ -9,7 +9,6 @@
 
 <body class="edit-subtask-page">
 
-<!-- Profile button -->
 <header>
     <form th:action="@{/employees/{username}(username=${sessionUser})}">
         <button class="profile-button"><i class="fa fa-user-circle-o"></i></button>
@@ -20,18 +19,15 @@
 
     <h1>Edit subtask</h1>
 
-    <!-- FORM START -->
     <form th:action="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/edit(pid=${pid}, tid=${tid}, sid=${sid})}"
           th:object="${subtask}" method="post"
           class="edit-subtask-box">
 
-        <!-- LEFT COLUMN -->
         <div class="edit-left">
             <label>Description</label>
             <textarea th:field="*{taskDescription}" required></textarea>
         </div>
 
-        <!-- RIGHT COLUMN -->
         <div class="edit-right">
 
             <label>Title</label>
@@ -48,12 +44,10 @@
 
         </div>
 
-        <!-- Hidden fields -->
         <input type="hidden" th:field="*{parentTaskID}">
         <input type="hidden" th:field="*{parentProjectID}">
         <input type="hidden" th:field="*{ID}">
 
-        <!-- BUTTON ROW -->
         <div class="edit-button-row">
 
             <a th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}(pid=${pid}, tid=${tid}, sid=${sid})}"

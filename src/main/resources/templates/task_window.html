@@ -17,10 +17,8 @@
 
 <main class="task-container">
 
-    <!-- HEADER ROW -->
     <div class="task-header-row">
 
-        <!-- Task info -->
         <div class="task-box">
             <legend>
                 <span th:text="'Task ' + ${task.ID}"></span>
@@ -38,7 +36,6 @@
             </div>
         </div>
 
-        <!-- Dependencies -->
         <div class="task-box small-box">
             <legend>Dependencies</legend>
 
@@ -50,10 +47,8 @@
 
     </div>
 
-    <!-- SECOND ROW: ARTIFACTS + RESOURCES -->
     <div class="task-resources-row">
 
-        <!-- Artifacts -->
         <div class="task-box">
             <legend>Artifacts</legend>
             <div class="list-area">
@@ -62,7 +57,6 @@
             </div>
         </div>
 
-        <!-- Resources -->
         <div class="task-box">
             <legend>Resources</legend>
 
@@ -74,13 +68,11 @@
 
     </div>
 
-    <!-- SUBTASK SECTION -->
     <div class="subtasks-section">
         <legend>Subtasks (x/y)</legend>
 
         <div class="subtask-grid">
 
-            <!-- Subtask cards -->
             <div class="subtask-card"
                  th:each="subtask, iter : ${subtasks}"
                  th:onclick="|window.location='@{/projects/{pid}/tasks/{tid}/subtasks/{sid}(pid=${pid}, tid=${task.ID}, sid=${subtask.ID})}'|">
@@ -94,7 +86,6 @@
             </div>
 
 
-            <!-- Add Subtask -->
             <div class="subtask-card add-subtask" th:if="${isManager}">
                 <form th:action="@{/projects/{pid}/tasks/{tid}/add-subtask(pid=${pid}, tid=${task.ID})}">
                     <button type="submit">+</button>

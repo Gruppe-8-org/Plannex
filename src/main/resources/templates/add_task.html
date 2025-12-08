@@ -24,13 +24,11 @@
           th:object="${task}"
           method="post">
 
-        <!-- LEFT: DESCRIPTION -->
         <div class="desc-column">
             <label>Description</label>
             <textarea th:field="*{taskDescription}" required></textarea>
         </div>
 
-        <!-- RIGHT: Title + Dates -->
         <div class="right-column">
             <label>Title</label>
             <input th:field="*{taskTitle}" required>
@@ -42,10 +40,8 @@
             <input type="date" th:field="*{taskEnd}" required>
         </div>
 
-        <!-- Hidden project ID -->
         <input type="hidden" th:field="*{parentProjectID}" th:value="${pid}">
 
-        <!-- BOTTOM ROW -->
         <div class="bottom-row">
 
             <div>

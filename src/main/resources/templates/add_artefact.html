@@ -9,7 +9,6 @@
 
 <body class="add-artifact-page">
 
-<!-- Profile button -->
 <header>
     <form th:action="@{/employees/{username}(username=${sessionUser})}">
         <button class="profile-button">
@@ -26,19 +25,16 @@
           th:action="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/add-artifact(pid=${pid}, tid=${tid}, sid=${sid})}"
           method="post">
 
-        <!-- Left column -->
         <div>
             <label>Artifact path</label>
             <input type="text" name="pathToArtifact" required>
         </div>
 
-        <!-- Right column -->
         <div>
             <label>Uploaded by</label>
             <input type="text" name="byUsername" th:value="${sessionUser}" required>
         </div>
 
-        <!-- Buttons -->
         <div class="add-artifact-buttons">
             <a th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}(pid=${pid}, tid=${tid}, sid=${sid})}"
                class="cancel-btn">Cancel</a>

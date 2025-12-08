@@ -9,7 +9,6 @@
 
 <body class="projects-page">
 
-<!-- HEADER -->
 <header class="header">
     <form th:action="@{/employees/{username}(username=${sessionUser})}">
         <button type="submit" class="profile-button"><i class="fa fa-user-circle-o"></i></button>
@@ -20,10 +19,8 @@
 
     <h1>Your projects</h1>
 
-    <!-- PROJECT GRID -->
     <div class="project-grid">
 
-        <!-- PROJECT CARD -->
         <a class="project-card-link"
            th:each="project, iter : ${allProjects}"
            th:href="@{/projects/{pid}(pid=${project.ID})}">
@@ -44,7 +41,6 @@
         </a>
 
 
-        <!-- ADD PROJECT CARD -->
         <div class="project-card add-card" th:if="${isManager}">
             <form th:action="@{/projects/add-project}">
                 <button class="add-button" type="submit">+</button>
@@ -54,7 +50,6 @@
     </div>
 </div>
 
-<!-- FOOTER -->
 <footer class="footer">
     © 2025 Plannex
 </footer>

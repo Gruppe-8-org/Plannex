@@ -23,17 +23,14 @@
           th:action="@{/projects/{pid}/tasks/{tid}/add-subtask(pid=${pid}, tid=${tid})}"
           th:object="${subtask}" method="post">
 
-        <!-- REQUIRED HIDDEN FIELDS -->
         <input type="hidden" th:field="*{parentProjectID}">
         <input type="hidden" th:field="*{parentTaskID}">
 
-        <!-- LEFT COLUMN -->
         <div class="desc-column">
             <label>Description</label>
             <textarea th:field="*{taskDescription}" required></textarea>
         </div>
 
-        <!-- RIGHT COLUMN -->
         <div class="right-column">
 
             <label>Title</label>
@@ -53,7 +50,6 @@
 
         </div>
 
-        <!-- BOTTOM -->
         <div class="bottom-row">
 
             <div class="duration-field">
