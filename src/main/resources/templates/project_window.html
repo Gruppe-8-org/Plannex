@@ -9,8 +9,16 @@
 <body class="project-page">
 
 <header>
+    <form th:action="@{/projects}">
+        <button class="profile-button"><i class="fa fa-arrow-circle-left"></i></button>
+    </form>
+
     <form th:action="@{/employees/{username}(username=${sessionUser})}">
-        <button class="profile-button" type="submit"><i class="fa fa-user-circle-o"></i></button>
+        <button class="profile-button"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+
+    <form th:action="@{/logout}">
+        <button class="profile-button"><i class="fa fa-times-circle"></i></button>
     </form>
 </header>
 
@@ -46,7 +54,7 @@
         <!-- RIGHT: Resource Use -->
         <div class="resource-box">
             <legend>Resource use</legend>
-            <p th:text="${timeSpent} + ' hours'"></p>
+            <p th:text="${#numbers.formatDecimal(timeSpent, 0, 0)} + ' hours'"></p>
         </div>
 
     </div>
@@ -64,10 +72,10 @@
 
             <div class="task-card">
                 <div class="card-bg">
-                    <h3 th:text="'Task ' + ${task.getID()}"></h3>
+                    <h3 th:text="${task.getTaskTitle()}"></h3>
                     <div class="card-fg">
                         <p><i class="fa fa-user"></i> <span th:text="${taskAssignees[iter.index].size()}"></span></p>
-                        <p><i class="fa fa-clock-o"></i> <span th:text="${taskTimeContributions[iter.index]}"></span></p>
+                        <p><i class="fa fa-clock-o"></i> <span th:text="${#numbers.formatDecimal(taskTimeContributions[iter.index], 0, 0)}"></span></p>
                     </div>
                 </div>
             </div>
