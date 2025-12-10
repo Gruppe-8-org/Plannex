@@ -163,6 +163,7 @@ public class TaskController {
             throw new InsufficientPermissionsException("Only managers may assign workers tasks.");
         }
 
+        model.addAttribute("subtaskAssignees", taskService.getAllAssigneesForSubtask(sid));
         model.addAttribute("allUsers", projectEmployeeService.getAllEmployees());
         model.addAttribute("pid", pid);
         model.addAttribute("tid", tid);
@@ -259,11 +260,11 @@ public class TaskController {
         model.addAttribute("task", taskService.getTaskByID(tid));
         model.addAttribute("subtasks", taskService.getAllSubtasksForParentTask(tid));
         model.addAttribute("assignees", taskService.getAllAssigneesForTask(tid));
-        model.addAttribute("timeSpent", taskService.getAllTimeContributionsForTask(tid));
+        model.addAttribute("timeSpent", taskService.getAllTimeContributionsForTask(tid).stream().mapToDouble(f -> f).sum());
         model.addAttribute("artifacts", taskService.getAllArtifactsForTask(tid));
         model.addAttribute("dependencies", taskService.getAllDependenciesForTask(tid));
         model.addAttribute("subtaskAssignees", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllAssigneesForSubtask(task.getID())).toList());
-        model.addAttribute("subtaskTimeSpents", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllTimeContributionsForTask(task.getID())).toList());
+        model.addAttribute("subtaskTimeSpents", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllTimeContributionsForTask(task.getID()).stream().mapToDouble(f -> f).sum()).toList());
         model.addAttribute("isManager", isManager(session));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "task_window";
@@ -279,6 +280,7 @@ public class TaskController {
         model.addAttribute("artifacts", taskService.getAllArtifactsForTask(sid));
         model.addAttribute("dependencies", taskService.getAllDependenciesForTask(sid));
         model.addAttribute("assignees", taskService.getAllAssigneesForSubtask(sid));
+        model.addAttribute("timeSpents", taskService.getAllTimeContributionsForTask(sid).stream().mapToDouble(f -> f).sum());
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         model.addAttribute("isManager", isManager(session));
         return "subtask_window";

@@ -10,8 +10,16 @@
 <body class="subtask-page">
 
 <header>
+    <form th:action="@{/projects/{pid}/tasks/{tid}(pid=${pid}, tid=${tid})}">
+        <button class="profile-button"><i class="fa fa-arrow-circle-left"></i></button>
+    </form>
+
     <form th:action="@{/employees/{username}(username=${sessionUser})}">
         <button class="profile-button"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+
+    <form th:action="@{/logout}">
+        <button class="profile-button"><i class="fa fa-times-circle"></i></button>
     </form>
 </header>
 
@@ -66,7 +74,6 @@
                    th:text="${d.first()} + ' blocked by ' + ${d.second()}"></p>
             </div>
         </div>
-
     </div>
 
     <div class="subtask-middle-row">
@@ -90,14 +97,13 @@
         <div class="subtask-box medium-box">
             <legend>
                 Resources
-                <a class="small-add">+</a>
+                <a th:href="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/contribute-time(pid=${pid}, tid=${tid}, sid=${sid})}"
+                   class="small-add">+</a>
             </legend>
 
             <div class="list-area">
-                <p>
-                    <i class="fa fa-user"></i>
-                    <span th:text="${assignees.size()} + ' workers'"></span>
-                </p>
+                <p><i class="fa fa-clock-o"></i> <span th:text="${#numbers.formatDecimal(timeSpents, 0, 0)} + ' hours'"></span></p>
+                <p><i class="fa fa-user"></i> <span th:text="${assignees.size()} + ' workers'"></span></p>
             </div>
         </div>
 
