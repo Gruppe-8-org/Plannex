@@ -87,22 +87,22 @@ public class TaskServiceTests {
 
     @Test
     void getTaskByIDReturnsTaskFromRepository() {
-        when(taskRepository.getTaskByID(1)).thenReturn(task);
+        when(taskRepository.getTaskByIDOrThrow(1)).thenReturn(task);
         Task result = taskService.getTaskByID(1);
         assertEquals(task, result);
-        verify(taskRepository).getTaskByID(1);
+        verify(taskRepository).getTaskByIDOrThrow(1);
     }
 
     @Test
     void updateTaskThrowsIfTaskDoesNotExist() {
-        when(taskRepository.getTaskByID(1)).thenReturn(null);
+        when(taskRepository.getTaskByIDOrThrow(1)).thenReturn(null);
         assertThrows(EntityDoesNotExistException.class, () -> taskService.updateTask(task, 1));
         verify(taskRepository, never()).updateTask(any(), anyInt());
     }
 
     @Test
     void updateTaskCallsRepositoryIfExists() {
-        when(taskRepository.getTaskByID(1)).thenReturn(task);
+        when(taskRepository.getTaskByIDOrThrow(1)).thenReturn(task);
         when(taskRepository.updateTask(task, 1)).thenReturn(1);
         int result = taskService.updateTask(task, 1);
         assertEquals(1, result);
@@ -111,14 +111,14 @@ public class TaskServiceTests {
 
     @Test
     void deleteTaskByIDThrowsIfTaskDoesNotExist() {
-        when(taskRepository.getTaskByID(1)).thenReturn(null);
+        when(taskRepository.getTaskByIDOrThrow(1)).thenReturn(null);
         assertThrows(EntityDoesNotExistException.class, () -> taskService.deleteTaskByID(1));
         verify(taskRepository, never()).deleteTaskByID(anyInt());
     }
 
     @Test
     void deleteTaskByIDCallsRepositoryIfExists() {
-        when(taskRepository.getTaskByID(1)).thenReturn(task);
+        when(taskRepository.getTaskByIDOrThrow(1)).thenReturn(task);
         when(taskRepository.deleteTaskByID(1)).thenReturn(1);
         int result = taskService.deleteTaskByID(1);
         assertEquals(1, result);

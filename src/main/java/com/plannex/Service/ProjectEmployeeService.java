@@ -32,6 +32,10 @@ public class ProjectEmployeeService {
         return projectEmployeeRepository.getAllEmployees();
     }
 
+    public List<ProjectEmployee> getAllWorkers() {
+        return projectEmployeeRepository.getAllWorkers();
+    }
+
     public String getEmployeePermissions(String username) {
         return projectEmployeeRepository.getEmployeePermissions(username);
     }

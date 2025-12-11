@@ -1,6 +1,5 @@
 package com.plannex.Controller;
 
-import com.plannex.Exception.EntityDoesNotExistException;
 import com.plannex.Exception.InsufficientPermissionsException;
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Service.ProjectEmployeeService;
@@ -16,16 +15,6 @@ public class ProjectEmployeeController {
 
     public ProjectEmployeeController(ProjectEmployeeService projectEmployeeService) {
         this.projectEmployeeService = projectEmployeeService;
-    }
-
-    private ProjectEmployee getEmployeeOrThrow(String username) {
-        ProjectEmployee employee = projectEmployeeService.getEmployeeByUsername(username);
-
-        if (employee == null) {
-            throw new EntityDoesNotExistException("No employee with username " + username + " exists.");
-        }
-
-        return employee;
     }
 
     private boolean isOwnerOrManager(String username, HttpSession session) {
@@ -47,7 +36,7 @@ public class ProjectEmployeeController {
         String username = session.getAttribute("username").toString();
 
         if (!projectEmployeeService.getPermissions(username).equals("Manager")) {
-            throw new InsufficientPermissionsException("Only managers may add projects.");
+            throw new InsufficientPermissionsException("Only managers may add employees.");
         }
 
         ProjectEmployee projectEmployee = new ProjectEmployee();
@@ -56,7 +45,7 @@ public class ProjectEmployeeController {
     }
 
     @PostMapping("/add-employee")
-    public String saveProjectEmployee(@ModelAttribute ProjectEmployee projectEmployee, @ModelAttribute String permissions) {
+    public String saveProjectEmployee(@ModelAttribute ProjectEmployee projectEmployee, @RequestParam("permissions") String permissions) {
         projectEmployeeService.addEmployee(projectEmployee, permissions);
         return "redirect:/employees";
     }
@@ -67,7 +56,7 @@ public class ProjectEmployeeController {
             return "redirect:/login";
         }
 
-        model.addAttribute("employee", getEmployeeOrThrow(username));
+        model.addAttribute("employee", projectEmployeeService.getEmployeeByUsername(username));
         model.addAttribute("isOwnerOrManager", isOwnerOrManager(username, session));
         return "project_worker_page";
     }
@@ -93,8 +82,9 @@ public class ProjectEmployeeController {
             throw new InsufficientPermissionsException("Only managers or profile owners may edit employee information.");
         }
 
-        model.addAttribute("user", getEmployeeOrThrow(username));
-        model.addAttribute("oldUsername", getEmployeeOrThrow(username).getEmployeeUsername()); // FK Integrity fails without this
+        ProjectEmployee pe = projectEmployeeService.getEmployeeByUsername(username);
+        model.addAttribute("user", pe);
+        model.addAttribute("oldUsername", pe.getEmployeeUsername()); // FK Integrity fails without this
         return "edit_user";
     }
 
@@ -115,8 +105,8 @@ public class ProjectEmployeeController {
             throw new InsufficientPermissionsException("Only managers or profile owners may delete employee information.");
         }
 
-        model.addAttribute("user", getEmployeeOrThrow(username));
-        return "delete_user"; // Add delete plz
+        model.addAttribute("user", projectEmployeeService.getEmployeeByUsername(username));
+        return "delete_user";
     }
 
     @PostMapping("/{username}/delete")

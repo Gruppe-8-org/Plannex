@@ -175,6 +175,18 @@ public class ProjectControllerTests {
     }
 
     @Test
+    void editProjectRoutesCorrectly() throws Exception {
+        mockMvc.perform(post("/projects/1/edit")
+                        .param("projectTitle", "A title")
+                        .param("projectDescription", "A description")
+                        .param("projectStart", "2025-11-12")
+                        .param("projectEnd", "2025-12-17"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/projects/1"));
+        verify(projectService, times(1)).updateProject(any(Project.class), eq(1));
+    }
+
+    @Test
     void deleteProjectWorksAsExpectedWithSufficientPermissions() throws Exception {
         Project aProject = new Project(1, "The Plannex Project", "A project planning tool for our customer.\nIs to allow splitting of projects into tasks with subtasks.\nNice to have features would be GANTT chart generation and resource management", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 12, 17));
         when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
@@ -182,7 +194,7 @@ public class ProjectControllerTests {
 
         mockMvc.perform(get("/projects/1/delete").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
-                .andExpect(view().name("edit_project_window"));
+                .andExpect(view().name("delete_main_entity"));
 
         verify(projectEmployeeService, times(1)).getPermissions("MRY");
     }
@@ -202,6 +214,7 @@ public class ProjectControllerTests {
     @Test
     void deleteProjectRedirectsOnInvalidTargetProjectID() throws Exception {
         when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+        when(projectService.getProjectByID(-1)).thenThrow(new EntityDoesNotExistException("No project with ID -1 exists."));
 
         mockMvc.perform(get("/projects/-1/delete").session(sessionWithUser("MRY")))
                 .andExpect(status().isNotFound())
@@ -209,5 +222,13 @@ public class ProjectControllerTests {
                 .andExpect(view().name("error"));
 
         verify(projectEmployeeService, times(1)).getPermissions("MRY");
+    }
+
+    @Test
+    void deleteProjectCallsDeleteProjectAndRoutesCorrectly() throws Exception {
+        mockMvc.perform(post("/projects/1/delete"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/projects"));
+        verify(projectService, times(1)).deleteProjectByID(1);
     }
 }

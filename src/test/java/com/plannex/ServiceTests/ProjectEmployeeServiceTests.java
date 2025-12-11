@@ -111,4 +111,15 @@ class ProjectEmployeeServiceTests {
         assertEquals(1, result);
         verify(repo).deleteEmployeeByUsername("johnDoe");
     }
+
+    @Test
+    void getAllWorkersReturnsList() {
+        List<ProjectEmployee> list = List.of(emp);
+        when(repo.getAllWorkers()).thenReturn(list);
+
+        List<ProjectEmployee> result = service.getAllWorkers();
+
+        assertEquals(list, result);
+        verify(repo).getAllWorkers();
+    }
 }

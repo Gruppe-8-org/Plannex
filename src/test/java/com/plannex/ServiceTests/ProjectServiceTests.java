@@ -50,11 +50,11 @@ class ProjectServiceTest {
 
     @Test
     void getProjectByIDReturnsProject() {
-        when(projectRepository.getProjectByID(1)).thenReturn(project);
+        when(projectRepository.getProjectByIDOrThrow(1)).thenReturn(project);
 
         Project result = projectService.getProjectByID(1);
         assertEquals(project, result);
-        verify(projectRepository, times(1)).getProjectByID(1);
+        verify(projectRepository, times(1)).getProjectByIDOrThrow(1);
     }
 
     @Test
@@ -69,20 +69,19 @@ class ProjectServiceTest {
 
     @Test
     void updateProjectThrowsIfProjectDoesNotExist() {
-        when(projectRepository.getProjectByID(2)).thenReturn(null);
-
+        when(projectRepository.updateProject(project, 2)).thenThrow(new EntityDoesNotExistException("No project with ID 2 exists."));
         EntityDoesNotExistException exception = assertThrows(
                 EntityDoesNotExistException.class,
                 () -> projectService.updateProject(project, 2)
         );
 
-        assertEquals("No project with projectID 2 exists.", exception.getMessage());
-        verify(projectRepository, never()).updateProject(any(), anyInt());
+        assertEquals("No project with ID 2 exists.", exception.getMessage());
+        verify(projectRepository, times(1)).updateProject(any(), anyInt());
     }
 
     @Test
     void updateProjectCallsRepositoryIfExists() {
-        when(projectRepository.getProjectByID(1)).thenReturn(project);
+        when(projectRepository.getProjectByIDOrThrow(1)).thenReturn(project);
         when(projectRepository.updateProject(project, 1)).thenReturn(1);
 
         int result = projectService.updateProject(project, 1);
@@ -92,20 +91,19 @@ class ProjectServiceTest {
 
     @Test
     void deleteProjectThrowsIfProjectDoesNotExist() {
-        when(projectRepository.getProjectByID(2)).thenReturn(null);
-
+        when(projectRepository.deleteProjectByID(2)).thenThrow(new EntityDoesNotExistException("No project with ID 2 exists."));
         EntityDoesNotExistException exception = assertThrows(
                 EntityDoesNotExistException.class,
                 () -> projectService.deleteProjectByID(2)
         );
 
-        assertEquals("No project with projectID 2 exists.", exception.getMessage());
-        verify(projectRepository, never()).deleteProjectByID(anyInt());
+        assertEquals("No project with ID 2 exists.", exception.getMessage());
+        verify(projectRepository, times(1)).deleteProjectByID(anyInt());
     }
 
     @Test
     void deleteProjectCallsRepositoryIfExists() {
-        when(projectRepository.getProjectByID(1)).thenReturn(project);
+        when(projectRepository.getProjectByIDOrThrow(1)).thenReturn(project);
         when(projectRepository.deleteProjectByID(1)).thenReturn(1);
 
         int result = projectService.deleteProjectByID(1);

@@ -18,25 +18,25 @@
 
 <main class="assign-container">
 
-    <h1>Add assignees</h1>
+    <h1>Assign Workers</h1>
 
     <form class="assign-box"
           th:action="@{/projects/{pid}/tasks/{tid}/subtasks/{sid}/assign-workers(pid=${pid}, tid=${tid}, sid=${sid})}"
+          th:object="${assigneeDTO}"
           method="post">
 
         <fieldset class="assign-list">
             <legend>Select employees to assign</legend>
 
             <div class="checkbox-column"
-                 th:each="user : ${allUsers}">
+                 th:each="user : ${allWorkers}">
                 <label class="checkbox-row">
                     <input type="checkbox"
-                           name="usernames"
+                           th:field="*{usernames}"
                            th:value="${user.employeeUsername}">
                     <span th:text="${user.employeeName}"></span>
                 </label>
             </div>
-
         </fieldset>
 
         <div class="assign-buttons">

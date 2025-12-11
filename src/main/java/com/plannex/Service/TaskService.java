@@ -6,7 +6,6 @@ import com.plannex.Model.Task;
 import com.plannex.Repository.TaskRepository;
 import org.springframework.stereotype.Service;
 
-import javax.naming.OperationNotSupportedException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,19 +18,15 @@ public class TaskService {
         this.taskRepository = taskRepository;
     }
 
-    public boolean isSubtask(Task t) {
-        return taskRepository.isSubtask(t);
-    }
-
-    public int addTask(Task task) throws OperationNotSupportedException {
+    public int addTask(Task task) {
         return taskRepository.addTask(task);
     }
 
-    public int addSubtask(Task task) throws OperationNotSupportedException {
+    public int addSubtask(Task task) {
         return taskRepository.addSubtask(task);
     }
 
-    public int addFollowsDependency(int forTaskID, int blockedByID) throws OperationNotSupportedException {
+    public int addFollowsDependency(int forTaskID, int blockedByID) {
         return taskRepository.addFollowsDependency(forTaskID, blockedByID);
     }
 
@@ -48,7 +43,7 @@ public class TaskService {
     }
 
     public Task getTaskByID(int taskID) {
-        return taskRepository.getTaskByID(taskID);
+        return taskRepository.getTaskByIDOrThrow(taskID);
     }
 
     public List<Task> getAllSubtasksForParentTask(int parentTaskID) {
@@ -68,7 +63,7 @@ public class TaskService {
     }
 
     public int updateTask(Task modifiedTask, int targetTaskID) {
-        if (taskRepository.getTaskByID(targetTaskID) == null) {
+        if (taskRepository.getTaskByIDOrThrow(targetTaskID) == null) {
             throw new EntityDoesNotExistException("No task with ID " + targetTaskID + " exists.");
         }
 
@@ -76,7 +71,7 @@ public class TaskService {
     }
 
     public int deleteTaskByID(int taskID) {
-        if (taskRepository.getTaskByID(taskID) == null) {
+        if (taskRepository.getTaskByIDOrThrow(taskID) == null) {
             throw new EntityDoesNotExistException("No task with ID " + taskID + " exists.");
         }
 
@@ -113,13 +108,5 @@ public class TaskService {
 
     public List<ProjectEmployee> getAllAssigneesForTask(int taskID) {
         return taskRepository.getAllAssigneesForTask(taskID);
-    }
-
-    public Integer getAllInvolved(int taskID) {
-        return taskRepository.getAllInvolved(taskID);
-    }
-
-    public float getTotalTimeSpent(int taskID) {
-        return taskRepository.getTotalTimeSpent(taskID);
     }
 }

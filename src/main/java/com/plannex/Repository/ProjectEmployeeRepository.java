@@ -24,7 +24,7 @@ public class ProjectEmployeeRepository {
 
     @Transactional
     public int addEmployee(ProjectEmployee employee, String permissions) {
-        int rowsAffectedTotal = 0;
+        int rowsAffectedTotal;
 
         try {
             rowsAffectedTotal = jdbcTemplate.update("INSERT INTO ProjectEmployees (EmployeeUsername, EmployeeName, EmployeeEmail, EmployeePassword, EmployeeWorkingHoursFrom, EmployeeWorkingHoursTo) VALUES (?, ?, ?, ?, ?, ?);",
@@ -33,14 +33,8 @@ public class ProjectEmployeeRepository {
             throw new EntityAlreadyExistsException("An employee with username " + employee.getEmployeeUsername() + " already exists.");
         }
 
-        try {
-            rowsAffectedTotal += jdbcTemplate.update("INSERT INTO Permissions (PermissionTitle, PermissionHolder) VALUES (?, ?);",
+        return rowsAffectedTotal + jdbcTemplate.update("INSERT INTO Permissions (PermissionTitle, PermissionHolder) VALUES (?, ?);",
                     permissions, employee.getEmployeeUsername());
-        } catch (DataIntegrityViolationException dive) {
-            throw new EntityDoesNotExistException("No employee with username " + employee.getEmployeeUsername() + " exists.");
-        }
-
-        return rowsAffectedTotal;
     }
 
     public ProjectEmployee getEmployeeByUsername(String username) {
@@ -52,11 +46,7 @@ public class ProjectEmployeeRepository {
     }
 
     public List<ProjectEmployee> getAllEmployees() {
-        try {
-            return jdbcTemplate.query("SELECT * FROM ProjectEmployees;", projectEmployeeRowMapper);
-        } catch (EmptyResultDataAccessException erdae) {
-            return null;
-        }
+        return jdbcTemplate.query("SELECT * FROM ProjectEmployees;", projectEmployeeRowMapper);
     }
 
     public String getEmployeePermissions(String username) {
@@ -68,9 +58,7 @@ public class ProjectEmployeeRepository {
     }
 
     public int updateEmployee(ProjectEmployee updatedProjectEmployee, String targetUsername) {
-        if (getEmployeeByUsername(targetUsername) == null) {
-            throw new EntityDoesNotExistException("No employee with username " + targetUsername + " exists.");
-        }
+        getEmployeeByUsername(targetUsername);
 
         try {
             return jdbcTemplate.update("UPDATE ProjectEmployees" +
@@ -84,15 +72,18 @@ public class ProjectEmployeeRepository {
     }
 
     public int deleteEmployeeByUsername(String targetUsername) {
-        if (getEmployeeByUsername(targetUsername) == null) {
-            throw new EntityDoesNotExistException("No employee with username " + targetUsername + " exists.");
-        }
+        getEmployeeByUsername(targetUsername);
 
         return jdbcTemplate.update("DELETE FROM ProjectEmployees WHERE EmployeeUsername = ?;", targetUsername); // rowsAffected
     }
 
     public boolean login(String username, String pw) {
         ProjectEmployee employee = getEmployeeByUsername(username);
-        return employee.getEmployeeUsername().equals(username) && employee.getEmployeePassword().equals(pw);
+        // Why no username check? Because the above would throw if no such employee existed.
+        return employee.getEmployeePassword().equals(pw);
+    }
+
+    public List<ProjectEmployee> getAllWorkers() {
+        return jdbcTemplate.query("SELECT pe.* FROM ProjectEmployees pe JOIN Permissions p ON p.PermissionHolder = pe.EmployeeUsername WHERE PermissionTitle = 'Worker';", projectEmployeeRowMapper);
     }
 }
