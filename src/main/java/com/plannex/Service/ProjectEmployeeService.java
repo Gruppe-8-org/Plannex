@@ -1,5 +1,6 @@
 package com.plannex.Service;
 
+import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Repository.ProjectEmployeeRepository;
 import org.springframework.stereotype.Service;
@@ -47,4 +48,45 @@ public class ProjectEmployeeService {
     public boolean login(String username, String pw) {
         return projectEmployeeRepository.login(username, pw);
     }
+
+    // Nedenunder er det der skal lave controller ting til
+
+    public List<EmployeeSkill> getSkillsForEmployee(String username) {
+        return projectEmployeeRepository.getSkillsForEmployee(username);
+    }
+
+    public void addSkill(String username, String skillName, String level) {
+        validateSkillLevel(level);
+        projectEmployeeRepository.addSkill(username, skillName, level);
+    }
+
+    public void removeSkill(String username, String skillName) {
+        projectEmployeeRepository.removeSkill(username, skillName);
+    }
+
+    private void validateSkillLevel(String level) {
+        if (!level.equals("Expert") && !level.equals("Intermediate")) {
+            throw new IllegalArgumentException("Skill level must be Expert or Intermediate");
+        }
+    }
+
+    public float getBaseWage(String username) {
+        //Har sat til de får 300 kroner i timen i stedet for månedlig løn. Det passer til vores TimeSpent schema.
+        return 300.0f;
+    }
+
+    //Den her bruger 2 forskellige metoder fra repository, så den har sit eget navn i stedet for gentagende navn.
+    public float calculateHourlyWage(String username) {
+        float base = getBaseWage(username);
+
+        int expertSkills = projectEmployeeRepository.countExpertSkills(username);
+        int intermediateSkills = projectEmployeeRepository.countIntermediateSkills(username);
+
+        return (float)(
+                base *
+                        Math.pow(1.10, expertSkills) *
+                        Math.pow(1.05, intermediateSkills)
+        );
+    }
+
 }

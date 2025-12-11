@@ -82,3 +82,17 @@ CREATE TABLE IF NOT EXISTS Artifacts (
     FOREIGN KEY (TaskID) REFERENCES Tasks(TaskID) ON DELETE CASCADE,
     FOREIGN KEY (ArtifactAuthor) REFERENCES ProjectEmployees(EmployeeUsername) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS Skills (
+    SkillID INT PRIMARY KEY AUTO_INCREMENT,
+    SkillTitle VARCHAR(64) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS EmployeeSkills (
+    EmployeeUsername VARCHAR(16),
+    SkillID INT,
+    SkillLevel ENUM('Intermediate', 'Expert') NOT NULL,
+    PRIMARY KEY (EmployeeUsername, SkillID),
+    FOREIGN KEY (EmployeeUsername) REFERENCES ProjectEmployees(EmployeeUsername) ON DELETE CASCADE,
+    FOREIGN KEY (SkillID) REFERENCES Skills(SkillID) ON DELETE CASCADE
+);

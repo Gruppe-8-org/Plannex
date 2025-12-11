@@ -1,4 +1,3 @@
-USE Plannex;
 
 INSERT INTO Projects (ProjectID, ProjectTitle, ProjectDescription, ProjectStart, ProjectEnd) VALUES
                                                                                                  (1, 'The Plannex Project', 'A project planning tool for our customer.\nIs to allow splitting of projects into tasks with subtasks.\nNice to have features would be GANTT chart generation and resource management', '20251112', '20251217'),

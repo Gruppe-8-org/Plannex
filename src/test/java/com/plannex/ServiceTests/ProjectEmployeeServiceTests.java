@@ -9,8 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDateTime;
+import com.plannex.Model.EmployeeSkill;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -99,9 +98,6 @@ class ProjectEmployeeServiceTests {
         verify(repo).updateEmployee(emp, "johnDoe");
     }
 
-    // ----------------------------------------------------------
-    // DELETE EMPLOYEE
-    // ----------------------------------------------------------
     @Test
     void deleteEmployeeByUsername_CallsRepository() {
         when(repo.deleteEmployeeByUsername("johnDoe")).thenReturn(1);
@@ -111,4 +107,70 @@ class ProjectEmployeeServiceTests {
         assertEquals(1, result);
         verify(repo).deleteEmployeeByUsername("johnDoe");
     }
+    @Test
+    void getSkillsForEmployee_ReturnsListFromRepository() {
+        List<EmployeeSkill> skills = List.of(
+                new EmployeeSkill("johnDoe", "Java", "Expert", 1),
+                new EmployeeSkill("johnDoe", "HTML", "Intermediate", 2)
+        );
+
+        when(repo.getSkillsForEmployee("johnDoe")).thenReturn(skills);
+
+        List<EmployeeSkill> result = service.getSkillsForEmployee("johnDoe");
+
+        assertEquals(skills, result);
+        verify(repo).getSkillsForEmployee("johnDoe");
+    }
+
+    @Test
+    void addSkill_CallsRepository_WhenSkillLevelIsValid() {
+        service.addSkill("johnDoe", "Java", "Expert");
+
+        verify(repo).addSkill("johnDoe", "Java", "Expert");
+    }
+
+    @Test
+    void addSkill_ThrowsException_WhenSkillLevelIsInvalid() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.addSkill("johnDoe", "Java", "Master"));
+
+        verify(repo, never()).addSkill(any(), any(), any());
+    }
+
+    @Test
+    void removeSkill_CallsRepository() {
+        service.removeSkill("johnDoe", "Java");
+
+        verify(repo).removeSkill("johnDoe", "Java");
+    }
+
+    @Test
+    void getBaseWage_ReturnsConstantValue() {
+        float wage = service.getBaseWage("johnDoe");
+
+        assertEquals(300.0f, wage);
+    }
+
+    @Test
+    void calculateHourlyWage_UsesRepositoryCountsCorrectly() {
+        when(repo.countExpertSkills("johnDoe")).thenReturn(2);
+        when(repo.countIntermediateSkills("johnDoe")).thenReturn(1);
+
+        float result = service.calculateHourlyWage("johnDoe");
+
+        float expected = (float) (300 * Math.pow(1.10, 2) * Math.pow(1.05, 1));
+
+        assertEquals(expected, result, 0.0001);
+    }
+
+    @Test
+    void calculateHourlyWage_NoSkillsMeansBaseWage() {
+        when(repo.countExpertSkills("johnDoe")).thenReturn(0);
+        when(repo.countIntermediateSkills("johnDoe")).thenReturn(0);
+
+        float result = service.calculateHourlyWage("johnDoe");
+
+        assertEquals(300.0f, result);
+    }
+
 }

@@ -2,21 +2,18 @@ package com.plannex;
 
 import com.plannex.Exception.EntityAlreadyExistsException;
 import com.plannex.Exception.EntityDoesNotExistException;
-import com.plannex.Exception.InvalidValueException;
+import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Repository.ProjectEmployeeRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -31,8 +28,6 @@ public class ProjectEmployeeRepositoryTests {
     JdbcTemplate jdbcTemplate;
 
     private final AssertThrowsHelper assertThrowsHelper = new AssertThrowsHelper();
-
-
 
     @Test
     public void addEmployeeInsertsEmployeeIfItDoesNotAlreadyExist() {
@@ -128,4 +123,83 @@ public class ProjectEmployeeRepositoryTests {
         assertFalse(jdbcTemplate.queryForObject("SELECT COUNT(*) > 0 FROM TimeSpent WHERE ByEmployee = ?", boolean.class, "marqs"));
         assertFalse(jdbcTemplate.queryForObject("SELECT COUNT(*) > 0 FROM Artifacts WHERE ArtifactAuthor = ?", boolean.class, "marqs"));
     }
+    @Test
+    public void getSkillsForEmployeeReturnsCorrectSkills() {
+
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('C#')");
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('HTML')");
+
+        Integer csId = jdbcTemplate.queryForObject("SELECT SkillID FROM Skills WHERE SkillTitle='C#'", Integer.class);
+        Integer htmlId = jdbcTemplate.queryForObject("SELECT SkillID FROM Skills WHERE SkillTitle='HTML'", Integer.class);
+
+        jdbcTemplate.update(
+                "INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES ('lildawg', ?, 'Expert')",
+                csId
+        );
+        jdbcTemplate.update(
+                "INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES ('lildawg', ?, 'Intermediate')",
+                htmlId
+        );
+
+        List<EmployeeSkill> skills = projectEmployeeRepository.getSkillsForEmployee("lildawg");
+
+        assertEquals(2, skills.size());
+        assertTrue(skills.stream().anyMatch(s -> s.getSkillTitle().equals("C#") && s.getSkillLevel().equals("Expert")));
+        assertTrue(skills.stream().anyMatch(s -> s.getSkillTitle().equals("HTML") && s.getSkillLevel().equals("Intermediate")));
+    }
+
+    @Test
+    public void addSkillAddsSkillCorrectly() {
+
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('Java')");
+
+        int rows = projectEmployeeRepository.addSkill("lildawg", "Java", "Expert");
+
+        assertEquals(1, rows);
+
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM EmployeeSkills es JOIN Skills s ON es.SkillID = s.SkillID " +
+                        "WHERE es.EmployeeUsername='lildawg' AND s.SkillTitle='Java'",
+                Integer.class
+        );
+
+        assertEquals(1, count);
+    }
+
+    @Test
+    public void countExpertSkillsReturnsCorrectAmount() {
+
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('C#')");
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('Java')");
+
+        Integer csId = jdbcTemplate.queryForObject("SELECT SkillID FROM Skills WHERE SkillTitle='C#'", Integer.class);
+        Integer javaId = jdbcTemplate.queryForObject("SELECT SkillID FROM Skills WHERE SkillTitle='Java'", Integer.class);
+
+        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES ('marqs', ?, 'Expert')", csId);
+        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES ('marqs', ?, 'Expert')", javaId);
+
+        int count = projectEmployeeRepository.countExpertSkills("marqs");
+        assertEquals(2, count);
+    }
+
+    @Test
+    public void countIntermediateSkillsReturnsCorrectAmount() {
+
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('CSS')");
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('HTML')");
+
+        Integer cssId = jdbcTemplate.queryForObject("SELECT SkillID FROM Skills WHERE SkillTitle='CSS'", Integer.class);
+        Integer htmlId = jdbcTemplate.queryForObject("SELECT SkillID FROM Skills WHERE SkillTitle='HTML'", Integer.class);
+
+        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES ('bigdawg', ?, 'Intermediate')", cssId);
+        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES ('bigdawg', ?, 'Intermediate')", htmlId);
+
+        int count = projectEmployeeRepository.countIntermediateSkills("bigdawg");
+        assertEquals(2, count);
+    }
+
+
+
+
+
 }
