@@ -25,7 +25,7 @@ public class ProjectService {
     }
 
     public Project getProjectByID(int projectID) {
-        return projectRepository.getProjectByID(projectID);
+        return projectRepository.getProjectByIDOrThrow(projectID);
     }
 
     public List<Project> getAllProjects() {
@@ -33,18 +33,10 @@ public class ProjectService {
     }
 
     public int updateProject(Project modifiedProject, int targetProjectID) {
-        if (projectRepository.getProjectByID(targetProjectID) == null) {
-            throw new EntityDoesNotExistException("No project with projectID " + targetProjectID + " exists.");
-        }
-
         return projectRepository.updateProject(modifiedProject, targetProjectID);
     }
 
     public int deleteProjectByID(int projectID) {
-        if (projectRepository.getProjectByID(projectID) == null) {
-            throw new EntityDoesNotExistException("No project with projectID " + projectID + " exists.");
-        }
-
         return projectRepository.deleteProjectByID(projectID);
     }
 

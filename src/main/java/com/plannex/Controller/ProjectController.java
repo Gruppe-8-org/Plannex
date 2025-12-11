@@ -1,6 +1,5 @@
 package com.plannex.Controller;
 
-import com.plannex.Exception.EntityDoesNotExistException;
 import com.plannex.Exception.InsufficientPermissionsException;
 import com.plannex.Model.Project;
 import com.plannex.Model.Task;
@@ -34,15 +33,6 @@ public class ProjectController {
         return projectEmployeeService.getPermissions(username).equals("Manager");
     }
 
-    private Project getProjectOrThrow(int pid) {
-        Project project = projectService.getProjectByID(pid);
-
-        if (project == null) {
-            throw new EntityDoesNotExistException("No project exists with ID " + pid);
-        }
-        return project;
-    }
-
     private boolean isLoggedIn(HttpSession session) {
         return session.getAttribute("username") != null;
     }
@@ -71,7 +61,7 @@ public class ProjectController {
         }
 
         List<Task> allTasks = projectService.getAllTasksForProject(pid);
-        model.addAttribute("project", getProjectOrThrow(pid));
+        model.addAttribute("project", projectService.getProjectByID(pid));
         model.addAttribute("allTasks", allTasks);
         model.addAttribute("timeSpent", projectService.getTotalTimeSpent(pid));
         model.addAttribute("taskAssignees", allTasks.stream().map(task -> taskService.getAllAssigneesForTask(task.getID())).toList());
@@ -112,7 +102,7 @@ public class ProjectController {
             throw new InsufficientPermissionsException("Only managers may edit projects.");
         }
 
-        model.addAttribute("project", getProjectOrThrow(pid));
+        model.addAttribute("project", projectService.getProjectByID(pid));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "edit_project_window";
     }
@@ -133,7 +123,7 @@ public class ProjectController {
             throw new InsufficientPermissionsException("Only managers may delete projects.");
         }
 
-        Project p = getProjectOrThrow(pid);
+        Project p = projectService.getProjectByID(pid);
         model.addAttribute("ID", pid);
         model.addAttribute("title", p.getProjectTitle());
         model.addAttribute("description", p.getProjectDescription());

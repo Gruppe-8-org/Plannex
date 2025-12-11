@@ -28,20 +28,20 @@ public class ProjectRepositoryTests {
         Project newProject = new Project(5, "Write integration tests", "Write integration tests for all repository classes. Aim for 100% code coverage.", LocalDate.of(2025, 11, 25), LocalDate.of(2025, 11, 26));
         int rowsAffected = projectRepository.addProject(newProject);
         assertEquals(1, rowsAffected);
-        assertNotNull(projectRepository.getProjectByID(5)); // Four projects exist by default in the test DB.
+        assertNotNull(projectRepository.getProjectByIDOrThrow(5)); // Four projects exist by default in the test DB.
     }
 
     @Test
     public void getProjectByIDGetsAProjectIfItExists() {
         Project targetProject = new Project(1, "The Plannex Project", "A project planning tool for our customer.\nIs to allow splitting of projects into tasks with subtasks.\nNice to have features would be GANTT chart generation and resource management", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 12, 17));
-        Project projectFromDB = projectRepository.getProjectByID(1);
+        Project projectFromDB = projectRepository.getProjectByIDOrThrow(1);
         assertNotNull(projectFromDB);
         assertEquals(targetProject, projectFromDB);
     }
 
     @Test
-    public void getProjectByIDReturnsNullOnNonExistentProjectID() {
-        assertNull(projectRepository.getProjectByID(-1));
+    public void getProjectByIDThrowsOnNonExistentProjectID() {
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with ID -1 exists.", EntityDoesNotExistException.class, () -> projectRepository.getProjectByIDOrThrow(-1));
     }
 
     @Test
@@ -55,7 +55,6 @@ public class ProjectRepositoryTests {
         List<Project> projectList = projectRepository.getAllProjects();
         assertEquals(expectedProjects, projectList);
     }
-
 
     @Test
     public void getAllTasksForProjectWithIDReturnsAllTasksFromAProject() {
@@ -76,11 +75,11 @@ public class ProjectRepositoryTests {
     @Test
     public void updateProjectUpdatesProjectIfExistsAndOnlyDesiredFields() {
         Project modifiedProject = new Project(1, "The PlanProject", "A project planning tool for our customer.\nIs to allow splitting of projects into tasks with subtasks.\nNice to have features would be GANTT chart generation and resource management", LocalDate.of(2025, 12, 12), LocalDate.of(2025, 12, 18));
-        Project projectFromDBBefore = projectRepository.getProjectByID(1);
+        Project projectFromDBBefore = projectRepository.getProjectByIDOrThrow(1);
         assertNotNull(projectFromDBBefore);
         int rowsUpdated = projectRepository.updateProject(modifiedProject, 1);
         assertEquals(1, rowsUpdated);
-        Project projectFromDBAfter = projectRepository.getProjectByID(1);
+        Project projectFromDBAfter = projectRepository.getProjectByIDOrThrow(1);
         assertNotEquals(projectFromDBBefore, projectFromDBAfter);
         assertEquals(modifiedProject, projectFromDBAfter);
     }
@@ -88,19 +87,49 @@ public class ProjectRepositoryTests {
     @Test
     public void updateProjectThrowsOnNonExistentProject() {
         Project modifiedProject = new Project(1, "The PlanProject", "A project planning tool for our customer.\nIs to allow splitting of projects into tasks with subtasks.\nNice to have features would be GANTT chart generation and resource management", LocalDate.of(2025, 12, 12), LocalDate.of(2025, 12, 18));
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with projectID -1 exists.", EntityDoesNotExistException.class, () -> projectRepository.updateProject(modifiedProject, -1));
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with ID -1 exists.", EntityDoesNotExistException.class, () -> projectRepository.updateProject(modifiedProject, -1));
+
     }
 
     @Test
     public void deleteProjectByIDDeletesProjectIfExists() {
         int rowsDeleted = projectRepository.deleteProjectByID(1);
         assertTrue(rowsDeleted >= 1);
-        assertNull(projectRepository.getProjectByID(1));
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with ID 1 exists.", EntityDoesNotExistException.class, () -> projectRepository.deleteProjectByID(1));
         assertEquals(3, projectRepository.getAllProjects().size());
     }
 
     @Test
     public void deleteProjectByIDThrowsOnNonExistentProject() {
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with projectID -1 exists.", EntityDoesNotExistException.class, () -> projectRepository.deleteProjectByID(-1));
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with ID -1 exists.", EntityDoesNotExistException.class, () -> projectRepository.deleteProjectByID(-1));
+    }
+
+    @Test
+    public void getAllInvolvedReturnsTheCountOfDistinctEmployeesAssignedToTasksOrSubtasks() {
+        List<Integer> expectedCounts = List.of(3, 0, 0, 0); // See DB
+
+        for (int i = 1; i <= expectedCounts.size(); i++) {
+            assertEquals(expectedCounts.get(i - 1), projectRepository.getAllInvolved(i));
+        }
+    }
+
+    @Test
+    public void getAllInvolvedThrowsOnNonExistentProjectID() {
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with ID -1 exists.", EntityDoesNotExistException.class, () -> projectRepository.getAllInvolved(-1));
+
+    }
+
+    @Test
+    public void getTotalTimeSpentReturnsTheSumOfTimeSpentsOnTasksAndSubtasksOfTheProject() {
+        List<Float> expectedSums = List.of(40.3334f, 0.0f);
+
+        for (int i = 1; i <= expectedSums.size(); i++) {
+            assertEquals(expectedSums.get(i - 1), projectRepository.getTotalTimeSpent(i), 1e-6);
+        }
+    }
+
+    @Test
+    public void getTotalTimeSpentThrowsOnNonExistentProjectID() {
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No project with ID -1 exists.", EntityDoesNotExistException.class, () -> projectRepository.getTotalTimeSpent(-1));
     }
 }

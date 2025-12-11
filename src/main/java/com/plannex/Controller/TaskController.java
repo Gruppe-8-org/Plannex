@@ -1,6 +1,8 @@
 package com.plannex.Controller;
 
 import com.plannex.Exception.InsufficientPermissionsException;
+import com.plannex.Model.AssigneeFormDTO;
+import com.plannex.Model.ProjectEmployee;
 import com.plannex.Model.Task;
 import com.plannex.Service.ProjectEmployeeService;
 import com.plannex.Service.ProjectService;
@@ -12,7 +14,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.naming.OperationNotSupportedException;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/projects/{pid}")
@@ -135,12 +140,12 @@ public class TaskController {
     }
 
     @PostMapping("/tasks/{tid}/add-dependency")
-    public String saveDependencyTask(@PathVariable int tid, @RequestParam(name="blockedByTaskIDs") List<Integer> blockedByTaskIDs, @PathVariable String pid) throws OperationNotSupportedException {
+    public String saveDependencyTask(@PathVariable int tid, @RequestParam(name="blockedByTaskIDs") List<Integer> blockedByTaskIDs, @PathVariable String pid) {
         for (Integer blockedByTaskID : blockedByTaskIDs) {
             taskService.addFollowsDependency(tid, blockedByTaskID);
         }
 
-        return "redirect:/tasks/" + tid;
+        return "redirect:/projects/" + pid + "/tasks/" + tid;
     }
 
     @PostMapping("/tasks/{tid}/subtasks/{sid}/dependencies/delete-{blockedBy}")
@@ -163,10 +168,13 @@ public class TaskController {
             throw new InsufficientPermissionsException("Only managers may assign workers tasks.");
         }
 
-        model.addAttribute("allUsers", projectEmployeeService.getAllEmployees());
+        AssigneeFormDTO formData = new AssigneeFormDTO();
+        formData.addUsernamesFromList(taskService.getAllAssigneesForSubtask(sid));
+        model.addAttribute("allWorkers", projectEmployeeService.getAllWorkers());
         model.addAttribute("pid", pid);
         model.addAttribute("tid", tid);
         model.addAttribute("sid", sid);
+        model.addAttribute("assigneeDTO", formData);
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
 
         return "add_assignee";
@@ -176,10 +184,18 @@ public class TaskController {
     public String saveAssignments(@PathVariable int pid,
                                   @PathVariable int tid,
                                   @PathVariable int sid,
-                                  @RequestParam(name = "usernames") List<String> usernames) {
-
-        for (String username : usernames) {
+                                  @ModelAttribute AssigneeFormDTO formData) {
+        formData.setPreviousAssignees(
+                (HashSet<String>) taskService.getAllAssigneesForSubtask(sid).stream().map(ProjectEmployee::getEmployeeUsername).collect(Collectors.toSet())
+        );
+        Set<String> usernamesToAdd = formData.getUsernames().stream().filter(u -> !formData.getPreviousAssignees().contains(u)).collect(Collectors.toSet());
+        Set<String> usernamesToRemove = formData.getPreviousAssignees().stream().filter(pu -> !formData.getUsernames().contains(pu)).collect(Collectors.toSet());
+        for (String username : usernamesToAdd) {
             taskService.assignTaskToEmployee(sid, username);
+        }
+
+        for (String username : usernamesToRemove) {
+            taskService.unassignTaskFromEmployee(sid, username);
         }
 
         return "redirect:/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
@@ -239,11 +255,7 @@ public class TaskController {
             @PathVariable int tid,
             @PathVariable int sid,
             @RequestParam("byUsername") String byUsername,
-            @RequestParam("pathToArtifact") String pathToArtifact,
-            HttpSession session) {
-        if (!isManager(session) && !byUsername.equals(session.getAttribute("username").toString())) {
-            throw new InsufficientPermissionsException("Managers may delete all artifacts, workers may only delete their own.");
-        }
+            @RequestParam("pathToArtifact") String pathToArtifact) {
       
         taskService.addArtifact(sid, byUsername, pathToArtifact);
         return "redirect:/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
@@ -389,6 +401,18 @@ public class TaskController {
         }
 
         taskService.deleteTimeContribution(byUser, sid, when);
+        return "redirect:/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
+    }
+
+    @PostMapping("/tasks/{tid}/subtasks/{sid}/delete-artifact")
+    public String deleteArtifact(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, @RequestParam("author") String author, @RequestParam("pathToArtifact") String pathToArtifact, HttpSession session) {
+        String requestingUser = session.getAttribute("username").toString();
+
+        if (!isManager(session) && !requestingUser.equals(author)) {
+            throw new InsufficientPermissionsException("Managers may delete all artifacts, workers may only delete their own.");
+        }
+
+        taskService.deleteArtifact(sid, session.getAttribute("username").toString(), pathToArtifact);
         return "redirect:/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
     }
 }

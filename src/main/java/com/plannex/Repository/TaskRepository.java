@@ -9,6 +9,7 @@ import com.plannex.Model.Task;
 import com.plannex.RowMapper.ProjectEmployeeRowMapper;
 import com.plannex.RowMapper.TaskRowMapper;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -31,7 +32,7 @@ public class TaskRepository {
         this.projectEmployeeRowMapper = projectEmployeeRowMapper;
     }
 
-    public boolean isSubtask(Task t) { // Parameter may need changing to ID
+    private boolean isSubtask(Task t) { // Parameter may need changing to ID
         return t.getParentTaskID() != 0;
     }
 
@@ -54,11 +55,7 @@ public class TaskRepository {
             throw new NotSupportedException("You may not add tasks with addSubtask.");
         }
 
-        Task target = getTaskByID(t.getParentTaskID());
-
-        if (target == null) {
-            throw new EntityDoesNotExistException("No task with ID " + t.getParentTaskID() + " exists.");
-        }
+        Task target = getTaskByIDOrThrow(t.getParentTaskID());
 
         if (target.getParentTaskID() != 0) {
             throw new NotSupportedException("Only tasks can have subtasks, not subtasks.");
@@ -78,13 +75,8 @@ public class TaskRepository {
             throw new NotSupportedException("You may not set a task as blocking itself.");
         }
 
-        if (getTaskByID(forTaskID) == null) {
-            throw new EntityDoesNotExistException("No task with ID " + forTaskID + " exists.");
-        }
-
-        if (getTaskByID(blockedByID) == null) {
-            throw new EntityDoesNotExistException("No task with ID " + blockedByID + " exists.");
-        }
+        getTaskByIDOrThrow(forTaskID);
+        getTaskByIDOrThrow(blockedByID);
 
         // Possibly add isSubtask() call here if dependencies get cluttered by allowing both tasks and subtasks to have them.
 
@@ -97,13 +89,8 @@ public class TaskRepository {
     }
 
     public int deleteFollowsDependency(int forTaskID, int blockedByID) {
-        if (getTaskByID(forTaskID) == null) {
-            throw new EntityDoesNotExistException("No task with ID " + forTaskID + " exists.");
-        }
-
-        if (getTaskByID(blockedByID) == null) {
-            throw new EntityDoesNotExistException("No task with ID " + blockedByID + " exists.");
-        }
+        getTaskByIDOrThrow(forTaskID);
+        getTaskByIDOrThrow(blockedByID);
 
         int rowsAffected = jdbcTemplate.update("DELETE FROM TaskDependencies WHERE TaskIDFor = ? AND MustComeAfterTaskWithID = ?;",
                     forTaskID, blockedByID);
@@ -116,11 +103,9 @@ public class TaskRepository {
     }
 
     public int assignTaskToEmployee(int taskID, String employeeUsername) {
-        if (getTaskByID(taskID) == null) {
-            throw new EntityDoesNotExistException("No task with ID " + taskID + " exists.");
-        }
+        Task t = getTaskByIDOrThrow(taskID);
 
-        if (!isSubtask(getTaskByID(taskID))) {
+        if (!isSubtask(t)) {
             throw new NotSupportedException("You may only assign workers to subtasks.");
         }
 
@@ -133,9 +118,7 @@ public class TaskRepository {
     }
 
     public int unassignTaskFromEmployee(int taskID, String employeeUsername) {
-        if (getTaskByID(taskID) == null) {
-            throw new EntityDoesNotExistException("No task with ID " + taskID + " exists.");
-        }
+        getTaskByIDOrThrow(taskID);
 
         int rowsDeleted = jdbcTemplate.update("DELETE FROM TaskAssignees WHERE EmployeeUsername = ? AND TaskID = ?;",
                     employeeUsername, taskID);
@@ -144,7 +127,7 @@ public class TaskRepository {
         return rowsDeleted;
     }
 
-    public Task getTaskByID(int taskID) {
+    public Task getTaskByIDOrThrow(int taskID) {
         try {
             return jdbcTemplate.queryForObject("SELECT * FROM Tasks WHERE TaskID = ?;", taskRowMapper, taskID);
         } catch (EmptyResultDataAccessException erdae) {
@@ -153,10 +136,7 @@ public class TaskRepository {
     }
 
     public List<Task> getAllSubtasksForParentTask(int parentTaskID) {
-        Task parentTask = getTaskByID(parentTaskID);
-        if (parentTask == null) {
-            throw new EntityDoesNotExistException("No task with ID " + parentTaskID + " exists.");
-        }
+        Task parentTask = getTaskByIDOrThrow(parentTaskID);
 
         if (parentTask.getParentTaskID() != 0) {
             throw new NotSupportedException("A subtask must have no subtasks.");
@@ -166,54 +146,40 @@ public class TaskRepository {
     }
 
     public List<ConstPair<String, String>> getAllArtifactsForTask(int taskID) {
-        if (getTaskByID(taskID) == null) {
-            throw new EntityDoesNotExistException("No task with ID " + taskID + " exists.");
-        }
+        Task t = getTaskByIDOrThrow(taskID);
 
-        if (isSubtask(getTaskByID(taskID))) {
+        if (isSubtask(t)) {
             return jdbcTemplate.query("SELECT * FROM Artifacts WHERE TaskID = ?", (rs, rowNum) -> new ConstPair<>(rs.getString("ArtifactAuthor"), rs.getString("PathToArtifact")), taskID);
         }
 
-        return getAllSubtasksForParentTask(taskID).stream().map(t -> getAllArtifactsForTask(t.getID())).flatMap(List::stream).collect(Collectors.toList());
+        return getAllSubtasksForParentTask(taskID).stream().map(tt -> getAllArtifactsForTask(tt.getID())).flatMap(List::stream).collect(Collectors.toList());
     }
 
     public List<ConstPair<Integer, Integer>> getAllDependenciesForTask(int taskID) {
-        if (getTaskByID(taskID) == null) {
-            throw new EntityDoesNotExistException("No task with ID " + taskID + " exists.");
-        }
-
+        getTaskByIDOrThrow(taskID);
         return jdbcTemplate.query("SELECT * FROM TaskDependencies WHERE TaskIDFor = ?", (resultSet, rowNum) -> new ConstPair<>(resultSet.getInt("TaskIDFor"), resultSet.getInt("MustComeAfterTaskWithID")), taskID);
     }
 
     public List<ProjectEmployee> getAllAssigneesForSubtask(int subtaskID) {
-        try {
-            return jdbcTemplate.query("""
-            SELECT DISTINCT pe.*
-            FROM ProjectEmployees pe
-            LEFT JOIN TaskAssignees ta ON ta.EmployeeUsername = pe.EmployeeUsername
-            WHERE ta.TaskID=?;""",
-                    projectEmployeeRowMapper, subtaskID);
-        } catch (EmptyResultDataAccessException erdae) {
-            return null;
-        }
+        return jdbcTemplate.query("""
+        SELECT DISTINCT pe.*
+        FROM ProjectEmployees pe
+        LEFT JOIN TaskAssignees ta ON ta.EmployeeUsername = pe.EmployeeUsername
+        WHERE ta.TaskID=?;""", projectEmployeeRowMapper, subtaskID);
     }
 
     public List<ProjectEmployee> getAllAssigneesForTask(int taskID) {
-        try {
-            return jdbcTemplate.query(
-                    """
-                       SELECT DISTINCT pe.*
-                               FROM Tasks p
-                       JOIN Tasks s     ON s.ParentTaskID = p.TaskID
-                       JOIN TaskAssignees ta  ON ta.TaskID = s.TaskID
-                       JOIN ProjectEmployees pe  ON pe.EmployeeUsername = ta.EmployeeUsername
-                       WHERE p.TaskID = ?;""",
+        return jdbcTemplate.query(
+                """
+                   SELECT DISTINCT pe.*
+                           FROM Tasks p
+                   JOIN Tasks s     ON s.ParentTaskID = p.TaskID
+                   JOIN TaskAssignees ta  ON ta.TaskID = s.TaskID
+                   JOIN ProjectEmployees pe  ON pe.EmployeeUsername = ta.EmployeeUsername
+                   WHERE p.TaskID = ?;""",
 
-                    projectEmployeeRowMapper, taskID
-            );
-        } catch (EmptyResultDataAccessException erdae) {
-            return List.of();
-        }
+                projectEmployeeRowMapper, taskID
+        );
     }
 
 
@@ -223,7 +189,8 @@ public class TaskRepository {
     }
 
     public int addArtifact(int taskID, String username, String pathToArtifact) {
-        if (!isSubtask(getTaskByID(taskID))) {
+        Task t = getTaskByIDOrThrow(taskID);
+        if (!isSubtask(t)) {
             throw new NotSupportedException("You may only add artifacts to subtasks.");
         }
 
@@ -265,19 +232,19 @@ public class TaskRepository {
     }
 
     public int contributeTime(String username, int taskID, float howManyHours) {
-        if (howManyHours < 0.0) {
-            throw new InvalidValueException("Hours spent should be zero or more.");
+        if (howManyHours <= 0.0) {
+            throw new InvalidValueException("Hours spent should be more than zero.");
         }
 
-        if (!isSubtask(getTaskByID(taskID))) {
+        if (!isSubtask(getTaskByIDOrThrow(taskID))) {
             throw new NotSupportedException("You may only add time spent to subtasks.");
         }
 
         try {
             return jdbcTemplate.update("INSERT INTO TimeSpent (OnTaskID, ByEmployee, HoursSpent, _When) VALUES (?, ?, ?, ?);",
                     taskID, username, howManyHours, LocalDateTime.now());
-        } catch (DataIntegrityViolationException dive) { // Also possible that a duplicate exists, but extremely unlikely without bad short term memory loss
-            throw new EntityDoesNotExistException("No task with ID " + taskID + " exists.");
+        } catch (DuplicateKeyException dpe) {
+            throw new EntityAlreadyExistsException("You just added a similar time contribution. If this is intentional, wait a couple of seconds before trying again.");
         }
     }
 
@@ -303,10 +270,7 @@ public class TaskRepository {
     }
 
     public List<Float> getAllTimeContributionsForTask(int taskID) {
-        Task task = getTaskByID(taskID);
-        if (task == null) {
-            throw new EntityDoesNotExistException("No task with ID " + taskID + " exists.");
-        }
+        Task task = getTaskByIDOrThrow(taskID);
 
         if (isSubtask(task)) {
             return jdbcTemplate.query("SELECT HoursSpent FROM TimeSpent WHERE OnTaskID = ?", (resultSet, rowNum) -> resultSet.getFloat("HoursSpent"), taskID);
@@ -317,9 +281,7 @@ public class TaskRepository {
     }
 
     public int updateTask(Task modifiedTask, int targetTaskID) {
-        if (getTaskByID(targetTaskID) == null) {
-            throw new EntityDoesNotExistException("No task with ID " + targetTaskID + " exists.");
-        }
+        getTaskByIDOrThrow(targetTaskID);
 
         return jdbcTemplate.update("UPDATE Tasks " +
                 "SET ProjectID = ?, ParentTaskID = ?, TaskTitle = ?, TaskDescription = ?, TaskStart = ?," +
@@ -332,37 +294,7 @@ public class TaskRepository {
     }
 
     public int deleteTaskByID(int taskID) {
-        if (getTaskByID(taskID) == null) {
-            throw new EntityDoesNotExistException("No task with ID " + taskID + " exists.");
-        }
-
+        getTaskByIDOrThrow(taskID);
         return jdbcTemplate.update("DELETE FROM Tasks WHERE TaskID = ?;", taskID);
-    }
-
-    public float getTotalTimeSpent(int taskID) {
-        if (getTaskByID(taskID) == null) {
-            throw new EntityDoesNotExistException("No project with projectID " + taskID + " exists.");
-        }
-
-        try {
-            return jdbcTemplate.queryForObject("""
-                
-                    SELECT SUM(HoursSpent) FROM TimeSpent AS tc
-                JOIN Tasks AS t ON tc.OnTaskID = t.TaskID
-                WHERE t.ProjectID = ?""", Float.class, taskID);
-        } catch (NullPointerException npe) {
-            return 0.0f;
-        }
-    }
-
-    public Integer getAllInvolved(int taskID) {
-        if (getTaskByID(taskID) == null) {
-            throw new EntityDoesNotExistException("No project with ID " + taskID + " exists.");
-        }
-
-        return jdbcTemplate.queryForObject("""
-                SELECT COUNT(DISTINCT ta.EmployeeUsername) FROM TaskAssignees AS ta
-                JOIN Tasks AS t ON ta.TaskID = t.TaskID
-                WHERE t.ProjectID = ?""", Integer.class, taskID);
     }
 }
