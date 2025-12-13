@@ -2,12 +2,18 @@ package com.plannex.Controller;
 
 import com.plannex.Exception.EntityDoesNotExistException;
 import com.plannex.Exception.InsufficientPermissionsException;
+import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
+import com.plannex.Model.Skill;
+import com.plannex.Model.SkillDTO;
 import com.plannex.Service.ProjectEmployeeService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("/employees")
@@ -56,7 +62,7 @@ public class ProjectEmployeeController {
     }
 
     @PostMapping("/add-employee")
-    public String saveProjectEmployee(@ModelAttribute ProjectEmployee projectEmployee, @ModelAttribute String permissions) {
+    public String saveProjectEmployee(@ModelAttribute ProjectEmployee projectEmployee, @ModelAttribute List<Skill> allSkills, @ModelAttribute String permissions) {
         projectEmployeeService.addEmployee(projectEmployee, permissions);
         return "redirect:/employees";
     }
@@ -124,4 +130,58 @@ public class ProjectEmployeeController {
         projectEmployeeService.deleteEmployeeByUsername(username);
         return "redirect:/employees";
     }
+
+    @GetMapping("/{username}/assign-skills")
+    public String showAddSkills(HttpSession session, Model model, @PathVariable String username, final SkillDTO skillDTO) {
+
+        if (!isLoggedIn(session)) {
+            return "redirect:/login";
+        }
+
+        if (!isOwnerOrManager(username, session)) {
+            throw new InsufficientPermissionsException("Only managers may assign workers skills.");
+        }
+
+        model.addAttribute("skillRows", skillDTO.getSkillRows());
+        model.addAttribute("levelRows", skillDTO.getLevelRows());
+        model.addAttribute("allLevels", List.of("Intermediate", "Expert"));
+        model.addAttribute("employeeSkills", projectEmployeeService.getSkillsForEmployee(username));
+        model.addAttribute("allUsers", projectEmployeeService.getAllEmployees());
+        model.addAttribute("sessionUser", session.getAttribute("username").toString());
+
+        return "add_skills";
+    }
+
+    @GetMapping(name="/{username}/assign-skills", params={"addrow"})
+    public String addRow(final SkillDTO skillDTO) {
+        skillDTO.getSkillRows().add(new Skill());
+        return "add_skills";
+    }
+
+    @GetMapping(name="/{username}/assign-skills", params={"removeRow"})
+    public String removeRow(final SkillDTO skillDTO, @ModelAttribute List<EmployeeSkill> employeeSkills) {
+        skillDTO.getSkillRows().remove();
+        return "add_skills";
+    }
+
+    @PostMapping("/{username}/assign-skills")
+    public String saveAssignments(@RequestParam(name = "usernames") List<String> usernames, @ModelAttribute EmployeeSkill assignedSkill) {
+
+        for (String username : usernames) {
+            projectEmployeeService.assignSkillToEmployee(assignedSkill.getSkillId(), username, assignedSkill.getSkillLevel());
+        }
+
+        return "redirect:/employees";
+    }
+
+    @PostMapping("/{username}/unassign-skills")
+    public String unassignWorker(@PathVariable String username, HttpSession session, @ModelAttribute EmployeeSkill assignedSkill) {
+        if (!isOwnerOrManager(username, session)) {
+            throw new InsufficientPermissionsException("Only managers may unassign skills.");
+        }
+
+        projectEmployeeService.unassignSkillFromEmployee(assignedSkill.getSkillId(), username, assignedSkill.getSkillLevel());
+        return "redirect:/employees";
+    }
+
 }

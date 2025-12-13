@@ -2,10 +2,14 @@ package com.plannex.Repository;
 
 import com.plannex.Exception.EntityAlreadyExistsException;
 import com.plannex.Exception.EntityDoesNotExistException;
+import com.plannex.Exception.NotSupportedException;
 import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
+import com.plannex.Model.Skill;
+import com.plannex.Model.Task;
 import com.plannex.RowMapper.EmployeeSkillRowMapper;
 import com.plannex.RowMapper.ProjectEmployeeRowMapper;
+import com.plannex.RowMapper.SkillRowMapper;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -19,11 +23,13 @@ public class ProjectEmployeeRepository {
     protected final JdbcTemplate jdbcTemplate;
     protected final ProjectEmployeeRowMapper projectEmployeeRowMapper;
     protected final EmployeeSkillRowMapper employeeSkillRowMapper;
+    protected final SkillRowMapper skillRowMapper;
 
-    public ProjectEmployeeRepository(JdbcTemplate jdbcTemplate, ProjectEmployeeRowMapper projectEmployeeRowMapper, EmployeeSkillRowMapper employeeSkillRowMapper) {
+    public ProjectEmployeeRepository(JdbcTemplate jdbcTemplate, ProjectEmployeeRowMapper projectEmployeeRowMapper, EmployeeSkillRowMapper employeeSkillRowMapper, SkillRowMapper skillRowMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.projectEmployeeRowMapper = projectEmployeeRowMapper;
         this.employeeSkillRowMapper = employeeSkillRowMapper;
+        this.skillRowMapper = skillRowMapper;
 
     }
 
@@ -100,6 +106,24 @@ public class ProjectEmployeeRepository {
         ProjectEmployee employee = getEmployeeByUsername(username);
         return employee.getEmployeeUsername().equals(username) && employee.getEmployeePassword().equals(pw);
     }
+
+    public List<Skill> getAllSkills() {
+        try {
+            return jdbcTemplate.query("SELECT FROM * Skills", skillRowMapper);
+        } catch (EmptyResultDataAccessException erdae) {
+            return null;
+        }
+    }
+
+    public Skill getSkillFromAllSkills(List<Skill> allSkills, String chosenSkill) {
+        for (Skill s: allSkills) {
+            if (s.getSkillTitle().equals(chosenSkill)) {
+                return s;
+            }
+        }
+        return null;
+    }
+
     public List<EmployeeSkill> getSkillsForEmployee(String username) {
         return jdbcTemplate.query(
                 "SELECT es.EMPLOYEEUSERNAME AS EmployeeUsername, " +
@@ -112,6 +136,39 @@ public class ProjectEmployeeRepository {
                 employeeSkillRowMapper,
                 username
         );
+    }
+
+    public Skill getSkillByID(int skillID) {
+        try {
+            return jdbcTemplate.queryForObject("SELECT * FROM Skills WHERE SkillID = ?;", skillRowMapper, skillID);
+        } catch (EmptyResultDataAccessException erdae) {
+            throw new EntityDoesNotExistException("No task with ID " + skillID + " exists.");
+        }
+    }
+
+    public int assignSkillToEmployee(int skillID, String employeeUsername, String skillLevel) {
+        if (getSkillByID(skillID) == null) {
+            throw new EntityDoesNotExistException("No skill with ID " + skillID + " exists.");
+        }
+
+        try {
+            return jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES (?, ?, ?);",
+                    employeeUsername, skillID, skillLevel);
+        } catch (DataIntegrityViolationException dive) {
+            throw new EntityAlreadyExistsException("The employee with username " + employeeUsername + " is already assigned the skill with ID " + skillID + ".");
+        }
+    }
+
+    public int unassignTaskFromEmployee(int skillID, String employeeUsername, String skillLevel) {
+        if (getSkillByID(skillID) == null) {
+            throw new EntityDoesNotExistException("No skill with ID " + skillID + " exists.");
+        }
+
+        int rowsDeleted = jdbcTemplate.update("DELETE FROM TaskAssignees WHERE EmployeeUsername = ? AND SkillID = ? AND SkillLevel = ?;",
+                employeeUsername, skillID, skillLevel);
+
+        if (rowsDeleted != 1) throw new EntityDoesNotExistException("The employee with username " + employeeUsername + " is not assigned the skill with ID " + skillID + ".");
+        return rowsDeleted;
     }
 
 

@@ -2,6 +2,8 @@ package com.plannex.Service;
 
 import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
+import com.plannex.Model.Skill;
+import com.plannex.Model.Task;
 import com.plannex.Repository.ProjectEmployeeRepository;
 import org.springframework.stereotype.Service;
 
@@ -51,8 +53,28 @@ public class ProjectEmployeeService {
 
     // Nedenunder er det der skal lave controller ting til
 
+    public List<Skill> getAllSkills() {
+        return projectEmployeeRepository.getAllSkills();
+    }
+
+    public Skill getSkillFromAllSkills (List<Skill> allSkills, String chosenSkill) {
+        return projectEmployeeRepository.getSkillFromAllSkills(allSkills, chosenSkill);
+    }
+
     public List<EmployeeSkill> getSkillsForEmployee(String username) {
         return projectEmployeeRepository.getSkillsForEmployee(username);
+    }
+
+    public int assignSkillToEmployee(int skillID, String employeeUsername, String skillLevel) {
+        return projectEmployeeRepository.assignSkillToEmployee(skillID, employeeUsername, skillLevel);
+    }
+
+    public int unassignSkillFromEmployee(int skillID, String employeeUsername, String skillLevel) {
+        return projectEmployeeRepository.unassignTaskFromEmployee(skillID, employeeUsername, skillLevel);
+    }
+
+    public Skill getSkillByID(int skillID) {
+        return projectEmployeeRepository.getSkillByID(skillID);
     }
 
     public void addSkill(String username, String skillName, String level) {
