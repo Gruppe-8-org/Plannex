@@ -19,6 +19,7 @@ import java.util.List;
 @RequestMapping("/employees")
 public class ProjectEmployeeController {
     private final ProjectEmployeeService projectEmployeeService;
+    private SkillDTO skillDTO;
 
     public ProjectEmployeeController(ProjectEmployeeService projectEmployeeService) {
         this.projectEmployeeService = projectEmployeeService;
@@ -132,7 +133,7 @@ public class ProjectEmployeeController {
     }
 
     @GetMapping("/{username}/assign-skills")
-    public String showAddSkills(HttpSession session, Model model, @PathVariable String username, final SkillDTO skillDTO) {
+    public String showAddSkills(HttpSession session, Model model, @PathVariable String username) {
 
         if (!isLoggedIn(session)) {
             return "redirect:/login";
@@ -142,33 +143,34 @@ public class ProjectEmployeeController {
             throw new InsufficientPermissionsException("Only managers may assign workers skills.");
         }
 
-        model.addAttribute("skillRows", skillDTO.getSkillRows());
-        model.addAttribute("levelRows", skillDTO.getLevelRows());
+        List<EmployeeSkill> empSkills = projectEmployeeService.getSkillsForEmployee(username);
+        skillDTO = new SkillDTO(empSkills);
+        model.addAttribute("skillDTO", skillDTO);
         model.addAttribute("allLevels", List.of("Intermediate", "Expert"));
-        model.addAttribute("employeeSkills", projectEmployeeService.getSkillsForEmployee(username));
         model.addAttribute("allUsers", projectEmployeeService.getAllEmployees());
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
 
         return "add_skills";
     }
 
-    @GetMapping(name="/{username}/assign-skills", params={"addrow"})
-    public String addRow(final SkillDTO skillDTO) {
-        skillDTO.getSkillRows().add(new Skill());
+    @PostMapping(value="/{username}/assign-skills", params={"addRow"})
+    public String addRow(@ModelAttribute SkillDTO skillDTO, Model model) {
+        skillDTO.getSkillRows().add(new EmployeeSkill());
+        model.addAttribute("skillDTO", skillDTO);
         return "add_skills";
     }
 
-    @GetMapping(name="/{username}/assign-skills", params={"removeRow"})
+    @PostMapping(value="/{username}/assign-skills", params={"removeRow"})
     public String removeRow(final SkillDTO skillDTO, @ModelAttribute List<EmployeeSkill> employeeSkills) {
-        skillDTO.getSkillRows().remove();
+        //skillDTO.getSkillRows().remove();
         return "add_skills";
     }
 
-    @PostMapping("/{username}/assign-skills")
-    public String saveAssignments(@RequestParam(name = "usernames") List<String> usernames, @ModelAttribute EmployeeSkill assignedSkill) {
+    @PostMapping(value="/{username}/assign-skills", params={"save"})
+    public String saveAssignments(@ModelAttribute SkillDTO skillDTO, @PathVariable String username) {
 
-        for (String username : usernames) {
-            projectEmployeeService.assignSkillToEmployee(assignedSkill.getSkillId(), username, assignedSkill.getSkillLevel());
+        for (EmployeeSkill empSkill: skillDTO.getSkillRows()){
+            projectEmployeeService.assignSkillToEmployee(empSkill.getSkillId(), username, empSkill.getSkillLevel());
         }
 
         return "redirect:/employees";

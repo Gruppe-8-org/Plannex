@@ -37,21 +37,11 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="row,rowStat : *{employeeSkills}">
-                    <td><p th:text="${row.skillTitle}"></p></td>
-                    <td>
-                        <p th:text="${row.skillLevel}"></p>
-                    </td>
-                    <td>
-                        <button type="submit" name="removeRow"
-                                th:value="${rowStat.index}">Remove row</button>
-                    </td>
-                </tr>
 
-                <tr th:each="row,rowStat : *{skillRows}">
+                <tr th:each="row,rowStat : *{skillDTO.skillRows}">
                     <td ><input type="text"></td>
                     <td>
-                        <select th:field="*{skillRows[__${rowStat.index}__].skillTitle}">
+                        <select th:field="*{row.skillTitle}">
                             <option th:each="var, iter : ${allLevels}"
                                     th:value="${var[iter.index]}"
                                     th:text="${var[iter.index]}"></option>
@@ -62,6 +52,7 @@
                                 th:value="${rowStat.index}">Remove row</button>
                     </td>
                 </tr>
+
                 </tbody>
             </table>
         </fieldset>
@@ -72,7 +63,7 @@
                 Cancel
             </a>
 
-            <button type="submit" class="add-btn">Assign</button>
+            <button type="submit" class="add-btn" name="save">Assign</button>
         </div>
     </form>
 

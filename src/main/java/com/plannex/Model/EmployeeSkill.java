@@ -6,6 +6,9 @@ public class EmployeeSkill {
         private String skillLevel;
     private int skillId;
 
+    public EmployeeSkill() {
+    }
+
     public EmployeeSkill(String employeeUsername, String skillTitle, String skillLevel, int skillId) {
         this.employeeUsername = employeeUsername;
         this.skillTitle = skillTitle;
