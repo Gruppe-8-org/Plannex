@@ -78,6 +78,12 @@ public class ProjectEmployeeRepositoryTests {
     }
 
     @Test
+    public void getAllEmployeesReturnsEmptyListIfNoEmployees() {
+        jdbcTemplate.update("DELETE FROM ProjectEmployees;");
+        assertEquals(0, projectEmployeeRepository.getAllEmployees().size());
+    }
+
+    @Test
     public void updateEmployeeUpdatesOnExistingEmployeeAndOnlyModifiedFields() {
         ProjectEmployee newMES = new ProjectEmployee("lild4wg", "Max-Emil", "MES@gmail.com", "fAbc#21Y", LocalTime.of(8, 0, 0), LocalTime.of(10, 0, 0));
         ProjectEmployee MESBefore = projectEmployeeRepository.getEmployeeByUsername("lildawg");
@@ -184,5 +190,22 @@ public class ProjectEmployeeRepositoryTests {
 
         int count = projectEmployeeRepository.countIntermediateSkills("bigdawg");
         assertEquals(3, count); // One already exists (Business Degree)
+
+    @Test
+    public void loginWorksOnMatchingCredentialsAndRefusesInvalidOnes() {
+        assertTrue(projectEmployeeRepository.login("lildawg", "fAbc#21Y"));
+        assertFalse(projectEmployeeRepository.login("lildawg", "wrongPassword"));
+    }
+
+    @Test
+    public void loginWorksOnMatchingCredentialFailsWithWrongUsername() {
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No employee with username lildowg exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.login("lildowg", ""));
+    }
+
+    @Test
+    public void getAllWorkersReturnsAllWorkers() {
+        List<ProjectEmployee> expectedWorkers = List.of(new ProjectEmployee("RandomWorker", "Random", "RW@gmail.com", "notSecure", LocalTime.of(8, 0, 0), LocalTime.of(16, 0, 0)));
+        List<ProjectEmployee> actualWorkers = projectEmployeeRepository.getAllWorkers();
+        assertEquals(expectedWorkers, actualWorkers);
     }
 }

@@ -66,6 +66,13 @@
         <label>Works to</label>
         <input type="time" th:field="*{workingHoursTo}">
 
+        <label for="permissions">Set permissions</label>
+        <select id="permissions" name="permissions" required>
+            <option value="">Please select an option</option>
+            <option th:value="'Worker'" th:text="'Worker'"></option>
+            <option th:value="'Manager'" th:text="'Manager'"></option>
+        </select>
+
         <input type="hidden"
                name="oldUsername"
                th:value="${oldUsername}">

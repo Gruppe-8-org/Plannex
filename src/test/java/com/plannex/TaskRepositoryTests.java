@@ -38,7 +38,7 @@ public class TaskRepositoryTests {
         Task newTask = new Task(17, 1, 0, "TaskTitle", "TaskDescription", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
         int rowsAffected = taskRepository.addTask(newTask);
         assertEquals(1, rowsAffected);
-        Task newTaskFromDB = taskRepository.getTaskByID(17); // 16 exist by default in test DB
+        Task newTaskFromDB = taskRepository.getTaskByIDOrThrow(17); // 16 exist by default in test DB
         assertEquals(newTask, newTaskFromDB);
     }
 
@@ -59,7 +59,7 @@ public class TaskRepositoryTests {
         Task newTask = new Task(17, 1, 1, "TaskTitle", "TaskDescription", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
         int rowsAdded = taskRepository.addSubtask(newTask);
         assertEquals(1, rowsAdded);
-        Task newTaskFromDB = taskRepository.getTaskByID(17);
+        Task newTaskFromDB = taskRepository.getTaskByIDOrThrow(17);
         assertEquals(newTask, newTaskFromDB);
     }
 
@@ -176,16 +176,16 @@ public class TaskRepositoryTests {
     }
 
     @Test
-    public void getTaskByIDGetsTaskIfItExists() {
+    public void getTaskByIDOrThrowGetsTaskIfItExists() {
         Task expectedTask = new Task(2, 1, 1, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
-        Task actualTask = taskRepository.getTaskByID(2);
+        Task actualTask = taskRepository.getTaskByIDOrThrow(2);
         assertNotNull(actualTask);
         assertEquals(expectedTask, actualTask);
     }
 
     @Test
-    public void getTaskByIDReturnsNullOnNonExistentTask() {
-        assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.getTaskByID(-1));
+    public void getTaskByIDOrThrowThrowsOnNonExistentTask() {
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.getTaskByIDOrThrow(-1));
     }
 
     @Test
@@ -308,9 +308,9 @@ public class TaskRepositoryTests {
     @Test
     public void updateTaskUpdatesOnlyWantedFieldsIfTaskExists() {
         Task expectedTask = new Task(2, 1, 1, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 13), LocalDate.of(2025, 11, 14), 2.0f);
-        Task taskFromDBBefore = taskRepository.getTaskByID(2);
+        Task taskFromDBBefore = taskRepository.getTaskByIDOrThrow(2);
         assertEquals(1, taskRepository.updateTask(expectedTask, 2));
-        Task taskFromDBAfter = taskRepository.getTaskByID(2);
+        Task taskFromDBAfter = taskRepository.getTaskByIDOrThrow(2);
         assertNotEquals(taskFromDBAfter, taskFromDBBefore);
         assertEquals(expectedTask, taskFromDBAfter);
     }
@@ -404,12 +404,18 @@ public class TaskRepositoryTests {
 
     @Test
     public void contributeTimeThrowsOnNegativeTimeSpent() {
-        assertThrowsHelper.verifyExceptionThrownWithMessage("Hours spent should be zero or more.", InvalidValueException.class, () -> taskRepository.contributeTime("marqs", 17, -2.0f));
+        assertThrowsHelper.verifyExceptionThrownWithMessage("Hours spent should be more than zero.", InvalidValueException.class, () -> taskRepository.contributeTime("marqs", 17, -2.0f));
     }
 
     @Test
     public void contributeTimeThrowsOnNonSubtask() {
         assertThrowsHelper.verifyExceptionThrownWithMessage("You may only add time spent to subtasks.", NotSupportedException.class, () -> taskRepository.contributeTime("marqs", 1, 2.0f));
+    }
+
+    @Test
+    public void contributeTimeThrowsOnDuplicate() {
+        taskRepository.contributeTime("lildawg", 2, 2.0f);
+        assertThrowsHelper.verifyExceptionThrownWithMessage("You just added a similar time contribution. If this is intentional, wait a couple of seconds before trying again.", EntityAlreadyExistsException.class, () -> taskRepository.contributeTime("lildawg", 2, 2.0f));
     }
 
     @Test
@@ -469,13 +475,13 @@ public class TaskRepositoryTests {
     public void deleteTaskCascadesCorrectly() {
         int rowsDeleted = taskRepository.deleteTaskByID(1);
         assertEquals(1, rowsDeleted); // Cascading doesn't count
-        assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getTaskByID(1));
-        assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getTaskByID(2));
-        assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getTaskByID(3));
-        assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getTaskByID(4));
-        assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getTaskByID(5));
-        assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getTaskByID(6));
-        assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getTaskByID(7));
+        assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getTaskByIDOrThrow(1));
+        assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getTaskByIDOrThrow(2));
+        assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getTaskByIDOrThrow(3));
+        assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getTaskByIDOrThrow(4));
+        assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getTaskByIDOrThrow(5));
+        assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getTaskByIDOrThrow(6));
+        assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getTaskByIDOrThrow(7));
         assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getAllDependenciesForTask(5));
         assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getAllDependenciesForTask(6));
         assertThrows(EntityDoesNotExistException.class, () -> taskRepository.getAllDependenciesForTask(7));

@@ -60,14 +60,16 @@ public class ProjectEmployeeControllerTests {
         ProjectEmployee nonExistentEmployee = new ProjectEmployee("hj2450", "Hans Jørgen", "HJE@gmail.com", "abcdefgh", LocalTime.of(8, 0, 0), LocalTime.of(16, 0, 0));
         when(projectEmployeeService.getEmployeeByUsername("hj2450")).thenReturn(nonExistentEmployee);
         mockMvc.perform(post("/employees/add-employee")
-                        .param("Username", "hj2450")
-                        .param("Name", "Hans Jørgen")
-                        .param("Email", "HJE@gmail.com")
-                        .param("Password", "abcdefgh")
-                        .param("WorkingHoursFrom", "08:00:00")
-                        .param("WorkingHoursTo", "16:00:00"))
+                        .param("employeeUsername", "hj2450")
+                        .param("employeeName", "Hans Jørgen")
+                        .param("employeeEmail", "HJE@gmail.com")
+                        .param("employeePassword", "abcdefgh")
+                        .param("workingHoursFrom", "08:00:00")
+                        .param("workingHoursTo", "16:00:00")
+                        .param("permissions", "Worker"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/employees"));
+        verify(projectEmployeeService, times(1)).addEmployee(nonExistentEmployee, "Worker");
     }
 
     @Test
@@ -131,18 +133,30 @@ public class ProjectEmployeeControllerTests {
     }
 
     @Test
+    void editEmployeeThrowsOnNonOwner() throws Exception {
+        when(projectEmployeeService.getPermissions("hj2451")).thenReturn("Worker");
+        mockMvc.perform(get("/employees/hj2450/edit").session(sessionWithUser("hj2451")))
+                .andExpect(status().isForbidden())
+                .andExpect(model().attribute("message", "Only managers or profile owners may edit employee information."))
+                .andExpect(view().name("error"));
+    }
+
+    @Test
     void saveEditedEmployeeRedirectsAfterStoringIfNewUsernameDoesNotExist() throws Exception {
-        ProjectEmployee nonExistentEmployee = new ProjectEmployee("hj2450", "Hans Jørgen", "HJE@gmail.com", "abcdefgh", LocalTime.of(8, 0, 0), LocalTime.of(16, 0, 0));
+        ProjectEmployee nonExistentEmployee = new ProjectEmployee("hj2451", "Hans Jørgen", "HJE@gmail.com", "abcdefgh", LocalTime.of(8, 0, 0), LocalTime.of(16, 0, 0));
         when(projectEmployeeService.getEmployeeByUsername("hj2450")).thenReturn(nonExistentEmployee);
         mockMvc.perform(post("/employees/hj2450/edit")
-                        .param("Username", "hj2451")
-                        .param("Name", "Hans Jorgen")
-                        .param("Email", "HJE@gmail.com")
-                        .param("Password", "abcdefg")
-                        .param("WorkingHoursStart", "08:00:00")
-                        .param("WorkingHoursEnd", "16:00:00"))
+                        .param("employeeUsername", "hj2451")
+                        .param("employeeName", "Hans Jørgen")
+                        .param("employeeEmail", "HJE@gmail.com")
+                        .param("employeePassword", "abcdefgh")
+                        .param("workingHoursFrom", "08:00:00")
+                        .param("workingHoursTo", "16:00:00")
+                        .param("permissions", "Worker")
+                        .param("oldUsername", "hj2450"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/employees/hj2450"));
+                .andExpect(redirectedUrl("/employees/hj2451"));
+        verify(projectEmployeeService, times(1)).updateEmployee(nonExistentEmployee, "hj2450");
     }
 
     @Test
@@ -154,7 +168,7 @@ public class ProjectEmployeeControllerTests {
         mockMvc.perform(get("/employees/hj2450/delete").session(sessionWithUser("hj2450")))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("user", existingEmployee))
-                .andExpect(view().name("edit_user"));
+                .andExpect(view().name("delete_user"));
 
         verify(projectEmployeeService, times(1)).getEmployeeByUsername("hj2450");
     }
@@ -186,5 +200,6 @@ public class ProjectEmployeeControllerTests {
         mockMvc.perform(post("/employees/hj2450/delete"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/employees"));
+        verify(projectEmployeeService, times(1)).deleteEmployeeByUsername("hj2450");
     }
 }

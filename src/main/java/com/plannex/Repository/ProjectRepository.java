@@ -18,13 +18,11 @@ public class ProjectRepository {
     protected final JdbcTemplate jdbcTemplate;
     protected final ProjectRowMapper projectRowMapper;
     protected final TaskRowMapper taskRowMapper;
-    protected final ProjectEmployeeRowMapper projectEmployeeRowMapper;
 
-    public ProjectRepository(JdbcTemplate jdbcTemplate, ProjectRowMapper projectRowMapper, TaskRowMapper taskRowMapper, ProjectEmployeeRowMapper projectEmployeeRowMapper) {
+    public ProjectRepository(JdbcTemplate jdbcTemplate, ProjectRowMapper projectRowMapper, TaskRowMapper taskRowMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.projectRowMapper = projectRowMapper;
         this.taskRowMapper = taskRowMapper;
-        this.projectEmployeeRowMapper = projectEmployeeRowMapper;
     }
 
     public int addProject(Project project) {
@@ -32,35 +30,25 @@ public class ProjectRepository {
                     project.getProjectTitle(), project.getProjectDescription(), project.getProjectStart(), project.getProjectEnd());
     }
 
-    public Project getProjectByID(int projectID) {
+    public Project getProjectByIDOrThrow(int projectID) {
         try {
             return jdbcTemplate.queryForObject("SELECT * FROM Projects WHERE ProjectID = ?;", projectRowMapper, projectID);
         } catch (EmptyResultDataAccessException erdae) {
-            return null;
+            throw new EntityDoesNotExistException("No project with ID " + projectID + " exists.");
         }
     }
 
     public List<Project> getAllProjects() {
-        try {
-            return jdbcTemplate.query("SELECT * FROM Projects;", projectRowMapper);
-        } catch (EmptyResultDataAccessException erdae) {
-            return null;
-        }
+        return jdbcTemplate.query("SELECT * FROM Projects;", projectRowMapper);
     }
 
     public List<Task> getAllTasksForProject(int projectID) {
-        if (getProjectByID(projectID) == null) {
-            throw new EntityDoesNotExistException("No project with ID " + projectID + " exists.");
-        }
-
+        getProjectByIDOrThrow(projectID);
         return jdbcTemplate.query("SELECT * FROM Tasks WHERE ProjectID = ? AND ParentTaskID IS NULL;", taskRowMapper, projectID);
     }
 
     public Integer getAllInvolved(int projectID) {
-        if (getProjectByID(projectID) == null) {
-            throw new EntityDoesNotExistException("No project with ID " + projectID + " exists.");
-        }
-
+        getProjectByIDOrThrow(projectID);
         return jdbcTemplate.queryForObject("""
                 SELECT COUNT(DISTINCT ta.EmployeeUsername) FROM TaskAssignees AS ta
                 JOIN Tasks AS t ON ta.TaskID = t.TaskID
@@ -68,10 +56,7 @@ public class ProjectRepository {
     }
 
     public int updateProject(Project modifiedProject, int targetProjectID) {
-        if (getProjectByID(targetProjectID) == null) {
-            throw new EntityDoesNotExistException("No project with projectID " + targetProjectID + " exists.");
-        }
-
+        getProjectByIDOrThrow(targetProjectID);
         return jdbcTemplate.update(
                 "UPDATE Projects " +
                         "SET ProjectTitle = ?, ProjectDescription = ?, ProjectStart = ?, ProjectEnd = ?" +
@@ -82,18 +67,12 @@ public class ProjectRepository {
     }
 
     public int deleteProjectByID(int projectID) {
-        if (getProjectByID(projectID) == null) {
-            throw new EntityDoesNotExistException("No project with projectID " + projectID + " exists.");
-        }
-
+        getProjectByIDOrThrow(projectID);
         return jdbcTemplate.update("DELETE FROM Projects WHERE ProjectID = ?;", projectID);
     }
 
     public float getTotalTimeSpent(int projectID) {
-        if (getProjectByID(projectID) == null) {
-            throw new EntityDoesNotExistException("No project with projectID " + projectID + " exists.");
-        }
-
+        getProjectByIDOrThrow(projectID);
         try {
             return jdbcTemplate.queryForObject("""
                 

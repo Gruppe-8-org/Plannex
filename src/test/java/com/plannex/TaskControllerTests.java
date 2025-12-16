@@ -110,6 +110,8 @@ public class TaskControllerTests {
     void showAddDependencyRoutesCorrectly() throws Exception {
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/add-dependency").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
+                .andExpect(model().attributeExists("allTasks"))
+                .andExpect(model().attribute("sessionUser", "MRY"))
                 .andExpect(view().name("add_dependencies"));
     }
 
@@ -138,7 +140,9 @@ public class TaskControllerTests {
         when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/5/assign-workers").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("allUsers"))
+                .andExpect(model().attributeExists("allWorkers"))
+                .andExpect(model().attributeExists("assigneeDTO"))
+                .andExpect(model().attribute("sessionUser", "MRY"))
                 .andExpect(view().name("add_assignee"));
         verify(projectEmployeeService, times(1)).getPermissions("MRY");
     }
@@ -207,6 +211,7 @@ public class TaskControllerTests {
     @Test
     void showSubtaskPageHasRightAttrsAndRoutesAsExpected() throws Exception {
         Task s = new Task(2, 1, 1, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
+        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
         when(taskService.getTaskByID(2)).thenReturn(s);
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/2").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
@@ -214,17 +219,21 @@ public class TaskControllerTests {
                 .andExpect(model().attributeExists("assignees"))
                 .andExpect(model().attributeExists("dependencies"))
                 .andExpect(model().attributeExists("artifacts"))
-                .andExpect(model().attributeExists("sessionUser"));
+                .andExpect(model().attributeExists("sessionUser"))
+                .andExpect(model().attributeExists("isManager"))
+                .andExpect(view().name("subtask_window"));
     }
 
     @Test
     void showEditSubtaskPageRoutesCorrectly() throws Exception {
         Task s = new Task(2, 1, 1, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
         when(taskService.getTaskByID(2)).thenReturn(s);
+        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/edit").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("subtask"))
-                .andExpect(model().attributeExists("sessionUser"))
+                .andExpect(model().attribute("isManager", true))
+                .andExpect(model().attribute("subtask", s))
+                .andExpect(model().attribute("sessionUser", "MRY"))
                 .andExpect(view().name("edit_subtask"));
     }
 
@@ -336,8 +345,8 @@ public class TaskControllerTests {
     void deleteArtifactWorksAsExpectedOnManager() throws Exception {
         when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
         mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-artifact").session(sessionWithUser("MRY"))
-                .param("author", "MRY")
-                .param("artifactPath", "/src/main/resources/example_artifact.pdf"))
+                    .param("author", "MRY")
+                    .param("pathToArtifact", "/src/main/resources/example_artifact.pdf"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/2"));
         verify(taskService, times(1)).deleteArtifact(2, "MRY", "/src/main/resources/example_artifact.pdf");
@@ -348,7 +357,7 @@ public class TaskControllerTests {
         when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
         mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-artifact").session(sessionWithUser("MRY"))
                         .param("author", "MRY")
-                        .param("artifactPath", "/src/main/resources/example_artifact.pdf"))
+                        .param("pathToArtifact", "/src/main/resources/example_artifact.pdf"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/2"));
         verify(taskService, times(1)).deleteArtifact(2, "MRY", "/src/main/resources/example_artifact.pdf");
@@ -359,9 +368,120 @@ public class TaskControllerTests {
         when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
         mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-artifact").session(sessionWithUser("MRY"))
                         .param("author", "lildawg")
-                        .param("artifactPath", "/src/main/resources/example_artifact.pdf"))
+                        .param("pathToArtifact", "/src/main/resources/example_artifact.pdf"))
                 .andExpect(status().isForbidden())
                 .andExpect(model().attribute("message", "Managers may delete all artifacts, workers may only delete their own."))
                 .andExpect(view().name("error"));
+    }
+
+    @Test
+    void showDeleteSubtaskRoutesAsExpectedOnManagerSession() throws Exception {
+        Task t = new Task(2, 1, 1, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
+        when(taskService.getTaskByID(2)).thenReturn(t);
+        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+        mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/delete").session(sessionWithUser("MRY")))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("sessionUser", "MRY"))
+                .andExpect(model().attribute("title", "Set up GitHub project"))
+                .andExpect(model().attributeExists("description"))
+                .andExpect(model().attribute("start", LocalDate.of(2025, 11, 12)))
+                .andExpect(model().attribute("end", LocalDate.of(2025, 11, 12)))
+                .andExpect(model().attribute("mainEntityType", "subtask"))
+                .andExpect(model().attribute("whereToSubmit", "/projects/1/tasks/1/subtasks/2/delete"))
+                .andExpect(model().attribute("whereToGoOnCancel", "/projects/1/tasks/1/subtasks/2"))
+                .andExpect(view().name("delete_main_entity"));
+    }
+
+    @Test
+    void showDeleteSubtaskThrowsOnNonManager() throws Exception {
+        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
+        mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/delete").session(sessionWithUser("MRY")))
+                .andExpect(status().isForbidden())
+                .andExpect(model().attribute("message", "Only managers may delete subtasks."))
+                .andExpect(view().name("error"));
+        verify(projectEmployeeService, times(1)).getPermissions("MRY");
+    }
+
+    @Test
+    void deleteSubtaskCallsServiceAndRoutesCorrectly() throws Exception {
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/projects/1/tasks/1"));
+        verify(taskService, times(1)).deleteTaskByID(2);
+    }
+
+    @Test
+    void showAddArtifactRoutesCorrectlyOnLoggedInUser() throws Exception {
+        mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/add-artifact").session(sessionWithUser("MRY")))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("pid", 1))
+                .andExpect(model().attribute("tid", 1))
+                .andExpect(model().attribute("sid", 2))
+                .andExpect(view().name("add_artefact"));
+    }
+
+    @Test
+    void saveArtifactCallsServiceAndRoutesAsExpected() throws Exception {
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/add-artifact")
+                .param("byUsername", "MRY")
+                .param("pathToArtifact", "path/to/artifact"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/2"));
+        verify(taskService, times(1)).addArtifact(2, "MRY", "path/to/artifact");
+    }
+
+    @Test
+    void showDeleteTaskRoutesCorrectlyOnManager() throws Exception {
+        Task t = new Task(2, 1, 1, "A title", "A description", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 4.0f);
+        when(taskService.getTaskByID(1)).thenReturn(t);
+        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+        mockMvc.perform(get("/projects/1/tasks/1/delete").session(sessionWithUser("MRY")))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("sessionUser", "MRY"))
+                .andExpect(model().attribute("title", "A title"))
+                .andExpect(model().attribute("description", "A description"))
+                .andExpect(model().attribute("start", LocalDate.of(2025, 11, 12)))
+                .andExpect(model().attribute("end", LocalDate.of(2025, 11, 12)))
+                .andExpect(model().attribute("mainEntityType", "task"))
+                .andExpect(model().attribute("whereToSubmit", "/projects/1/tasks/1/delete"))
+                .andExpect(model().attribute("whereToGoOnCancel", "/projects/1/tasks/1"))
+                .andExpect(view().name("delete_main_entity"));
+    }
+
+    @Test
+    void showDeleteTaskThrowsOnNonManager() throws Exception {
+        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
+        mockMvc.perform(get("/projects/1/tasks/1/delete").session(sessionWithUser("MRY")))
+                .andExpect(status().isForbidden())
+                .andExpect(model().attribute("message", "Only managers may delete tasks."))
+                .andExpect(view().name("error"));
+    }
+
+    @Test
+    void deleteTaskRoutesCallsServiceAndRoutesAsExpected() throws Exception {
+        mockMvc.perform(post("/projects/1/tasks/1/delete"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/projects/1"));
+        verify(taskService, times(1)).deleteTaskByID(1);
+    }
+
+    @Test
+    void showAddDependencyTaskRoutesCorrectly() throws Exception {
+        mockMvc.perform(get("/projects/1/tasks/1/add-dependency").session(sessionWithUser("MRY")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("add_dependencies_task"));
+    }
+
+    @Test
+    void saveDependencyTaskRoutesCallsServiceAndRoutesAsExpected() throws Exception {
+        mockMvc.perform(post("/projects/1/tasks/1/add-dependency")
+                .param("blockedByTaskIDs", "2", "3", "4"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/projects/1/tasks/1"));
+        verify(taskService, times(1)).addFollowsDependency(1, 2);
+        verify(taskService, times(1)).addFollowsDependency(1, 3);
+        verify(taskService, times(1)).addFollowsDependency(1, 4);
+        // Used invalid IDs in this test (2 is a subtask, for instance),
+        // but user will only be able to choose among actual tasks, not subtasks.
     }
 }

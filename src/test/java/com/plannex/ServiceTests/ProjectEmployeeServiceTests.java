@@ -164,4 +164,15 @@ class ProjectEmployeeServiceTests {
         assertEquals(300.0f, result);
     }
 
+
+    @Test
+    void getAllWorkersReturnsList() {
+        List<ProjectEmployee> list = List.of(emp);
+        when(repo.getAllWorkers()).thenReturn(list);
+
+        List<ProjectEmployee> result = service.getAllWorkers();
+
+        assertEquals(list, result);
+        verify(repo).getAllWorkers();
+    }
 }
