@@ -13,9 +13,7 @@ public class SkillRowMapper implements RowMapper<Skill> {
     @Override
     public Skill mapRow(ResultSet rs, int rowNum) throws SQLException {
         return new Skill(
-                rs.getString("SkillTitle"),
-                rs.getInt("SkillID")
-
+                rs.getString("SkillTitle")
         );
     }
 }

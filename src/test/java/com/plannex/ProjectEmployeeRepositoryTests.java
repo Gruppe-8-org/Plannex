@@ -5,12 +5,18 @@ import com.plannex.Exception.EntityDoesNotExistException;
 import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Repository.ProjectEmployeeRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +32,6 @@ public class ProjectEmployeeRepositoryTests {
     private ProjectEmployeeRepository projectEmployeeRepository;
     @Autowired
     JdbcTemplate jdbcTemplate;
-
     private final AssertThrowsHelper assertThrowsHelper = new AssertThrowsHelper();
 
     @Test
@@ -125,45 +130,34 @@ public class ProjectEmployeeRepositoryTests {
     }
     @Test
     public void getSkillsForEmployeeReturnsCorrectSkills() {
-
-        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('C#')");
-        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('HTML')");
-
-        Integer csId = jdbcTemplate.queryForObject("SELECT SkillID FROM Skills WHERE SkillTitle='C#'", Integer.class);
-        Integer htmlId = jdbcTemplate.queryForObject("SELECT SkillID FROM Skills WHERE SkillTitle='HTML'", Integer.class);
-
-        jdbcTemplate.update(
-                "INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES ('lildawg', ?, 'Expert')",
-                csId
-        );
-        jdbcTemplate.update(
-                "INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES ('lildawg', ?, 'Intermediate')",
-                htmlId
-        );
-
+        List<EmployeeSkill> skillsExpected = List.of(new EmployeeSkill("lildawg", "Java-Coder", "Expert"));
         List<EmployeeSkill> skills = projectEmployeeRepository.getSkillsForEmployee("lildawg");
-
-        assertEquals(2, skills.size());
-        assertTrue(skills.stream().anyMatch(s -> s.getSkillTitle().equals("C#") && s.getSkillLevel().equals("Expert")));
-        assertTrue(skills.stream().anyMatch(s -> s.getSkillTitle().equals("HTML") && s.getSkillLevel().equals("Intermediate")));
+        assertEquals(skillsExpected, skills);
     }
 
     @Test
-    public void addSkillAddsSkillCorrectly() {
-
-        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('Java')");
-
-        int rows = projectEmployeeRepository.addSkill("lildawg", "Java", "Expert");
-
+    public void addSkillAddsSkillIfItDoesNotAlreadyExist() {
+        int rows = projectEmployeeRepository.addSkillUnlessItAlreadyExists("NotJava");
         assertEquals(1, rows);
+    }
 
-        Integer count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM EmployeeSkills es JOIN Skills s ON es.SkillID = s.SkillID " +
-                        "WHERE es.EmployeeUsername='lildawg' AND s.SkillTitle='Java'",
-                Integer.class
-        );
+    @Test
+    public void addSkillDoesNotAddSkillIfItExists() {
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('Java')");
+        int rows = projectEmployeeRepository.addSkillUnlessItAlreadyExists("Java");
+        assertEquals(0, rows);
+    }
 
-        assertEquals(1, count);
+    @Test
+    public void removeSkillRemovesSkillIfItExists() {
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('Java')");
+        int rows = projectEmployeeRepository.removeSkillIfExists("Java");
+        assertEquals(1, rows);
+    }
+
+    @Test
+    public void removeSkillDoesNotRemoveSkillIfItDoesNotExist() {
+        assertEquals(0, projectEmployeeRepository.removeSkillIfExists("Java"));
     }
 
     @Test
@@ -172,11 +166,8 @@ public class ProjectEmployeeRepositoryTests {
         jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('C#')");
         jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('Java')");
 
-        Integer csId = jdbcTemplate.queryForObject("SELECT SkillID FROM Skills WHERE SkillTitle='C#'", Integer.class);
-        Integer javaId = jdbcTemplate.queryForObject("SELECT SkillID FROM Skills WHERE SkillTitle='Java'", Integer.class);
-
-        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES ('marqs', ?, 'Expert')", csId);
-        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES ('marqs', ?, 'Expert')", javaId);
+        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillTitle, SkillLevel) VALUES ('marqs', ?, 'Expert')", "C#");
+        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillTitle, SkillLevel) VALUES ('marqs', ?, 'Expert')", "Java");
 
         int count = projectEmployeeRepository.countExpertSkills("marqs");
         assertEquals(2, count);
@@ -188,18 +179,10 @@ public class ProjectEmployeeRepositoryTests {
         jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('CSS')");
         jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('HTML')");
 
-        Integer cssId = jdbcTemplate.queryForObject("SELECT SkillID FROM Skills WHERE SkillTitle='CSS'", Integer.class);
-        Integer htmlId = jdbcTemplate.queryForObject("SELECT SkillID FROM Skills WHERE SkillTitle='HTML'", Integer.class);
-
-        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES ('bigdawg', ?, 'Intermediate')", cssId);
-        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES ('bigdawg', ?, 'Intermediate')", htmlId);
+        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillTitle, SkillLevel) VALUES ('bigdawg', ?, 'Intermediate')", "CSS");
+        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillTitle, SkillLevel) VALUES ('bigdawg', ?, 'Intermediate')", "HTML");
 
         int count = projectEmployeeRepository.countIntermediateSkills("bigdawg");
-        assertEquals(2, count);
+        assertEquals(3, count); // One already exists (Business Degree)
     }
-
-
-
-
-
 }

@@ -110,8 +110,8 @@ class ProjectEmployeeServiceTests {
     @Test
     void getSkillsForEmployee_ReturnsListFromRepository() {
         List<EmployeeSkill> skills = List.of(
-                new EmployeeSkill("johnDoe", "Java", "Expert", 1),
-                new EmployeeSkill("johnDoe", "HTML", "Intermediate", 2)
+                new EmployeeSkill("johnDoe", "Java", "Expert"),
+                new EmployeeSkill("johnDoe", "HTML", "Intermediate")
         );
 
         when(repo.getSkillsForEmployee("johnDoe")).thenReturn(skills);
@@ -124,24 +124,15 @@ class ProjectEmployeeServiceTests {
 
     @Test
     void addSkill_CallsRepository_WhenSkillLevelIsValid() {
-        service.addSkill("johnDoe", "Java", "Expert");
+        service.addSkill("Java");
 
-        verify(repo).addSkill("johnDoe", "Java", "Expert");
-    }
-
-    @Test
-    void addSkill_ThrowsException_WhenSkillLevelIsInvalid() {
-        assertThrows(IllegalArgumentException.class,
-                () -> service.addSkill("johnDoe", "Java", "Master"));
-
-        verify(repo, never()).addSkill(any(), any(), any());
+        verify(repo).addSkillUnlessItAlreadyExists("Java");
     }
 
     @Test
     void removeSkill_CallsRepository() {
-        service.removeSkill("johnDoe", "Java");
-
-        verify(repo).removeSkill("johnDoe", "Java");
+        service.removeSkill("Java");
+        verify(repo).removeSkillIfExists("Java");
     }
 
     @Test

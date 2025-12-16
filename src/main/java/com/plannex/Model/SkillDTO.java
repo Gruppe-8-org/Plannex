@@ -1,17 +1,17 @@
 package com.plannex.Model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SkillDTO {
     private List<EmployeeSkill> skillRows;
 
     public SkillDTO() {
-        super();
+        skillRows = new ArrayList<>();
     }
 
     public SkillDTO(List<EmployeeSkill> skillRows) {
         this.skillRows = skillRows;
-
     }
 
     public List<EmployeeSkill> getSkillRows() {
@@ -21,5 +21,4 @@ public class SkillDTO {
     public void setSkillRows(List<EmployeeSkill> skillRows) {
         this.skillRows = skillRows;
     }
-
 }

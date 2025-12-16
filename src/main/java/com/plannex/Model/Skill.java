@@ -1,12 +1,12 @@
 package com.plannex.Model;
 
+import java.util.Objects;
+
 public class Skill {
-    private int skillId;
     private String skillTitle;
 
-    public Skill(String skillTitle, int skillId) {
+    public Skill(String skillTitle) {
         this.skillTitle = skillTitle;
-        this.skillId = skillId;
     }
 
     public Skill() {
@@ -21,12 +21,16 @@ public class Skill {
         this.skillTitle = skillTitle;
     }
 
-    public int getSkillId() {
-        return skillId;
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Skill skill = (Skill) o;
+        return Objects.equals(skillTitle, skill.skillTitle);
     }
 
-    public void setSkillId(int skillId) {
-        this.skillId = skillId;
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(skillTitle);
     }
 }
 

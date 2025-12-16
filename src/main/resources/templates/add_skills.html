@@ -21,6 +21,7 @@
     <h1>Add Skills</h1>
 
     <form class="assign-box"
+          th:object="${skillDTO}"
           th:action="@{/employees/{username}/assign-skills(username=${username})}"
           method="post">
 
@@ -38,13 +39,13 @@
                 </thead>
                 <tbody>
 
-                <tr th:each="row,rowStat : *{skillDTO.skillRows}">
-                    <td ><input type="text"></td>
+                <tr th:each="row, rowStat : *{skillRows}">
+                    <td><input type="text" th:field="*{skillRows[__${rowStat.index}__].skillTitle}"></td>
                     <td>
-                        <select th:field="*{row.skillTitle}">
-                            <option th:each="var, iter : ${allLevels}"
-                                    th:value="${var[iter.index]}"
-                                    th:text="${var[iter.index]}"></option>
+                        <select th:field="*{skillRows[__${rowStat.index}__].skillLevel}">
+                            <option th:each="level : ${allLevels}"
+                                    th:value="${level}"
+                                    th:text="${level}"></option>
                         </select>
                     </td>
                     <td>

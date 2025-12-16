@@ -3,11 +3,9 @@ package com.plannex.Service;
 import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Model.Skill;
-import com.plannex.Model.Task;
 import com.plannex.Repository.ProjectEmployeeRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -65,25 +63,24 @@ public class ProjectEmployeeService {
         return projectEmployeeRepository.getSkillsForEmployee(username);
     }
 
-    public int assignSkillToEmployee(int skillID, String employeeUsername, String skillLevel) {
-        return projectEmployeeRepository.assignSkillToEmployee(skillID, employeeUsername, skillLevel);
+    public int assignSkillToEmployee(String skillTitle, String employeeUsername, String skillLevel) {
+        return projectEmployeeRepository.assignSkillToEmployee(skillTitle, employeeUsername, skillLevel);
     }
 
-    public int unassignSkillFromEmployee(int skillID, String employeeUsername, String skillLevel) {
-        return projectEmployeeRepository.unassignTaskFromEmployee(skillID, employeeUsername, skillLevel);
+    public int unassignSkillFromEmployee(String skillTitle, String employeeUsername, String skillLevel) {
+        return projectEmployeeRepository.unassignSkillFromEmployee(skillTitle, employeeUsername, skillLevel);
     }
 
-    public Skill getSkillByID(int skillID) {
-        return projectEmployeeRepository.getSkillByID(skillID);
+    public Skill getSkillByTitle(String skillTitle) {
+        return projectEmployeeRepository.getSkillByTitle(skillTitle);
     }
 
-    public void addSkill(String username, String skillName, String level) {
-        validateSkillLevel(level);
-        projectEmployeeRepository.addSkill(username, skillName, level);
+    public void addSkill(String skillTitle) {
+        projectEmployeeRepository.addSkillUnlessItAlreadyExists(skillTitle);
     }
 
-    public void removeSkill(String username, String skillName) {
-        projectEmployeeRepository.removeSkill(username, skillName);
+    public void removeSkill(String skillTitle) {
+        projectEmployeeRepository.removeSkillIfExists(skillTitle);
     }
 
     private void validateSkillLevel(String level) {

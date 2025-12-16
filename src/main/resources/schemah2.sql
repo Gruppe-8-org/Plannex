@@ -86,16 +86,14 @@ CREATE TABLE IF NOT EXISTS Artifacts (
 );
 
 CREATE TABLE IF NOT EXISTS Skills (
-                                      SkillID INT PRIMARY KEY AUTO_INCREMENT,
-                                      SkillTitle VARCHAR(64) UNIQUE NOT NULL
-);
+                                      SkillTitle VARCHAR(64) PRIMARY KEY
+    );
 
 CREATE TABLE IF NOT EXISTS EmployeeSkills (
                                               EmployeeUsername VARCHAR(16),
-                                              SkillID INT,
-                                              SkillLevel VARCHAR(32),
-                                              CHECK (SkillLevel IN ('Intermediate','Expert')),
-                                              PRIMARY KEY (EmployeeUsername, SkillID),
-                                              FOREIGN KEY (EmployeeUsername) REFERENCES ProjectEmployees(EmployeeUsername) ON DELETE CASCADE,
-                                              FOREIGN KEY (SkillID) REFERENCES Skills(SkillID) ON DELETE CASCADE
-);
+    SkillTitle VARCHAR(64),
+    SkillLevel ENUM('Intermediate', 'Expert') NOT NULL,
+    PRIMARY KEY (EmployeeUsername, SkillTitle),
+    FOREIGN KEY (EmployeeUsername) REFERENCES ProjectEmployees(EmployeeUsername) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (SkillTitle) REFERENCES Skills(SkillTitle) ON DELETE CASCADE ON UPDATE CASCADE
+    );

@@ -1,19 +1,19 @@
 package com.plannex.Model;
 
+import java.util.Objects;
+
 public class EmployeeSkill {
         private String employeeUsername;
         private String skillTitle;
         private String skillLevel;
-    private int skillId;
 
     public EmployeeSkill() {
     }
 
-    public EmployeeSkill(String employeeUsername, String skillTitle, String skillLevel, int skillId) {
+    public EmployeeSkill(String employeeUsername, String skillTitle, String skillLevel) {
         this.employeeUsername = employeeUsername;
         this.skillTitle = skillTitle;
         this.skillLevel = skillLevel;
-        this.skillId = skillId;
     }
 
     public String getEmployeeUsername() {
@@ -40,11 +40,15 @@ public class EmployeeSkill {
         this.skillLevel = skillLevel;
     }
 
-    public int getSkillId() {
-        return skillId;
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        EmployeeSkill that = (EmployeeSkill) o;
+        return Objects.equals(skillTitle, that.skillTitle) && Objects.equals(skillLevel, that.skillLevel);
     }
 
-    public void setSkillId(int skillId) {
-        this.skillId = skillId;
+    @Override
+    public int hashCode() {
+        return Objects.hash(skillTitle, skillLevel);
     }
 }

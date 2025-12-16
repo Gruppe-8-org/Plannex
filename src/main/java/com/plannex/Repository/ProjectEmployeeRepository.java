@@ -2,11 +2,9 @@ package com.plannex.Repository;
 
 import com.plannex.Exception.EntityAlreadyExistsException;
 import com.plannex.Exception.EntityDoesNotExistException;
-import com.plannex.Exception.NotSupportedException;
 import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Model.Skill;
-import com.plannex.Model.Task;
 import com.plannex.RowMapper.EmployeeSkillRowMapper;
 import com.plannex.RowMapper.ProjectEmployeeRowMapper;
 import com.plannex.RowMapper.SkillRowMapper;
@@ -126,78 +124,65 @@ public class ProjectEmployeeRepository {
 
     public List<EmployeeSkill> getSkillsForEmployee(String username) {
         return jdbcTemplate.query(
-                "SELECT es.EMPLOYEEUSERNAME AS EmployeeUsername, " +
-                        "       s.SKILLTITLE AS SkillTitle, " +
-                        "       es.SKILLLEVEL AS SkillLevel, " +
-                        "       s.SKILLID AS SkillID " +
-                        "FROM EMPLOYEESKILLS es " +
-                        "JOIN SKILLS s ON es.SKILLID = s.SKILLID " +
-                        "WHERE es.EMPLOYEEUSERNAME = ?",
+                "SELECT es.EmployeeUsername AS EmployeeUsername, " +
+                        "       s.SkillTitle AS SkillTitle, " +
+                        "       es.SkillLevel AS SkillLevel " +
+                        "FROM EmployeeSkills es " +
+                        "JOIN Skills s ON es.SkillTitle = s.SkillTitle " +
+                        "WHERE es.EmployeeUsername = ?",
                 employeeSkillRowMapper,
                 username
         );
     }
 
-    public Skill getSkillByID(int skillID) {
+    public Skill getSkillByTitle(String skillTitle) {
         try {
-            return jdbcTemplate.queryForObject("SELECT * FROM Skills WHERE SkillID = ?;", skillRowMapper, skillID);
+            return jdbcTemplate.queryForObject("SELECT * FROM Skills WHERE SkillTitle = ?;", skillRowMapper, skillTitle);
         } catch (EmptyResultDataAccessException erdae) {
-            throw new EntityDoesNotExistException("No task with ID " + skillID + " exists.");
+            throw new EntityDoesNotExistException("No skill with title " + skillTitle + " exists.");
         }
     }
 
-    public int assignSkillToEmployee(int skillID, String employeeUsername, String skillLevel) {
-        if (getSkillByID(skillID) == null) {
-            throw new EntityDoesNotExistException("No skill with ID " + skillID + " exists.");
-        }
+    public boolean skillWithTitleExists(String skillTitle) {
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject("SELECT COUNT(*) > 0 FROM Skills WHERE SkillTitle = ?;", boolean.class, skillTitle));
+    }
+
+    public int assignSkillToEmployee(String skillTitle, String employeeUsername, String skillLevel) {
+        getSkillByTitle(skillTitle); // or throw...
 
         try {
-            return jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES (?, ?, ?);",
-                    employeeUsername, skillID, skillLevel);
+            return jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillTitle, SkillLevel) VALUES (?, ?, ?);",
+                    employeeUsername, skillTitle, skillLevel);
         } catch (DataIntegrityViolationException dive) {
-            throw new EntityAlreadyExistsException("The employee with username " + employeeUsername + " is already assigned the skill with ID " + skillID + ".");
+            throw new EntityAlreadyExistsException("The employee with username " + employeeUsername + " is already assigned the skill with ID " + skillTitle + ".");
         }
     }
 
-    public int unassignTaskFromEmployee(int skillID, String employeeUsername, String skillLevel) {
-        if (getSkillByID(skillID) == null) {
-            throw new EntityDoesNotExistException("No skill with ID " + skillID + " exists.");
-        }
+    public int unassignSkillFromEmployee(String skillTitle, String employeeUsername, String skillLevel) {
+        getSkillByTitle(skillTitle); // or throw...
 
-        int rowsDeleted = jdbcTemplate.update("DELETE FROM TaskAssignees WHERE EmployeeUsername = ? AND SkillID = ? AND SkillLevel = ?;",
-                employeeUsername, skillID, skillLevel);
+        int rowsDeleted = jdbcTemplate.update("DELETE FROM EmployeeSkills WHERE EmployeeUsername = ? AND SkillTitle = ? AND SkillLevel = ?;",
+                employeeUsername, skillTitle, skillLevel);
 
-        if (rowsDeleted != 1) throw new EntityDoesNotExistException("The employee with username " + employeeUsername + " is not assigned the skill with ID " + skillID + ".");
+        if (rowsDeleted != 1) throw new EntityDoesNotExistException("The employee with username " + employeeUsername + " is not assigned the skill with title " + skillTitle + ".");
         return rowsDeleted;
     }
 
 
-    public int addSkill(String username, String skillTitle, String level) {
+    public int addSkillUnlessItAlreadyExists(String skillTitle) {
+        if (skillWithTitleExists(skillTitle)) {
+            return 0;
+        }
 
-        Integer skillId = jdbcTemplate.queryForObject(
-                "SELECT SkillID FROM Skills WHERE SkillTitle = ?",
-                Integer.class,
-                skillTitle
-        );
-
-        return jdbcTemplate.update(
-                "INSERT INTO EmployeeSkills (EmployeeUsername, SkillID, SkillLevel) VALUES (?, ?, ?)",
-                username, skillId, level
-        );
+        return jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES (?);", skillTitle);
     }
 
-    public int removeSkill(String username, String skillTitle) {
+    public int removeSkillIfExists(String skillTitle) {
+        if (!skillWithTitleExists(skillTitle)) {
+            return 0;
+        }
 
-        Integer skillId = jdbcTemplate.queryForObject(
-                "SELECT SkillID FROM Skills WHERE SkillTitle = ?",
-                Integer.class,
-                skillTitle
-        );
-
-        return jdbcTemplate.update(
-                "DELETE FROM EmployeeSkills WHERE EmployeeUsername = ? AND SkillID = ?",
-                username, skillId
-        );
+        return jdbcTemplate.update("DELETE FROM Skills WHERE SkillTitle = ?;", skillTitle);
     }
 
 
@@ -216,10 +201,4 @@ public class ProjectEmployeeRepository {
                 username
         );
     }
-
-
-
-
-
-
 }

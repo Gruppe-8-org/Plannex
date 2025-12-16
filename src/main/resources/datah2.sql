@@ -98,3 +98,15 @@ INSERT INTO TimeSpent (OnTaskID, ByEmployee, HoursSpent, _When) VALUES
                                                                     (9, 'lildawg', 1, '2025-11-17 11:30:00'), (10, 'lildawg', 0.5, '2025-11-17 12:30:00'), (11, 'lildawg', 3, '2025-11-17 13:00:00'), (12, 'lildawg', 1, '2025-11-18 08:00:00'),
                                                                     (13, 'lildawg', 1, '2025-11-18 09:00:00'), (14, 'lildawg', 0.1667, '2025-11-18 10:00:00'), (15, 'lildawg', 3, '2025-11-18 10:10:00'), (16, 'lildawg', 4, '2025-11-19 08:00:00'),
                                                                     (16, 'lildawg', 4, '2025-11-19 14:00:00');
+
+INSERT INTO Skills (SkillTitle) VALUES
+                                    ('C#-Coder'),
+                                    ('Java-Coder'),
+                                    ('Business Degree'),
+                                    ('Leadership');
+
+INSERT INTO EmployeeSkills (EmployeeUsername, SkillTitle, SkillLevel) VALUES
+                                                                          ('marqs', 'Leadership', 'Intermediate'),
+                                                                          ('bigdawg', 'Business Degree', 'Intermediate'),
+                                                                          ('lildawg', 'Java-Coder', 'Expert'),
+                                                                          ('RandomWorker', 'C#-Coder', 'Intermediate');

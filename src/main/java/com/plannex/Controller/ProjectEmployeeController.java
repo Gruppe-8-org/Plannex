@@ -13,7 +13,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/employees")
@@ -154,23 +156,39 @@ public class ProjectEmployeeController {
     }
 
     @PostMapping(value="/{username}/assign-skills", params={"addRow"})
-    public String addRow(@ModelAttribute SkillDTO skillDTO, Model model) {
+    public String addRow(@PathVariable String username, @ModelAttribute SkillDTO skillDTO, Model model) {
         skillDTO.getSkillRows().add(new EmployeeSkill());
+        skillDTO.getSkillRows().getLast().setEmployeeUsername(username);
+
         model.addAttribute("skillDTO", skillDTO);
+        model.addAttribute("allLevels", List.of("Intermediate", "Expert"));
+        model.addAttribute("sessionUser", username);
         return "add_skills";
     }
 
     @PostMapping(value="/{username}/assign-skills", params={"removeRow"})
-    public String removeRow(final SkillDTO skillDTO, @ModelAttribute List<EmployeeSkill> employeeSkills) {
-        //skillDTO.getSkillRows().remove();
+    public String deleteRow(@PathVariable String username, @ModelAttribute SkillDTO skillDTO, @RequestParam String removeRow, Model model) {
+        skillDTO.getSkillRows().remove(Integer.parseInt(removeRow));
+        model.addAttribute("skillDTO", skillDTO);
+        model.addAttribute("allLevels", List.of("Intermediate", "Expert"));
+        model.addAttribute("sessionUser", username);
         return "add_skills";
     }
 
     @PostMapping(value="/{username}/assign-skills", params={"save"})
     public String saveAssignments(@ModelAttribute SkillDTO skillDTO, @PathVariable String username) {
+        List<EmployeeSkill> skillsDesired = skillDTO.getSkillRows();
+        List<EmployeeSkill> skillsCurrent = projectEmployeeService.getSkillsForEmployee(username);
+        List<EmployeeSkill> skillsToAdd = skillsDesired.stream().filter(skill -> !skillsCurrent.contains(skill)).toList();
+        List<EmployeeSkill> skillsToRemove = skillsCurrent.stream().filter(skill -> !skillsDesired.contains(skill)).toList();
 
-        for (EmployeeSkill empSkill: skillDTO.getSkillRows()){
-            projectEmployeeService.assignSkillToEmployee(empSkill.getSkillId(), username, empSkill.getSkillLevel());
+        for (EmployeeSkill toAdd : skillsToAdd) {
+            projectEmployeeService.addSkill(toAdd.getSkillTitle());
+            projectEmployeeService.assignSkillToEmployee(toAdd.getSkillTitle(), username, toAdd.getSkillLevel());
+        }
+
+        for (EmployeeSkill toRemove : skillsToRemove) {
+            projectEmployeeService.unassignSkillFromEmployee(toRemove.getSkillTitle(), username, toRemove.getSkillLevel());
         }
 
         return "redirect:/employees";
@@ -182,8 +200,7 @@ public class ProjectEmployeeController {
             throw new InsufficientPermissionsException("Only managers may unassign skills.");
         }
 
-        projectEmployeeService.unassignSkillFromEmployee(assignedSkill.getSkillId(), username, assignedSkill.getSkillLevel());
+        //projectEmployeeService.unassignSkillFromEmployee(assignedSkill.getSkillId(), username, assignedSkill.getSkillLevel());
         return "redirect:/employees";
     }
-
 }

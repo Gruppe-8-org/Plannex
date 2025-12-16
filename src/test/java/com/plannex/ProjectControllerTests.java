@@ -182,7 +182,7 @@ public class ProjectControllerTests {
 
         mockMvc.perform(get("/projects/1/delete").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
-                .andExpect(view().name("edit_project_window"));
+                .andExpect(view().name("delete_main_entity"));
 
         verify(projectEmployeeService, times(1)).getPermissions("MRY");
     }

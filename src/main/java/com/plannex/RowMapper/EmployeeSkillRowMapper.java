@@ -15,9 +15,7 @@ public class EmployeeSkillRowMapper implements RowMapper<EmployeeSkill> {
         return new EmployeeSkill(
                 rs.getString("EmployeeUsername"),
                 rs.getString("SkillTitle"),
-                rs.getString("SkillLevel"),
-                rs.getInt("SkillID")
-
+                rs.getString("SkillLevel")
         );
     }
 }
