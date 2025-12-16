@@ -5,21 +5,16 @@ import com.plannex.Exception.EntityDoesNotExistException;
 import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Repository.ProjectEmployeeRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
+import com.plannex.Model.Skill;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -207,5 +202,67 @@ public class ProjectEmployeeRepositoryTests {
         List<ProjectEmployee> expectedWorkers = List.of(new ProjectEmployee("RandomWorker", "Random", "RW@gmail.com", "notSecure", LocalTime.of(8, 0, 0), LocalTime.of(16, 0, 0)));
         List<ProjectEmployee> actualWorkers = projectEmployeeRepository.getAllWorkers();
         assertEquals(expectedWorkers, actualWorkers);
+    }
+
+    @Test
+    public void getAllSkillReturnsAllSkills() {
+        List<Skill> skills = projectEmployeeRepository.getAllSkills();
+        List<Skill> expectedSkills = List.of(
+                new Skill("C#-Coder"),
+                new Skill("Java-Coder"),
+                new Skill("Business Degree"),
+                new Skill("Leadership")
+        );
+        assertTrue(skills.size() == expectedSkills.size() && expectedSkills.containsAll(skills));
+    }
+
+    @Test
+    public void getSkillByTitleReturnsSkillIfExists() {
+        assertEquals(new Skill("C#-Coder"), projectEmployeeRepository.getSkillByTitle("C#-Coder"));
+    }
+
+    @Test
+    public void getSkillByTitleThrowsIfSkillDoesNotExist() {
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No skill with title NotASkill exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.getSkillByTitle("NotASkill"));
+    }
+
+    @Test
+    public void assignSkillToEmployeeWorksIfSkillExistsAndEmployeeDoesntAlreadyHaveIt() {
+        List<EmployeeSkill> skillsBefore = projectEmployeeRepository.getSkillsForEmployee("bigdawg");
+        assertTrue(skillsBefore.size() == 1 && skillsBefore.getFirst().getSkillTitle().equals("Business Degree"));
+        int rowsAffected = projectEmployeeRepository.assignSkillToEmployee("C#-Coder", "bigdawg", "Expert");
+        assertEquals(1, rowsAffected);
+        List<EmployeeSkill> skillsAfter = projectEmployeeRepository.getSkillsForEmployee("bigdawg");
+        assertEquals(2, skillsAfter.size());
+    }
+
+    @Test
+    public void assignSkillToEmployeeThrowsOnNonExistentSkill() {
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No skill with title NotASkill exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.assignSkillToEmployee("NotASkill", "bigdawg", "Expert"));
+    }
+
+    @Test
+    public void assignSkillToEmployeeThrowsOnSkillTheyAlreadyHave() {
+        assertThrowsHelper.verifyExceptionThrownWithMessage("The employee with username bigdawg is already assigned the skill with title Business Degree.", EntityAlreadyExistsException.class, () -> projectEmployeeRepository.assignSkillToEmployee("Business Degree", "bigdawg", "Intermediate"));
+    }
+
+    @Test
+    public void unassignSkillFromEmployeeWorksIfSkillExistsAndEmployeeDoesntAlreadyHaveIt() {
+        List<EmployeeSkill> skillsBefore = projectEmployeeRepository.getSkillsForEmployee("bigdawg");
+        assertTrue(skillsBefore.size() == 1 && skillsBefore.getFirst().getSkillTitle().equals("Business Degree"));
+        int rowsAffected = projectEmployeeRepository.unassignSkillFromEmployee("Business Degree", "bigdawg", "Intermediate");
+        assertEquals(1, rowsAffected);
+        List<EmployeeSkill> skillsAfter = projectEmployeeRepository.getSkillsForEmployee("bigdawg");
+        assertEquals(0, skillsAfter.size());
+    }
+
+    @Test
+    public void unassignSkillFromEmployeeThrowsOnNonExistentSkill() {
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No skill with title NotASkill exists.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.unassignSkillFromEmployee("NotASkill", "bigdawg", "Expert"));
+    }
+
+    @Test
+    public void unassignSkillFromEmployeeThrowsOnSkillTheyDontHave() {
+        assertThrowsHelper.verifyExceptionThrownWithMessage("The employee with username bigdawg is not assigned the skill with title C#-Coder.", EntityDoesNotExistException.class, () -> projectEmployeeRepository.unassignSkillFromEmployee("C#-Coder", "bigdawg", "Intermediate"));
     }
 }

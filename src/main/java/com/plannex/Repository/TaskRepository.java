@@ -198,12 +198,8 @@ public class TaskRepository {
             throw new EntityAlreadyExistsException("Employee " + username + " has already uploaded this artifact to this task. Update it if you want to change it.");
         }
 
-        try {
-            return jdbcTemplate.update("INSERT INTO Artifacts (TaskID, ArtifactAuthor, PathToArtifact) VALUES (?, ?, ?);",
+        return jdbcTemplate.update("INSERT INTO Artifacts (TaskID, ArtifactAuthor, PathToArtifact) VALUES (?, ?, ?);",
                     taskID, username, pathToArtifact);
-        } catch (DataIntegrityViolationException dive) {
-            throw new EntityDoesNotExistException("No task with ID " + taskID + " exists.");
-        }
     }
 
     public int updateArtifact(int taskID, String username, String pathToArtifact, String newPath) {

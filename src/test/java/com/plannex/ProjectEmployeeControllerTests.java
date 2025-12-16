@@ -2,6 +2,7 @@ package com.plannex;
 
 import com.plannex.Controller.ProjectEmployeeController;
 import com.plannex.Exception.EntityDoesNotExistException;
+import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Service.AuthAndPermissionsService;
 import com.plannex.Service.ProjectEmployeeService;
@@ -13,7 +14,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalTime;
+import java.util.List;
 
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -348,10 +352,117 @@ public class ProjectEmployeeControllerTests {
     }
 
     @Test
+    void showDeletePageRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(get("/employees/MRY/delete"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
     void deleteEmployeeRoutesCorrectlyAndDeletesRightValue() throws Exception {
         mockMvc.perform(post("/employees/hj2450/delete"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/employees"));
         verify(projectEmployeeService, times(1)).deleteEmployeeByUsername("hj2450");
+    }
+
+    @Test
+    void showAddSkillsRoutesCorrectlyAndHasRightValuesOnValidCredentials() throws Exception {
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(true);
+
+        mockMvc.perform(get("/employees/MRY/assign-skills").session(sessionWithUser("MRY")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("skillDTO"))
+                .andExpect(model().attribute("allLevels", List.of("Intermediate", "Expert")))
+                .andExpect(model().attributeExists("allUsers"))
+                .andExpect(model().attributeExists("sessionUser"))
+                        .andExpect(view().name("add_skills"));
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+    }
+
+    @Test
+    void showAddSkillThrowsOnNonManager() throws Exception {
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(false);
+
+        mockMvc.perform(get("/employees/MRY/assign-skills").session(sessionWithUser("MRY")))
+                .andExpect(status().isForbidden())
+                .andExpect(model().attribute("message", "Only managers may assign workers skills."))
+                .andExpect(view().name("error"));
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+    }
+
+    @Test
+    void showAddSkillRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(get("/employees/MRY/assign-skills"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    void addRowAddsNewEmptyRowAndHasRightValues() throws Exception {
+        mockMvc.perform(post("/employees/MRY/assign-skills")
+                .param("addRow", ""))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("skillDTO"))
+                .andExpect(model().attribute("sessionUser", "MRY"))
+                .andExpect(model().attribute("allLevels", List.of("Intermediate", "Expert")))
+                .andExpect(view().name("add_skills"))
+                .andExpect(model().attribute("skillDTO", hasProperty("skillRows", hasSize(1))));
+    }
+
+    @Test
+    void removeRowRoutesCorrectlyAndHasRightValues() throws Exception {
+        mockMvc.perform(post("/employees/MRY/assign-skills")
+                        .param("removeRow", "0")
+                        .param("skillRows[0].skillTitle", "C#-Coder")
+                        .param("skillRows[0].username", "")
+                        .param("skillRows[0].skillLevel", "Expert"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("skillDTO"))
+                .andExpect(model().attribute("sessionUser", "MRY"))
+                .andExpect(model().attribute("allLevels", List.of("Intermediate", "Expert")))
+                .andExpect(view().name("add_skills"))
+                .andExpect(model().attribute("skillDTO", hasProperty("skillRows", hasSize(0))));
+    }
+
+    @Test
+    void saveAssignmentsRoutesCorrectlyAndProvidesAdditionWithoutDuplicates() throws Exception {
+        List<EmployeeSkill> skills = List.of(new EmployeeSkill("lildawg", "Java-Coder", "Expert"));
+        when(projectEmployeeService.getSkillsForEmployee("MRY")).thenReturn(skills);
+
+        mockMvc.perform(post("/employees/MRY/assign-skills")
+                .param("save","0")
+                .param("skillRows[0].skillTitle", "C#-Coder")
+                .param("skillRows[0].username", "")
+                .param("skillRows[0].skillLevel", "Expert")
+                .param("skillRows[1].skillTitle", "Java-Coder")
+                .param("skillRows[1].username", "")
+                .param("skillRows[1].skillLevel", "Expert"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/employees"));
+
+        verify(projectEmployeeService, times(1)).getSkillsForEmployee("MRY");
+        verify(projectEmployeeService, times(1)).assignSkillToEmployee("C#-Coder", "MRY", "Expert");
+        verify(projectEmployeeService, times(0)).assignSkillToEmployee("Java-Coder", "MRY", "Expert");
+    }
+
+    @Test
+    void saveAssignmentsRoutesCorrectlyAndProvidesDeletionIfNotPresentInDTOAnymore() throws Exception {
+        List<EmployeeSkill> skills = List.of(new EmployeeSkill("lildawg", "Java-Coder", "Expert"));
+        when(projectEmployeeService.getSkillsForEmployee("MRY")).thenReturn(skills);
+
+        mockMvc.perform(post("/employees/MRY/assign-skills")
+                        .param("save","0"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/employees"));
+
+        verify(projectEmployeeService, times(1)).getSkillsForEmployee("MRY");
+        verify(projectEmployeeService, times(1)).unassignSkillFromEmployee("Java-Coder", "MRY", "Expert");
     }
 }

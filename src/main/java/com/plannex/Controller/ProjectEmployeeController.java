@@ -175,14 +175,4 @@ public class ProjectEmployeeController {
 
         return "redirect:/employees";
     }
-
-    @PostMapping("/{username}/unassign-skills")
-    public String unassignWorker(@PathVariable String username, HttpSession session, @ModelAttribute EmployeeSkill assignedSkill) {
-        if (!authAndPermissionsService.isManager(session)) {
-            throw new InsufficientPermissionsException("Only managers may unassign skills.");
-        }
-
-        //projectEmployeeService.unassignSkillFromEmployee(assignedSkill.getSkillId(), username, assignedSkill.getSkillLevel());
-        return "redirect:/employees";
-    }
 }
