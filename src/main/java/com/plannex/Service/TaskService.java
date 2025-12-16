@@ -18,7 +18,7 @@ public class TaskService {
     public TaskService(TaskRepository taskRepository) {
         this.taskRepository = taskRepository;
     }
-
+    //Skal den fjernes?
     public boolean isSubtask(Task t) {
         return taskRepository.isSubtask(t);
     }

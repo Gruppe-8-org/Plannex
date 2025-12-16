@@ -1,4 +1,4 @@
-package com.plannex.ServiceTests;
+package com.plannex;
 
 import com.plannex.Exception.EntityDoesNotExistException;
 import com.plannex.Model.ProjectEmployee;
@@ -254,4 +254,60 @@ public class TaskServiceTests {
         assertEquals(1, result.size());
         verify(taskRepository).getAllAssigneesForTask(5);
     }
+
+    @Test
+    void getAllInvolved_ReturnsCorrectCount() {
+        when(taskRepository.getAllInvolved(1)).thenReturn(3);
+
+        Integer result = taskService.getAllInvolved(1);
+
+        assertEquals(3, result);
+        verify(taskRepository).getAllInvolved(1);
+    }
+
+    @Test
+    void getAllInvolved_ThrowsExceptionIfTaskDoesNotExist() {
+        when(taskRepository.getAllInvolved(99))
+                .thenThrow(new EntityDoesNotExistException("No project with ID 99 exists."));
+
+        assertThrows(EntityDoesNotExistException.class,
+                () -> taskService.getAllInvolved(99));
+
+        verify(taskRepository).getAllInvolved(99);
+    }
+
+    @Test
+    void getTotalTimeSpent_ReturnsCorrectTotal() {
+        when(taskRepository.getTotalTimeSpent(1)).thenReturn(12.5f);
+
+        float result = taskService.getTotalTimeSpent(1);
+
+        assertEquals(12.5f, result);
+        verify(taskRepository).getTotalTimeSpent(1);
+    }
+
+    @Test
+    void getTotalTimeSpent_ReturnsZeroIfNoTimeRegistered() {
+        when(taskRepository.getTotalTimeSpent(2)).thenReturn(0.0f);
+
+        float result = taskService.getTotalTimeSpent(2);
+
+        assertEquals(0.0f, result);
+        verify(taskRepository).getTotalTimeSpent(2);
+    }
+
+    @Test
+    void getTotalTimeSpent_ThrowsExceptionIfTaskDoesNotExist() {
+        when(taskRepository.getTotalTimeSpent(99))
+                .thenThrow(new EntityDoesNotExistException("No project with projectID 99 exists."));
+
+        assertThrows(EntityDoesNotExistException.class,
+                () -> taskService.getTotalTimeSpent(99));
+
+        verify(taskRepository).getTotalTimeSpent(99);
+    }
+
+
+
+
 }

@@ -1,4 +1,4 @@
-package com.plannex.ServiceTests;
+package com.plannex;
 
 import com.plannex.Exception.EntityDoesNotExistException;
 import com.plannex.Model.Project;
@@ -115,11 +115,39 @@ class ProjectServiceTest {
 
     @Test
     void getAllTasksForProjectCallsRepository() {
-        when(projectRepository.getAllTasksForProject(1)).thenReturn(List.of(new Task(0, 1, 0, "TaskTitle", "TaskDescription",
-                LocalDate.of(2025, 11, 28), LocalDate.of(2025, 12, 5), 5.0f)));
-        List<Task> result = projectRepository.getAllTasksForProject(1);
+        List<Task> tasks = List.of(
+                new Task(0, 1, 0, "TaskTitle", "TaskDescription",
+                        LocalDate.of(2025, 11, 28), LocalDate.of(2025, 12, 5), 5.0f)
+        );
+
+        when(projectRepository.getAllTasksForProject(1)).thenReturn(tasks);
+
+        List<Task> result = projectService.getAllTasksForProject(1);
+
         assertEquals(1, result.size());
         verify(projectRepository).getAllTasksForProject(1);
     }
+
+
+    @Test
+    void getAllInvolvedCallsRepository() {
+        when(projectRepository.getAllInvolved(1)).thenReturn(4);
+
+        int result = projectService.getAllInvolved(1);
+
+        assertEquals(4, result);
+        verify(projectRepository).getAllInvolved(1);
+    }
+
+    @Test
+    void getTotalTimeSpentCallsRepository() {
+        when(projectRepository.getTotalTimeSpent(1)).thenReturn(12.5f);
+
+        float result = projectService.getTotalTimeSpent(1);
+
+        assertEquals(12.5f, result);
+        verify(projectRepository).getTotalTimeSpent(1);
+    }
+
 }
 
