@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Skills</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+</head>
+
+<body class="add-assignees-page">
+
+
+<header>
+    <form th:action="@{/employees/{username}(username=${sessionUser})}">
+        <button class="profile-button"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+</header>
+
+<main class="assign-container">
+
+    <h1>Add Skills</h1>
+
+    <form class="assign-box"
+          th:object="${skillDTO}"
+          th:action="@{/employees/{username}/assign-skills(username=${username})}"
+          method="post">
+
+        <fieldset class="assign-list">
+            <legend>Select skills to assign</legend>
+            <table>
+                <thead>
+                <tr>
+                    <th th:text="'Skill Title'"></th>
+                    <th th:text="'Skill Level'"></th>
+                    <th>
+                        <button type="submit" name="addRow">Add row</button>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+
+                <tr th:each="row, rowStat : *{skillRows}">
+                    <td><input type="text" th:field="*{skillRows[__${rowStat.index}__].skillTitle}"></td>
+                    <td>
+                        <select th:field="*{skillRows[__${rowStat.index}__].skillLevel}">
+                            <option th:each="level : ${allLevels}"
+                                    th:value="${level}"
+                                    th:text="${level}"></option>
+                        </select>
+                    </td>
+                    <td>
+                        <button type="submit" name="removeRow"
+                                th:value="${rowStat.index}">Remove row</button>
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
+        </fieldset>
+
+        <div class="assign-buttons">
+            <a th:href="@{/employees}"
+               class="cancel-btn">
+                Cancel
+            </a>
+
+            <button type="submit" class="add-btn" name="save">Assign</button>
+        </div>
+    </form>
+
+</main>
+
+<footer>© 2025 Plannex</footer>
+
+</body>
+</html>

@@ -52,6 +52,14 @@
                th:field="*{employeePassword}"
                required>
 
+        <label for="skills">Skills</label>
+        <input id="skills"
+               type="text"
+               th:field="*{skills}"
+               th:value="${user.skills}"
+               required>
+
+
         <label>Works from</label>
         <input type="time" th:field="*{workingHoursFrom}">
 

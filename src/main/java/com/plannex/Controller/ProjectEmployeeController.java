@@ -1,17 +1,26 @@
 package com.plannex.Controller;
 
 import com.plannex.Exception.InsufficientPermissionsException;
+import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
+import com.plannex.Model.Skill;
+import com.plannex.Model.SkillDTO;
 import com.plannex.Service.ProjectEmployeeService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 @Controller
 @RequestMapping("/employees")
 public class ProjectEmployeeController {
     private final ProjectEmployeeService projectEmployeeService;
+    private SkillDTO skillDTO;
 
     public ProjectEmployeeController(ProjectEmployeeService projectEmployeeService) {
         this.projectEmployeeService = projectEmployeeService;
@@ -112,6 +121,76 @@ public class ProjectEmployeeController {
     @PostMapping("/{username}/delete")
     public String deleteEmployee(@PathVariable String username) {
         projectEmployeeService.deleteEmployeeByUsername(username);
+        return "redirect:/employees";
+    }
+
+    @GetMapping("/{username}/assign-skills")
+    public String showAddSkills(HttpSession session, Model model, @PathVariable String username) {
+
+        if (!isLoggedIn(session)) {
+            return "redirect:/login";
+        }
+
+        if (!isOwnerOrManager(username, session)) {
+            throw new InsufficientPermissionsException("Only managers may assign workers skills.");
+        }
+
+        List<EmployeeSkill> empSkills = projectEmployeeService.getSkillsForEmployee(username);
+        skillDTO = new SkillDTO(empSkills);
+        model.addAttribute("skillDTO", skillDTO);
+        model.addAttribute("allLevels", List.of("Intermediate", "Expert"));
+        model.addAttribute("allUsers", projectEmployeeService.getAllEmployees());
+        model.addAttribute("sessionUser", session.getAttribute("username").toString());
+
+        return "add_skills";
+    }
+
+    @PostMapping(value="/{username}/assign-skills", params={"addRow"})
+    public String addRow(@PathVariable String username, @ModelAttribute SkillDTO skillDTO, Model model) {
+        skillDTO.getSkillRows().add(new EmployeeSkill());
+        skillDTO.getSkillRows().getLast().setEmployeeUsername(username);
+
+        model.addAttribute("skillDTO", skillDTO);
+        model.addAttribute("allLevels", List.of("Intermediate", "Expert"));
+        model.addAttribute("sessionUser", username);
+        return "add_skills";
+    }
+
+    @PostMapping(value="/{username}/assign-skills", params={"removeRow"})
+    public String deleteRow(@PathVariable String username, @ModelAttribute SkillDTO skillDTO, @RequestParam String removeRow, Model model) {
+        skillDTO.getSkillRows().remove(Integer.parseInt(removeRow));
+        model.addAttribute("skillDTO", skillDTO);
+        model.addAttribute("allLevels", List.of("Intermediate", "Expert"));
+        model.addAttribute("sessionUser", username);
+        return "add_skills";
+    }
+
+    @PostMapping(value="/{username}/assign-skills", params={"save"})
+    public String saveAssignments(@ModelAttribute SkillDTO skillDTO, @PathVariable String username) {
+        List<EmployeeSkill> skillsDesired = skillDTO.getSkillRows();
+        List<EmployeeSkill> skillsCurrent = projectEmployeeService.getSkillsForEmployee(username);
+        List<EmployeeSkill> skillsToAdd = skillsDesired.stream().filter(skill -> !skillsCurrent.contains(skill)).toList();
+        List<EmployeeSkill> skillsToRemove = skillsCurrent.stream().filter(skill -> !skillsDesired.contains(skill)).toList();
+
+        for (EmployeeSkill toAdd : skillsToAdd) {
+            projectEmployeeService.addSkill(toAdd.getSkillTitle());
+            projectEmployeeService.assignSkillToEmployee(toAdd.getSkillTitle(), username, toAdd.getSkillLevel());
+        }
+
+        for (EmployeeSkill toRemove : skillsToRemove) {
+            projectEmployeeService.unassignSkillFromEmployee(toRemove.getSkillTitle(), username, toRemove.getSkillLevel());
+        }
+
+        return "redirect:/employees";
+    }
+
+    @PostMapping("/{username}/unassign-skills")
+    public String unassignWorker(@PathVariable String username, HttpSession session, @ModelAttribute EmployeeSkill assignedSkill) {
+        if (!isOwnerOrManager(username, session)) {
+            throw new InsufficientPermissionsException("Only managers may unassign skills.");
+        }
+
+        //projectEmployeeService.unassignSkillFromEmployee(assignedSkill.getSkillId(), username, assignedSkill.getSkillLevel());
         return "redirect:/employees";
     }
 }

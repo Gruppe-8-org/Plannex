@@ -7,6 +7,8 @@ DROP TABLE IF EXISTS TaskAssignees;
 DROP TABLE IF EXISTS Artifacts;
 DROP TABLE IF EXISTS TimeSpent;
 DROP TABLE IF EXISTS Tasks;
+DROP TABLE IF EXISTS Skills;
+DROP TABLE IF EXISTS EmployeeSkills;
 DROP TABLE IF EXISTS Projects;
 DROP TABLE IF EXISTS Permissions;
 DROP TABLE IF EXISTS ProjectEmployees;
@@ -81,4 +83,17 @@ CREATE TABLE IF NOT EXISTS Artifacts (
     PRIMARY KEY (TaskID, ArtifactAuthor, PathToArtifact),
     FOREIGN KEY (TaskID) REFERENCES Tasks(TaskID) ON DELETE CASCADE,
     FOREIGN KEY (ArtifactAuthor) REFERENCES ProjectEmployees(EmployeeUsername) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Skills (
+    SkillTitle VARCHAR(64) PRIMARY KEY
+);
+
+CREATE TABLE IF NOT EXISTS EmployeeSkills (
+    EmployeeUsername VARCHAR(16),
+    SkillTitle VARCHAR(64),
+    SkillLevel ENUM('Intermediate', 'Expert') NOT NULL,
+    PRIMARY KEY (EmployeeUsername, SkillTitle),
+    FOREIGN KEY (EmployeeUsername) REFERENCES ProjectEmployees(EmployeeUsername) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (SkillTitle) REFERENCES Skills(SkillTitle) ON DELETE CASCADE ON UPDATE CASCADE
 );
