@@ -53,16 +53,6 @@ public class ProjectEmployeeService {
         return projectEmployeeRepository.login(username, pw);
     }
 
-    // Nedenunder er det der skal lave controller ting til
-
-    public List<Skill> getAllSkills() {
-        return projectEmployeeRepository.getAllSkills();
-    }
-
-    public Skill getSkillFromAllSkills (List<Skill> allSkills, String chosenSkill) {
-        return projectEmployeeRepository.getSkillFromAllSkills(allSkills, chosenSkill);
-    }
-
     public List<EmployeeSkill> getSkillsForEmployee(String username) {
         return projectEmployeeRepository.getSkillsForEmployee(username);
     }

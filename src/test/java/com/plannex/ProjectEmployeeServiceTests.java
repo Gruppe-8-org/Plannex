@@ -1,4 +1,4 @@
-package com.plannex.ServiceTests;
+package com.plannex;
 
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Repository.ProjectEmployeeRepository;

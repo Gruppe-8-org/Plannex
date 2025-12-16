@@ -278,7 +278,7 @@ public class TaskController {
         model.addAttribute("artifacts", taskService.getAllArtifactsForTask(tid));
         model.addAttribute("dependencies", taskService.getAllDependenciesForTask(tid));
         model.addAttribute("subtaskAssignees", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllAssigneesForSubtask(task.getID())).toList());
-        model.addAttribute("subtaskTimeSpents", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllTimeContributionsForTask(task.getID()).stream().mapToDouble(f -> f).sum()).toList());
+        model.addAttribute("subtaskTimeSpents", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllTimeContributionsForSubtask(task.getID()).stream().mapToDouble(f -> f).sum()).toList());
         model.addAttribute("isManager", authAndPermissionsService.isManager(session));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "task_window";
@@ -294,7 +294,7 @@ public class TaskController {
         model.addAttribute("artifacts", taskService.getAllArtifactsForTask(sid));
         model.addAttribute("dependencies", taskService.getAllDependenciesForTask(sid));
         model.addAttribute("assignees", taskService.getAllAssigneesForSubtask(sid));
-        model.addAttribute("timeSpents", taskService.getAllTimeContributionsForTask(sid).stream().mapToDouble(f -> f).sum());
+        model.addAttribute("timeSpents", taskService.getAllTimeContributionsForSubtask(sid).stream().mapToDouble(f -> f).sum());
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         model.addAttribute("isManager", authAndPermissionsService.isManager(session));
         return "subtask_window";

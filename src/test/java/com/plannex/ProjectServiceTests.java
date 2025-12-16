@@ -1,4 +1,4 @@
-package com.plannex.ServiceTests;
+package com.plannex;
 
 import com.plannex.Exception.EntityDoesNotExistException;
 import com.plannex.Model.Project;

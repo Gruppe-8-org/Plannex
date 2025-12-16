@@ -119,16 +119,16 @@ public class ProjectEmployeeController {
     @GetMapping("/{username}/assign-skills")
     public String showAddSkills(HttpSession session, Model model, @PathVariable String username) {
 
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
-        if (!isOwnerOrManager(username, session)) {
+        if (!authAndPermissionsService.isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may assign workers skills.");
         }
 
         List<EmployeeSkill> empSkills = projectEmployeeService.getSkillsForEmployee(username);
-        skillDTO = new SkillDTO(empSkills);
+        SkillDTO skillDTO = new SkillDTO(empSkills);
         model.addAttribute("skillDTO", skillDTO);
         model.addAttribute("allLevels", List.of("Intermediate", "Expert"));
         model.addAttribute("allUsers", projectEmployeeService.getAllEmployees());
@@ -178,7 +178,7 @@ public class ProjectEmployeeController {
 
     @PostMapping("/{username}/unassign-skills")
     public String unassignWorker(@PathVariable String username, HttpSession session, @ModelAttribute EmployeeSkill assignedSkill) {
-        if (!isOwnerOrManager(username, session)) {
+        if (!authAndPermissionsService.isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may unassign skills.");
         }
 

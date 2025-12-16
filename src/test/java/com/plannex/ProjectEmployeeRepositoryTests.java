@@ -190,7 +190,7 @@ public class ProjectEmployeeRepositoryTests {
 
         int count = projectEmployeeRepository.countIntermediateSkills("bigdawg");
         assertEquals(3, count); // One already exists (Business Degree)
-
+    }
     @Test
     public void loginWorksOnMatchingCredentialsAndRefusesInvalidOnes() {
         assertTrue(projectEmployeeRepository.login("lildawg", "fAbc#21Y"));
