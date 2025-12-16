@@ -2,6 +2,7 @@ package com.plannex.Controller;
 
 import com.plannex.Exception.InsufficientPermissionsException;
 import com.plannex.Model.ProjectEmployee;
+import com.plannex.Service.AuthAndPermissionsService;
 import com.plannex.Service.ProjectEmployeeService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -12,30 +13,22 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/employees")
 public class ProjectEmployeeController {
     private final ProjectEmployeeService projectEmployeeService;
+    private final AuthAndPermissionsService authAndPermissionsService;
 
-    public ProjectEmployeeController(ProjectEmployeeService projectEmployeeService) {
+    public ProjectEmployeeController(ProjectEmployeeService projectEmployeeService, AuthAndPermissionsService authAndPermissionsService) {
         this.projectEmployeeService = projectEmployeeService;
-    }
-
-    private boolean isOwnerOrManager(String username, HttpSession session) {
-        String usernameLoggedIn = session.getAttribute("username").toString();
-        String permissions = projectEmployeeService.getPermissions(usernameLoggedIn);
-        return permissions.equals("Manager") || usernameLoggedIn.equals(username);
-    }
-
-    private boolean isLoggedIn(HttpSession session) {
-        return session.getAttribute("username") != null;
+        this.authAndPermissionsService = authAndPermissionsService;
     }
 
     @GetMapping("/add-employee")
     public String addProjectEmployee(Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
         String username = session.getAttribute("username").toString();
 
-        if (!projectEmployeeService.getPermissions(username).equals("Manager")) {
+        if (!authAndPermissionsService.isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may add employees.");
         }
 
@@ -52,18 +45,18 @@ public class ProjectEmployeeController {
 
     @GetMapping("/{username}")
     public String showProfile(@PathVariable String username, Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
         model.addAttribute("employee", projectEmployeeService.getEmployeeByUsername(username));
-        model.addAttribute("isOwnerOrManager", isOwnerOrManager(username, session));
+        model.addAttribute("isOwnerOrManager", authAndPermissionsService.isManager(session) || authAndPermissionsService.isOwnerOfAccount(username, session));
         return "project_worker_page";
     }
 
     @GetMapping()
     public String showAllUsers(Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
@@ -74,11 +67,11 @@ public class ProjectEmployeeController {
 
     @GetMapping("/{username}/edit")
     public String editEmployee(@PathVariable String username, Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
-        if (!isOwnerOrManager(username, session)) {
+        if (!(authAndPermissionsService.isManager(session) || authAndPermissionsService.isOwnerOfAccount(username, session))) {
             throw new InsufficientPermissionsException("Only managers or profile owners may edit employee information.");
         }
 
@@ -97,11 +90,11 @@ public class ProjectEmployeeController {
 
     @GetMapping("/{username}/delete")
     public String showEmployeeDeletionPage(@PathVariable String username, Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
-        if (!isOwnerOrManager(username, session)) {
+        if (!(authAndPermissionsService.isOwnerOfAccount(username, session) || authAndPermissionsService.isManager(session))) {
             throw new InsufficientPermissionsException("Only managers or profile owners may delete employee information.");
         }
 

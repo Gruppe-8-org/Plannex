@@ -269,15 +269,26 @@ public class TaskRepository {
         return jdbcTemplate.update("DELETE FROM TimeSpent WHERE ByEmployee = ? AND _When = ?;", username, when);
     }
 
-    public List<Float> getAllTimeContributionsForTask(int taskID) {
-        Task task = getTaskByIDOrThrow(taskID);
+    public List<Float> getAllTimeContributionsForSubtask(int subtaskID) {
+        Task task = getTaskByIDOrThrow(subtaskID);
 
-        if (isSubtask(task)) {
-            return jdbcTemplate.query("SELECT HoursSpent FROM TimeSpent WHERE OnTaskID = ?", (resultSet, rowNum) -> resultSet.getFloat("HoursSpent"), taskID);
+        if (!isSubtask(task)) {
+            throw new NotSupportedException("You may not get time contributions for a task with the subtask version of this method.");
         }
 
-        // Get list of time contributions from all the subtasks of the parent task
-        return getAllSubtasksForParentTask(taskID).stream().map(t -> getAllTimeContributionsForTask(t.getID())).flatMap(List::stream).collect(Collectors.toList());
+        return jdbcTemplate.query("SELECT HoursSpent FROM TimeSpent WHERE OnTaskID = ?",
+                (resultSet, rowNum) -> resultSet.getFloat("HoursSpent"), subtaskID);
+    }
+
+    public List<Float> getAllTimeContributionsForTask(int taskID) {
+        if (isSubtask(getTaskByIDOrThrow(taskID))) {
+            throw new NotSupportedException("You may not get time contributions for a subtask with the task version of this method.");
+        }
+
+        return getAllSubtasksForParentTask(taskID).stream().map(
+                        s -> getAllTimeContributionsForSubtask(s.getID()))
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
     }
 
     public int updateTask(Task modifiedTask, int targetTaskID) {

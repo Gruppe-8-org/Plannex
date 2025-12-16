@@ -262,13 +262,6 @@ public class TaskRepositoryTests {
     }
 
     @Test
-    public void getAllTimeContributionsForTaskWorksForExistingTaskWithTimeSpent() {
-        List<Float> expectedContributions = List.of(4.0f, 4.0f);
-        List<Float> actualContributions = taskRepository.getAllTimeContributionsForTask(16);
-        assertEquals(expectedContributions, actualContributions);
-    }
-
-    @Test
     public void getAllTimeContributionsForTaskGetsTimeSpentOfAllChildrenOfASupertask() {
         List<Float> expectedContributions = List.of(0.5f, 0.1667f, 0.75f, 0.75f, 0.5f, 1.0f, 1.0f, 1.0f, 5.0f, 5.0f, 5.0f, 2.0f);
         List<Float> actualContributions = taskRepository.getAllTimeContributionsForTask(1);
@@ -280,6 +273,27 @@ public class TaskRepositoryTests {
         assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.getAllTimeContributionsForTask(-1));
     }
 
+    @Test
+    public void getAllTimeContributionsForTaskThrowsOnSubtaskID() {
+        assertThrowsHelper.verifyExceptionThrownWithMessage("You may not get time contributions for a subtask with the task version of this method.", NotSupportedException.class, () -> taskRepository.getAllTimeContributionsForTask(16));
+    }
+
+    @Test
+    public void getAllTimeContributionsForSubtaskWorksOnExistingSubtask() {
+        List<Float> expectedContributions = List.of(4.0f, 4.0f);
+        List<Float> actualContributions = taskRepository.getAllTimeContributionsForSubtask(16);
+        assertEquals(expectedContributions, actualContributions);
+    }
+
+    @Test
+    public void getAllTimeContributionsForSubtaskThrowsOnNonExistentSubtask() {
+        assertThrowsHelper.verifyExceptionThrownWithMessage("No task with ID -1 exists.", EntityDoesNotExistException.class, () -> taskRepository.getAllTimeContributionsForSubtask(-1));
+    }
+
+    @Test
+    public void getAllTimeContributionsForSubtaskThrowsOnTaskID() {
+        assertThrowsHelper.verifyExceptionThrownWithMessage("You may not get time contributions for a task with the subtask version of this method.", NotSupportedException.class, () -> taskRepository.getAllTimeContributionsForSubtask(1));
+    }
 
     @Test
     public void getAllAssigneesGetsAllAsigneesIfSubtaskHasThem() {

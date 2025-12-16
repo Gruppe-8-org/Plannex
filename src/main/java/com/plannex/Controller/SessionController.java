@@ -14,12 +14,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 // https://github.com/EK-DATA-2SEM-PROGSYSTEK/DATA-GBG-F25A-B/tree/master/Uge%2041/4.gang
 @Controller
 public class SessionController {
-    private final ProjectEmployeeRepository projectEmployeeRepository;
     private final ProjectEmployeeService projectEmployeeService;
 
 
-    public SessionController(ProjectEmployeeRepository projectEmployeeRepository, ProjectEmployeeService projectEmployeeService) {
-        this.projectEmployeeRepository = projectEmployeeRepository;
+    public SessionController(ProjectEmployeeService projectEmployeeService) {
         this.projectEmployeeService = projectEmployeeService;
     }
 
@@ -38,7 +36,7 @@ public class SessionController {
 
             model.addAttribute("employee", projectEmployeeService.getEmployeeByUsername(username));
             model.addAttribute("username", username);
-            if (projectEmployeeRepository.getEmployeePermissions(username).equals("Manager")) {
+            if (projectEmployeeService.getEmployeePermissions(username).equals("Manager")) {
                 return "project_leader_page";
             }
 

@@ -4,6 +4,7 @@ import com.plannex.Exception.InsufficientPermissionsException;
 import com.plannex.Model.AssigneeFormDTO;
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Model.Task;
+import com.plannex.Service.AuthAndPermissionsService;
 import com.plannex.Service.ProjectEmployeeService;
 import com.plannex.Service.ProjectService;
 import com.plannex.Service.TaskService;
@@ -23,31 +24,24 @@ import java.util.stream.Collectors;
 @RequestMapping("/projects/{pid}")
 public class TaskController {
     private final TaskService taskService;
-    private final ProjectEmployeeService projectEmployeeService;
+    private final AuthAndPermissionsService authAndPermissionsService;
     private final ProjectService projectService;
+    private final ProjectEmployeeService projectEmployeeService;
 
-    public TaskController(TaskService taskService, ProjectEmployeeService projectEmployeeService, ProjectService projectService) {
+    public TaskController(TaskService taskService, AuthAndPermissionsService authAndPermissionsService, ProjectService projectService, ProjectEmployeeService projectEmployeeService) {
         this.taskService = taskService;
+        this.authAndPermissionsService = authAndPermissionsService;
         this.projectEmployeeService = projectEmployeeService;
         this.projectService = projectService;
     }
 
-    private boolean isManager(HttpSession session) {
-        String username = session.getAttribute("username").toString();
-        return projectEmployeeService.getPermissions(username).equals("Manager");
-    }
-
-    private boolean isLoggedIn(HttpSession session) {
-        return session.getAttribute("username") != null;
-    }
-
     @GetMapping("/add-task")
     public String showAddTask(@PathVariable int pid, Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
-        if (!isManager(session)) {
+        if (!authAndPermissionsService.isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may add tasks.");
         }
 
@@ -65,11 +59,11 @@ public class TaskController {
 
     @GetMapping("/tasks/{tid}/add-subtask")
     public String showAddSubtask(@PathVariable int pid, @PathVariable int tid, Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
-        if (!isManager(session)) {
+        if (!authAndPermissionsService.isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may add subtasks.");
         }
 
@@ -100,7 +94,7 @@ public class TaskController {
             Model model,
             HttpSession session) {
 
-        if (!isLoggedIn(session)) return "redirect:/login";
+        if (!authAndPermissionsService.isLoggedIn(session)) return "redirect:/login";
 
         model.addAttribute("allTasks", taskService.getAllSubtasksForParentTask(tid));
         model.addAttribute("sid", sid);
@@ -130,7 +124,7 @@ public class TaskController {
 
     @GetMapping("/tasks/{tid}/add-dependency")
     public String showAddDependencyTask(@PathVariable int pid, Model model, HttpSession session, @PathVariable String tid) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
@@ -160,11 +154,11 @@ public class TaskController {
                                     @PathVariable int tid,
                                     @PathVariable int sid) {
 
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
-        if (!isManager(session)) {
+        if (!authAndPermissionsService.isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may assign workers tasks.");
         }
 
@@ -204,7 +198,11 @@ public class TaskController {
 
     @PostMapping("/tasks/{tid}/subtasks/{sid}/unassign-worker/{username}")
     public String unassignWorker(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, @PathVariable String username, HttpSession session) {
-        if (!isManager(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
+            return "redirect:/login";
+        }
+
+        if (!authAndPermissionsService.isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may unassign workers.");
         }
 
@@ -214,10 +212,15 @@ public class TaskController {
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}/edit")
     public String showEditSubtasks(@PathVariable int sid, Model model, HttpSession session, @PathVariable String pid, @PathVariable String tid) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
-        model.addAttribute("isManager", isManager(session));
+
+        if (!authAndPermissionsService.isManager(session)) {
+            throw new InsufficientPermissionsException("Only managers may edit subtasks.");
+        }
+
+        model.addAttribute("isManager", authAndPermissionsService.isManager(session));
         model.addAttribute("subtask", taskService.getTaskByID(sid));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "edit_subtask";
@@ -237,7 +240,7 @@ public class TaskController {
             HttpSession session,
             Model model) {
 
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
@@ -264,7 +267,7 @@ public class TaskController {
 
     @GetMapping("/tasks/{tid}")
     public String showTaskPage(@PathVariable int tid, Model model, HttpSession session, @PathVariable String pid) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
@@ -276,14 +279,14 @@ public class TaskController {
         model.addAttribute("dependencies", taskService.getAllDependenciesForTask(tid));
         model.addAttribute("subtaskAssignees", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllAssigneesForSubtask(task.getID())).toList());
         model.addAttribute("subtaskTimeSpents", taskService.getAllSubtasksForParentTask(tid).stream().map(task -> taskService.getAllTimeContributionsForTask(task.getID())).toList());
-        model.addAttribute("isManager", isManager(session));
+        model.addAttribute("isManager", authAndPermissionsService.isManager(session));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "task_window";
     }
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}")
     public String showSubtaskPage(@PathVariable int sid, Model model, HttpSession session, @PathVariable String pid, @PathVariable String tid) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
@@ -292,20 +295,21 @@ public class TaskController {
         model.addAttribute("dependencies", taskService.getAllDependenciesForTask(sid));
         model.addAttribute("assignees", taskService.getAllAssigneesForSubtask(sid));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
-        model.addAttribute("isManager", isManager(session));
+        model.addAttribute("isManager", authAndPermissionsService.isManager(session));
         return "subtask_window";
     }
 
     @GetMapping("/tasks/{tid}/edit")
     public String showEditTaskPage(@PathVariable int pid, @PathVariable int tid, Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
-        if (!isManager(session)) {
+        if (!authAndPermissionsService.isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may edit tasks.");
         }
-        model.addAttribute("isManager", isManager(session));
+
+        model.addAttribute("isManager", authAndPermissionsService.isManager(session));
         model.addAttribute("task", taskService.getTaskByID(tid));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "edit_task";
@@ -319,11 +323,11 @@ public class TaskController {
 
     @GetMapping("/tasks/{tid}/delete")
     public String showDeleteTask(@PathVariable int pid, @PathVariable int tid, Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
-        if (!isManager(session)) {
+        if (!authAndPermissionsService.isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may delete tasks.");
         }
 
@@ -347,11 +351,11 @@ public class TaskController {
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}/delete")
     public String showDeleteSubtask(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
-        if (!isManager(session)) {
+        if (!authAndPermissionsService.isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may delete subtasks.");
         }
 
@@ -375,7 +379,7 @@ public class TaskController {
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}/contribute-time")
     public String showTimeContributionForm(HttpSession session, Model model, @PathVariable int pid, @PathVariable int tid, @PathVariable int sid) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
@@ -392,11 +396,11 @@ public class TaskController {
 
     @PostMapping("/tasks/{tid}/subtasks/{sid}/delete-time-contribution")
     public String deleteTimeContribution(HttpSession session, @RequestParam("byEmployee") String byUser, @RequestParam("when") LocalDateTime when, @PathVariable int pid, @PathVariable int tid, @PathVariable int sid) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
-        if (!isManager(session) || !byUser.equals(session.getAttribute("username").toString())) {
+        if (!authAndPermissionsService.isManager(session) && !byUser.equals(session.getAttribute("username").toString())) {
             throw new InsufficientPermissionsException("Managers may delete all time contributions, workers may only delete their own.");
         }
 
@@ -406,9 +410,13 @@ public class TaskController {
 
     @PostMapping("/tasks/{tid}/subtasks/{sid}/delete-artifact")
     public String deleteArtifact(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, @RequestParam("author") String author, @RequestParam("pathToArtifact") String pathToArtifact, HttpSession session) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
+            return "redirect:/login";
+        }
+
         String requestingUser = session.getAttribute("username").toString();
 
-        if (!isManager(session) && !requestingUser.equals(author)) {
+        if (!authAndPermissionsService.isManager(session) && !requestingUser.equals(author)) {
             throw new InsufficientPermissionsException("Managers may delete all artifacts, workers may only delete their own.");
         }
 
