@@ -1,6 +1,7 @@
 package com.plannex;
 
 import com.plannex.Controller.TaskController;
+import com.plannex.Model.ProjectEmployee;
 import com.plannex.Model.Task;
 import com.plannex.Service.AuthAndPermissionsService;
 import com.plannex.Service.ProjectEmployeeService;
@@ -16,6 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -226,6 +229,20 @@ public class TaskControllerTests {
         verify(taskService, times(1)).assignTaskToEmployee(5, "lildawg");
         verify(taskService, times(1)).assignTaskToEmployee(5, "marqs");
         verify(taskService, times(0)).assignTaskToEmployee(5, "bigdawg"); // Not selected
+    }
+
+    @Test
+    void saveAssignmentRemovesAssignementsRemoved() throws Exception {
+        List<ProjectEmployee> prev = List.of(new ProjectEmployee("lildawg", "Max-Emil", "MES@gmail.com", "fAbc#21Y", LocalTime.of(8, 0, 0), LocalTime.of(16, 0, 0)));
+        when(taskService.getAllAssigneesForSubtask(5)).thenReturn(prev);
+
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/5/assign-workers")
+                        .param("allUsers", "lildawg", "marqs", "bigdawg"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/5"));
+
+        verify(taskService, never()).assignTaskToEmployee(anyInt(), eq("lildawg"));
+        verify(taskService, times(1)).unassignTaskFromEmployee(5, "lildawg");
     }
 
     @Test

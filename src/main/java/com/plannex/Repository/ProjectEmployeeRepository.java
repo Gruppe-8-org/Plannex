@@ -97,21 +97,9 @@ public class ProjectEmployeeRepository {
     }
 
     public List<Skill> getAllSkills() {
-        try {
-            return jdbcTemplate.query("SELECT FROM * Skills", skillRowMapper);
-        } catch (EmptyResultDataAccessException erdae) {
-            return null;
-        }
+        return jdbcTemplate.query("SELECT * FROM Skills", skillRowMapper);
     }
 
-    public Skill getSkillFromAllSkills(List<Skill> allSkills, String chosenSkill) {
-        for (Skill s: allSkills) {
-            if (s.getSkillTitle().equals(chosenSkill)) {
-                return s;
-            }
-        }
-        return null;
-    }
 
     public List<EmployeeSkill> getSkillsForEmployee(String username) {
         return jdbcTemplate.query(
@@ -145,7 +133,7 @@ public class ProjectEmployeeRepository {
             return jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillTitle, SkillLevel) VALUES (?, ?, ?);",
                     employeeUsername, skillTitle, skillLevel);
         } catch (DataIntegrityViolationException dive) {
-            throw new EntityAlreadyExistsException("The employee with username " + employeeUsername + " is already assigned the skill with ID " + skillTitle + ".");
+            throw new EntityAlreadyExistsException("The employee with username " + employeeUsername + " is already assigned the skill with title " + skillTitle + ".");
         }
     }
 
