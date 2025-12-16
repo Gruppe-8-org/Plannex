@@ -366,6 +366,7 @@ footer {
     border-radius: 10px;
     padding: 10px;
     box-sizing: border-box;
+    text-overflow: ellipsis;
 }
 
 /* TITLE */
@@ -420,7 +421,9 @@ footer {
 .project-card-link {
     text-decoration: none;
     color: inherit;
-    display: block;         /* så hele kortet er klikbart */
+    display: block; /* så hele kortet er klikbart */
+    text-overflow: ellipsis;
+    max-width: 200px;
 }
 
 
@@ -597,6 +600,7 @@ footer {
 .project-page .task-card {
     width: 180px;
     height: 220px;
+    text-overflow: ellipsis;
 }
 .task-card-link {
     text-decoration: none;
@@ -1115,6 +1119,7 @@ footer {
     display: flex;
     gap: 16px;
     flex-wrap: nowrap;
+    text-overflow: ellipsis;
 }
 
 .subtask-card {

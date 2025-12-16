@@ -1,6 +1,7 @@
 package com.plannex.Model;
 
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Objects;
 
 public class ProjectEmployee {
@@ -10,15 +11,32 @@ public class ProjectEmployee {
     private String employeePassword;
     private LocalTime workingHoursFrom;
     private LocalTime workingHoursTo;
+    private List<EmployeeSkill> skills;
 
-    public ProjectEmployee(String username, String name, String email, String password, LocalTime worksFrom, LocalTime worksTo) {
+
+    public ProjectEmployee(String username, String name, String email, String password, LocalTime worksFrom, LocalTime worksTo, List <EmployeeSkill> skills) {
         this.employeeUsername = username;
         this.employeeName = name;
         this.employeeEmail = email;
         this.employeePassword = password;
         this.workingHoursFrom = worksFrom;
         this.workingHoursTo = worksTo;
+        this.skills = skills;
     }
+    // Har tilføjet denne constructor hvor skills er sat til null, så vi kan bruge constructoren i vores rowmapper, da vi ikke vil bruge skills derinde.
+    public ProjectEmployee(String username, String name, String email, String password,
+                           LocalTime worksFrom, LocalTime worksTo) {
+
+        this.employeeUsername = username;
+        this.employeeName = name;
+        this.employeeEmail = email;
+        this.employeePassword = password;
+        this.workingHoursFrom = worksFrom;
+        this.workingHoursTo = worksTo;
+
+        this.skills = null;
+    }
+
 
     public ProjectEmployee() {}
 
@@ -80,5 +98,13 @@ public class ProjectEmployee {
     @Override
     public int hashCode() {
         return Objects.hash(employeeUsername, employeeName, employeeEmail, employeePassword, workingHoursFrom, workingHoursTo);
+    }
+
+    public List<EmployeeSkill> getSkills() {
+        return skills;
+    }
+
+    public void setSkills(List<EmployeeSkill> skills) {
+        this.skills = skills;
     }
 }

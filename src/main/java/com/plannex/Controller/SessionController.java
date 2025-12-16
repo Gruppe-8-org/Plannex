@@ -47,7 +47,7 @@ public class SessionController {
         return "login_page";
     }
 
-    @GetMapping("logout")
+    @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
         return "login_page";

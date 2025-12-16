@@ -10,8 +10,16 @@
 <body class="employees-page">
 
 <header>
+    <form th:action="@{/login}">
+        <button class="profile-button"><i class="fa fa-arrow-circle-left"></i></button>
+    </form>
+
     <form th:action="@{/employees/{username}(username=${sessionUser})}">
         <button class="profile-button"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+
+    <form th:action="@{/logout}">
+        <button class="profile-button"><i class="fa fa-times-circle"></i></button>
     </form>
 </header>
 
@@ -35,6 +43,10 @@
                 </a>
 
                 <a th:href="@{/employees/{username}/delete(username=${user.employeeUsername})}" title="Delete">
+                    <i class="fa fa-remove"></i>
+                </a>
+
+                <a th:href="@{/employees/{username}/assign-skills(username=${user.employeeUsername})}" title="skills">
                     <i class="fa fa-remove"></i>
                 </a>
             </div>

@@ -2,8 +2,12 @@ package com.plannex.Repository;
 
 import com.plannex.Exception.EntityAlreadyExistsException;
 import com.plannex.Exception.EntityDoesNotExistException;
+import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
+import com.plannex.Model.Skill;
+import com.plannex.RowMapper.EmployeeSkillRowMapper;
 import com.plannex.RowMapper.ProjectEmployeeRowMapper;
+import com.plannex.RowMapper.SkillRowMapper;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -16,10 +20,15 @@ import java.util.List;
 public class ProjectEmployeeRepository {
     protected final JdbcTemplate jdbcTemplate;
     protected final ProjectEmployeeRowMapper projectEmployeeRowMapper;
+    protected final EmployeeSkillRowMapper employeeSkillRowMapper;
+    protected final SkillRowMapper skillRowMapper;
 
-    public ProjectEmployeeRepository(JdbcTemplate jdbcTemplate, ProjectEmployeeRowMapper projectEmployeeRowMapper) {
+    public ProjectEmployeeRepository(JdbcTemplate jdbcTemplate, ProjectEmployeeRowMapper projectEmployeeRowMapper, EmployeeSkillRowMapper employeeSkillRowMapper, SkillRowMapper skillRowMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.projectEmployeeRowMapper = projectEmployeeRowMapper;
+        this.employeeSkillRowMapper = employeeSkillRowMapper;
+        this.skillRowMapper = skillRowMapper;
+
     }
 
     @Transactional
@@ -85,5 +94,102 @@ public class ProjectEmployeeRepository {
 
     public List<ProjectEmployee> getAllWorkers() {
         return jdbcTemplate.query("SELECT pe.* FROM ProjectEmployees pe JOIN Permissions p ON p.PermissionHolder = pe.EmployeeUsername WHERE PermissionTitle = 'Worker';", projectEmployeeRowMapper);
+    }
+
+    public List<Skill> getAllSkills() {
+        try {
+            return jdbcTemplate.query("SELECT FROM * Skills", skillRowMapper);
+        } catch (EmptyResultDataAccessException erdae) {
+            return null;
+        }
+    }
+
+    public Skill getSkillFromAllSkills(List<Skill> allSkills, String chosenSkill) {
+        for (Skill s: allSkills) {
+            if (s.getSkillTitle().equals(chosenSkill)) {
+                return s;
+            }
+        }
+        return null;
+    }
+
+    public List<EmployeeSkill> getSkillsForEmployee(String username) {
+        return jdbcTemplate.query(
+                "SELECT es.EmployeeUsername AS EmployeeUsername, " +
+                        "       s.SkillTitle AS SkillTitle, " +
+                        "       es.SkillLevel AS SkillLevel " +
+                        "FROM EmployeeSkills es " +
+                        "JOIN Skills s ON es.SkillTitle = s.SkillTitle " +
+                        "WHERE es.EmployeeUsername = ?",
+                employeeSkillRowMapper,
+                username
+        );
+    }
+
+    public Skill getSkillByTitle(String skillTitle) {
+        try {
+            return jdbcTemplate.queryForObject("SELECT * FROM Skills WHERE SkillTitle = ?;", skillRowMapper, skillTitle);
+        } catch (EmptyResultDataAccessException erdae) {
+            throw new EntityDoesNotExistException("No skill with title " + skillTitle + " exists.");
+        }
+    }
+
+    public boolean skillWithTitleExists(String skillTitle) {
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject("SELECT COUNT(*) > 0 FROM Skills WHERE SkillTitle = ?;", boolean.class, skillTitle));
+    }
+
+    public int assignSkillToEmployee(String skillTitle, String employeeUsername, String skillLevel) {
+        getSkillByTitle(skillTitle); // or throw...
+
+        try {
+            return jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillTitle, SkillLevel) VALUES (?, ?, ?);",
+                    employeeUsername, skillTitle, skillLevel);
+        } catch (DataIntegrityViolationException dive) {
+            throw new EntityAlreadyExistsException("The employee with username " + employeeUsername + " is already assigned the skill with ID " + skillTitle + ".");
+        }
+    }
+
+    public int unassignSkillFromEmployee(String skillTitle, String employeeUsername, String skillLevel) {
+        getSkillByTitle(skillTitle); // or throw...
+
+        int rowsDeleted = jdbcTemplate.update("DELETE FROM EmployeeSkills WHERE EmployeeUsername = ? AND SkillTitle = ? AND SkillLevel = ?;",
+                employeeUsername, skillTitle, skillLevel);
+
+        if (rowsDeleted != 1) throw new EntityDoesNotExistException("The employee with username " + employeeUsername + " is not assigned the skill with title " + skillTitle + ".");
+        return rowsDeleted;
+    }
+
+
+    public int addSkillUnlessItAlreadyExists(String skillTitle) {
+        if (skillWithTitleExists(skillTitle)) {
+            return 0;
+        }
+
+        return jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES (?);", skillTitle);
+    }
+
+    public int removeSkillIfExists(String skillTitle) {
+        if (!skillWithTitleExists(skillTitle)) {
+            return 0;
+        }
+
+        return jdbcTemplate.update("DELETE FROM Skills WHERE SkillTitle = ?;", skillTitle);
+    }
+
+
+    public int countExpertSkills(String username) {
+        return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM EmployeeSkills WHERE EmployeeUsername=? AND SkillLevel='Expert'",
+                Integer.class,
+                username
+        );
+    }
+
+    public int countIntermediateSkills(String username) {
+        return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM EmployeeSkills WHERE EmployeeUsername=? AND SkillLevel='Intermediate'",
+                Integer.class,
+                username
+        );
     }
 }

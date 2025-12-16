@@ -10,8 +10,16 @@
 <body class="task-page">
 
 <header>
+    <form th:action="@{/projects/{pid}(pid=${pid})}">
+        <button class="profile-button"><i class="fa fa-arrow-circle-left"></i></button>
+    </form>
+
     <form th:action="@{/employees/{username}(username=${sessionUser})}">
         <button class="profile-button"><i class="fa fa-user-circle-o"></i></button>
+    </form>
+
+    <form th:action="@{/logout}">
+        <button class="profile-button"><i class="fa fa-times-circle"></i></button>
     </form>
 </header>
 
@@ -21,7 +29,7 @@
 
         <div class="task-box">
             <legend>
-                <span th:text="'Task ' + ${task.ID}"></span>
+                <span th:text="${task.taskTitle}"></span>
                 <a class="edit-btn"
                    th:if="${isManager}"
                    th:href="@{/projects/{pid}/tasks/{tid}/edit(pid=${pid}, tid=${task.ID})}">
@@ -61,7 +69,7 @@
             <legend>Resources</legend>
 
             <div class="list-area">
-                <p><i class="fa fa-clock-o"></i> <span th:text="${timeSpent.size()} + ' hours'"></span></p>
+                <p><i class="fa fa-clock-o"></i> <span th:text="${#numbers.formatDecimal(timeSpent, 0 , 0)} + ' hours'"></span></p>
                 <p><i class="fa fa-user"></i> <span th:text="${assignees.size()} + ' employees'"></span></p>
             </div>
         </div>
@@ -77,11 +85,11 @@
                  th:each="subtask, iter : ${subtasks}"
                  th:onclick="|window.location='@{/projects/{pid}/tasks/{tid}/subtasks/{sid}(pid=${pid}, tid=${task.ID}, sid=${subtask.ID})}'|">
 
-                <h3 th:text="'Sub ' + ${subtask.ID}"></h3>
+                <h3 th:text="${subtask.taskTitle}"></h3>
 
                 <div class="subtask-meta">
                     <p><i class="fa fa-user"></i> <span th:text="${subtaskAssignees[iter.index].size()}"></span></p>
-                    <p><i class="fa fa-clock-o"></i> <span th:text="${subtaskTimeSpents[iter.index].size()} + ' h'"></span></p>
+                    <p><i class="fa fa-clock-o"></i> <span th:text="${#numbers.formatDecimal(subtaskTimeSpents[iter.index], 0, 0)} + ' h'"></span></p>
                 </div>
             </div>
 

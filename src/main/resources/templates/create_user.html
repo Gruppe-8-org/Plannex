@@ -43,6 +43,34 @@
         <label>Password</label>
         <input type="password" th:field="*{employeePassword}" required>
 
+        <table>
+            <thead>
+            <tr>
+                <th th:text="'Skill Title'"></th>
+                <th th:text="'Skill Level'"></th>
+                <th>
+                    <button type="submit" name="addRow">Add row</button>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="row,rowStat : *{skillRows}">
+                <td ><input type="text"></td>
+                <td>
+                    <select th:field="*{rows[__${rowStat.index}__].level}">
+                        <option th:each="var : ${allLevels}"
+                                th:value="${var.skillID}"
+                                th:text="${var.skillTitle}">Thymus Thymi</option>
+                    </select>
+                </td>
+                <td>
+                    <button type="submit" name="removeRow"
+                            th:value="${rowStat.index}">Remove row</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
         <label>Works from</label>
         <input type="time" th:field="*{workingHoursFrom}">
 

@@ -2,21 +2,24 @@ package com.plannex;
 
 import com.plannex.Exception.EntityAlreadyExistsException;
 import com.plannex.Exception.EntityDoesNotExistException;
-import com.plannex.Exception.InvalidValueException;
+import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Repository.ProjectEmployeeRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -29,10 +32,7 @@ public class ProjectEmployeeRepositoryTests {
     private ProjectEmployeeRepository projectEmployeeRepository;
     @Autowired
     JdbcTemplate jdbcTemplate;
-
     private final AssertThrowsHelper assertThrowsHelper = new AssertThrowsHelper();
-
-
 
     @Test
     public void addEmployeeInsertsEmployeeIfItDoesNotAlreadyExist() {
@@ -134,6 +134,62 @@ public class ProjectEmployeeRepositoryTests {
         assertFalse(jdbcTemplate.queryForObject("SELECT COUNT(*) > 0 FROM TimeSpent WHERE ByEmployee = ?", boolean.class, "marqs"));
         assertFalse(jdbcTemplate.queryForObject("SELECT COUNT(*) > 0 FROM Artifacts WHERE ArtifactAuthor = ?", boolean.class, "marqs"));
     }
+    @Test
+    public void getSkillsForEmployeeReturnsCorrectSkills() {
+        List<EmployeeSkill> skillsExpected = List.of(new EmployeeSkill("lildawg", "Java-Coder", "Expert"));
+        List<EmployeeSkill> skills = projectEmployeeRepository.getSkillsForEmployee("lildawg");
+        assertEquals(skillsExpected, skills);
+    }
+
+    @Test
+    public void addSkillAddsSkillIfItDoesNotAlreadyExist() {
+        int rows = projectEmployeeRepository.addSkillUnlessItAlreadyExists("NotJava");
+        assertEquals(1, rows);
+    }
+
+    @Test
+    public void addSkillDoesNotAddSkillIfItExists() {
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('Java')");
+        int rows = projectEmployeeRepository.addSkillUnlessItAlreadyExists("Java");
+        assertEquals(0, rows);
+    }
+
+    @Test
+    public void removeSkillRemovesSkillIfItExists() {
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('Java')");
+        int rows = projectEmployeeRepository.removeSkillIfExists("Java");
+        assertEquals(1, rows);
+    }
+
+    @Test
+    public void removeSkillDoesNotRemoveSkillIfItDoesNotExist() {
+        assertEquals(0, projectEmployeeRepository.removeSkillIfExists("Java"));
+    }
+
+    @Test
+    public void countExpertSkillsReturnsCorrectAmount() {
+
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('C#')");
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('Java')");
+
+        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillTitle, SkillLevel) VALUES ('marqs', ?, 'Expert')", "C#");
+        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillTitle, SkillLevel) VALUES ('marqs', ?, 'Expert')", "Java");
+
+        int count = projectEmployeeRepository.countExpertSkills("marqs");
+        assertEquals(2, count);
+    }
+
+    @Test
+    public void countIntermediateSkillsReturnsCorrectAmount() {
+
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('CSS')");
+        jdbcTemplate.update("INSERT INTO Skills (SkillTitle) VALUES ('HTML')");
+
+        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillTitle, SkillLevel) VALUES ('bigdawg', ?, 'Intermediate')", "CSS");
+        jdbcTemplate.update("INSERT INTO EmployeeSkills (EmployeeUsername, SkillTitle, SkillLevel) VALUES ('bigdawg', ?, 'Intermediate')", "HTML");
+
+        int count = projectEmployeeRepository.countIntermediateSkills("bigdawg");
+        assertEquals(3, count); // One already exists (Business Degree)
 
     @Test
     public void loginWorksOnMatchingCredentialsAndRefusesInvalidOnes() {
