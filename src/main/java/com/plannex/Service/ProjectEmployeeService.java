@@ -2,7 +2,6 @@ package com.plannex.Service;
 
 import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
-import com.plannex.Model.Skill;
 import com.plannex.Repository.ProjectEmployeeRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,9 +16,7 @@ public class ProjectEmployeeService {
         this.projectEmployeeRepository = projectEmployeeRepository;
     }
 
-    public String getPermissions(String username) {
-        return projectEmployeeRepository.getEmployeePermissions(username);
-    }
+
 
     public int addEmployee(ProjectEmployee employee, String permissions) {
         return projectEmployeeRepository.addEmployee(employee, permissions);
@@ -37,7 +34,7 @@ public class ProjectEmployeeService {
         return projectEmployeeRepository.getAllWorkers();
     }
 
-    public String getEmployeePermissions(String username) {
+    public String getPermissions(String username) {
         return projectEmployeeRepository.getEmployeePermissions(username);
     }
 
@@ -65,22 +62,12 @@ public class ProjectEmployeeService {
         return projectEmployeeRepository.unassignSkillFromEmployee(skillTitle, employeeUsername, skillLevel);
     }
 
-    public Skill getSkillByTitle(String skillTitle) {
-        return projectEmployeeRepository.getSkillByTitle(skillTitle);
-    }
-
     public void addSkill(String skillTitle) {
         projectEmployeeRepository.addSkillUnlessItAlreadyExists(skillTitle);
     }
 
     public void removeSkill(String skillTitle) {
         projectEmployeeRepository.removeSkillIfExists(skillTitle);
-    }
-
-    private void validateSkillLevel(String level) {
-        if (!level.equals("Expert") && !level.equals("Intermediate")) {
-            throw new IllegalArgumentException("Skill level must be Expert or Intermediate");
-        }
     }
 
     public float getBaseWage(String username) {

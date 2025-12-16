@@ -1,6 +1,5 @@
 package com.plannex.Controller;
 
-import com.plannex.Repository.ProjectEmployeeRepository;
 import com.plannex.Service.ProjectEmployeeService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -36,7 +35,7 @@ public class SessionController {
 
             model.addAttribute("employee", projectEmployeeService.getEmployeeByUsername(username));
             model.addAttribute("username", username);
-            if (projectEmployeeService.getEmployeePermissions(username).equals("Manager")) {
+            if (projectEmployeeService.getPermissions(username).equals("Manager")) {
                 return "project_leader_page";
             }
 
