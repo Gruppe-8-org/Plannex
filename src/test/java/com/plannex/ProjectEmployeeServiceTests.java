@@ -79,10 +79,10 @@ class ProjectEmployeeServiceTests {
     }
 
     @Test
-    void getEmployeePermissions_ReturnsPermissions() {
+    void getPermissions_ReturnsPermissions() {
         when(repo.getEmployeePermissions("johnDoe")).thenReturn("LEADER");
 
-        String result = service.getEmployeePermissions("johnDoe");
+        String result = service.getPermissions("johnDoe");
 
         assertEquals("LEADER", result);
         verify(repo).getEmployeePermissions("johnDoe");
@@ -107,6 +107,27 @@ class ProjectEmployeeServiceTests {
         assertEquals(1, result);
         verify(repo).deleteEmployeeByUsername("johnDoe");
     }
+
+    @Test
+    void login_ReturnsTrue() {
+        when(repo.login("johnDoe", "password")).thenReturn(true);
+
+        boolean result = service.login("johnDoe", "password");
+
+        assertTrue(result);
+        verify(repo).login("johnDoe", "password");
+    }
+
+    @Test
+    void login_ReturnsFalse() {
+        when(repo.login("johnDoe", "wrong")).thenReturn(false);
+
+        boolean result = service.login("johnDoe", "wrong");
+
+        assertFalse(result);
+        verify(repo).login("johnDoe", "wrong");
+    }
+
     @Test
     void getSkillsForEmployee_ReturnsListFromRepository() {
         List<EmployeeSkill> skills = List.of(
@@ -175,4 +196,25 @@ class ProjectEmployeeServiceTests {
         assertEquals(list, result);
         verify(repo).getAllWorkers();
     }
+
+    @Test
+    void assignSkillToEmployee_ByTitle_CallsRepositoryAndReturnsValue() {
+        when(repo.assignSkillToEmployee("Java", "johnDoe", "Expert")).thenReturn(1);
+
+        int result = service.assignSkillToEmployee("Java", "johnDoe", "Expert");
+
+        assertEquals(1, result);
+        verify(repo).assignSkillToEmployee("Java", "johnDoe", "Expert");
+    }
+
+    @Test
+    void unassignSkillFromEmployee_ByTitle_CallsRepositoryAndReturnsValue() {
+        when(repo.unassignSkillFromEmployee("Java", "johnDoe", "Expert")).thenReturn(1);
+
+        int result = service.unassignSkillFromEmployee("Java", "johnDoe", "Expert");
+
+        assertEquals(1, result);
+        verify(repo).unassignSkillFromEmployee("Java", "johnDoe", "Expert");
+    }
+
 }

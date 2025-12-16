@@ -119,5 +119,44 @@ class ProjectServiceTest {
         assertEquals(1, result.size());
         verify(projectRepository).getAllTasksForProject(1);
     }
+
+    @Test
+    void getAllInvolvedCallsRepository() {
+        when(projectRepository.getAllInvolved(1)).thenReturn(4);
+
+        int result = projectService.getAllInvolved(1);
+
+        assertEquals(4, result);
+        verify(projectRepository).getAllInvolved(1);
+    }
+
+    @Test
+    void getTotalTimeSpentCallsRepository() {
+        when(projectRepository.getTotalTimeSpent(1)).thenReturn(12.5f);
+
+        float result = projectService.getTotalTimeSpent(1);
+
+        assertEquals(12.5f, result);
+        verify(projectRepository).getTotalTimeSpent(1);
+    }
+
+    @Test
+    void getAllTasksForProject_ReturnsListFromRepository() {
+        Task task1 = new Task(1, 1, 0, "Task 1", "Desc 1",
+                LocalDate.now(), LocalDate.now().plusDays(3), 5.0f);
+        Task task2 = new Task(2, 1, 0, "Task 2", "Desc 2",
+                LocalDate.now(), LocalDate.now().plusDays(5), 8.0f);
+
+        List<Task> tasks = List.of(task1, task2);
+
+        when(projectRepository.getAllTasksForProject(1)).thenReturn(tasks);
+
+        List<Task> result = projectService.getAllTasksForProject(1);
+
+        assertEquals(tasks, result);
+        verify(projectRepository).getAllTasksForProject(1);
+    }
+
+
 }
 
