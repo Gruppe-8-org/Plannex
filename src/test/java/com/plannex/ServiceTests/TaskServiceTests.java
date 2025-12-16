@@ -160,6 +160,14 @@ public class TaskServiceTests {
     }
 
     @Test
+    void getAllTimeContributionsForSubtaskCallsRepository() {
+        when(taskRepository.getAllTimeContributionsForSubtask(16)).thenReturn(List.of(4.0f, 4.0f));
+        List<Float> result = taskService.getAllTimeContributionsForSubtask(16);
+        assertEquals(2, result.size());
+        verify(taskRepository).getAllTimeContributionsForSubtask(16);
+    }
+
+    @Test
     void addArtifact_CallsRepository() {
         when(taskRepository.addArtifact(7, "johnDoe", "path")).thenReturn(1);
 

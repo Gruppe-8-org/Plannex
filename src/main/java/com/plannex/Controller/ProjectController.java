@@ -3,7 +3,7 @@ package com.plannex.Controller;
 import com.plannex.Exception.InsufficientPermissionsException;
 import com.plannex.Model.Project;
 import com.plannex.Model.Task;
-import com.plannex.Service.ProjectEmployeeService;
+import com.plannex.Service.AuthAndPermissionsService;
 import com.plannex.Service.ProjectService;
 import com.plannex.Service.TaskService;
 import jakarta.servlet.http.HttpSession;
@@ -18,28 +18,19 @@ import java.util.List;
 @RequestMapping("/projects")
 public class ProjectController {
     private final ProjectService projectService;
-    private final ProjectEmployeeService projectEmployeeService;
+    private final AuthAndPermissionsService authAndPermissionsService;
     private final TaskService taskService;
 
     @Autowired
-    public ProjectController(ProjectService projectService, ProjectEmployeeService projectEmployeeService, TaskService taskService) {
+    public ProjectController(ProjectService projectService, AuthAndPermissionsService authAndPermissionsService, TaskService taskService) {
         this.projectService = projectService;
-        this.projectEmployeeService = projectEmployeeService;
+        this.authAndPermissionsService = authAndPermissionsService;
         this.taskService = taskService;
-    }
-
-    private boolean isManager(HttpSession session) {
-        String username = session.getAttribute("username").toString();
-        return projectEmployeeService.getPermissions(username).equals("Manager");
-    }
-
-    private boolean isLoggedIn(HttpSession session) {
-        return session.getAttribute("username") != null;
     }
 
     @GetMapping()
     public String displayProjectsPage(Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
@@ -49,14 +40,14 @@ public class ProjectController {
         model.addAttribute("startDates", allProjects.stream().map(project -> project.getProjectStart().toString()).toList());
         model.addAttribute("timeSpents", allProjects.stream().map(project -> projectService.getTotalTimeSpent(project.getID())).toList());
         model.addAttribute("endDates", allProjects.stream().map(project -> project.getProjectEnd().toString()).toList());
-        model.addAttribute("isManager", isManager(session));
+        model.addAttribute("isManager", authAndPermissionsService.isManager(session));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "projects_window";
     }
 
     @GetMapping("/{pid}")
     public String getProject(@PathVariable int pid, Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
@@ -66,18 +57,18 @@ public class ProjectController {
         model.addAttribute("timeSpent", projectService.getTotalTimeSpent(pid));
         model.addAttribute("taskAssignees", allTasks.stream().map(task -> taskService.getAllAssigneesForTask(task.getID())).toList());
         model.addAttribute("taskTimeContributions", allTasks.stream().map(task -> taskService.getAllTimeContributionsForTask(task.getID()).stream().mapToDouble(f -> f).sum()).toList());
-        model.addAttribute("isManager", isManager(session));
+        model.addAttribute("isManager", authAndPermissionsService.isManager(session));
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         return "project_window";
     }
 
     @GetMapping("/add-project")
     public String addProject(Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
-        if (!isManager(session)) {
+        if (!authAndPermissionsService.isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may add projects.");
         }
 
@@ -94,11 +85,11 @@ public class ProjectController {
 
     @GetMapping("/{pid}/edit")
     public String editProject(@PathVariable int pid, Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
-        if (!isManager(session)) {
+        if (!authAndPermissionsService.isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may edit projects.");
         }
 
@@ -115,11 +106,11 @@ public class ProjectController {
 
     @GetMapping("/{pid}/delete")
     public String deleteProject(@PathVariable int pid, Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
+        if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
 
-        if (!isManager(session)) {
+        if (!authAndPermissionsService.isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may delete projects.");
         }
 

@@ -2,11 +2,11 @@ package com.plannex;
 
 import com.plannex.Controller.TaskController;
 import com.plannex.Model.Task;
+import com.plannex.Service.AuthAndPermissionsService;
 import com.plannex.Service.ProjectEmployeeService;
 import com.plannex.Service.ProjectService;
 import com.plannex.Service.TaskService;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.mock.web.MockHttpSession;
@@ -29,6 +29,8 @@ public class TaskControllerTests {
     @MockitoBean
     TaskService taskService;
     @MockitoBean
+    AuthAndPermissionsService authAndPermissionsService;
+    @MockitoBean
     ProjectEmployeeService projectEmployeeService;
     @MockitoBean
     ProjectService projectService;
@@ -40,27 +42,42 @@ public class TaskControllerTests {
     }
 
     @Test
-    void showAddTaskRoutesCorrectly() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+    void showAddTaskRoutesCorrectlyOnSufficientPermissions() throws Exception {
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(true);
+
         mockMvc.perform(get("/projects/1/add-task").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("task"))
                 .andExpect(view().name("add_task"));
-        verify(projectEmployeeService, times(1)).getPermissions("MRY");
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
     }
 
     @Test
     void showAddTaskThrowsOnNonManager() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(false);
+
         mockMvc.perform(get("/projects/1/add-task").session(sessionWithUser("MRY")))
                 .andExpect(status().isForbidden())
                 .andExpect(model().attribute("message", "Only managers may add tasks."))
                 .andExpect(view().name("error"));
-        verify(projectEmployeeService, times(1)).getPermissions("MRY");
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
     }
 
     @Test
-    void saveTaskRedirectsOnSuccess() throws Exception {
+    void showAddTaskRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(get("/projects/1/add-task"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    void saveTaskRedirectsOnSuccessAndHasRightValues() throws Exception {
         mockMvc.perform(post("/projects/1/add-task")
                 .param("parentTaskID", "0")
                 .param("taskTitle", "Title")
@@ -74,23 +91,38 @@ public class TaskControllerTests {
     }
 
     @Test
-    void showAddSubtaskRoutesCorrectly() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+    void showAddSubtaskRoutesCorrectlyOnSufficientPermissions() throws Exception {
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(true);
+
         mockMvc.perform(get("/projects/1/tasks/2/add-subtask").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("subtask"))
                 .andExpect(view().name("add_subtask"));
-        verify(projectEmployeeService, times(1)).getPermissions("MRY");
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
     }
 
     @Test
     void showAddSubtaskThrowsOnNonManager() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(false);
+
         mockMvc.perform(get("/projects/1/tasks/1/add-subtask").session(sessionWithUser("MRY")))
                 .andExpect(status().isForbidden())
                 .andExpect(model().attribute("message", "Only managers may add subtasks."))
                 .andExpect(view().name("error"));
-        verify(projectEmployeeService, times(1)).getPermissions("MRY");
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+    }
+
+    @Test
+    void showAddSubtaskRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(get("/projects/1/tasks/1/add-subtask"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -107,12 +139,23 @@ public class TaskControllerTests {
     }
 
     @Test
-    void showAddDependencyRoutesCorrectly() throws Exception {
+    void showAddDependencyRoutesCorrectlyOnLoggedIn() throws Exception {
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/add-dependency").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("allTasks"))
                 .andExpect(model().attribute("sessionUser", "MRY"))
                 .andExpect(view().name("add_dependencies"));
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+    }
+
+    @Test
+    void showAddDependencyRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/add-dependency"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -137,28 +180,43 @@ public class TaskControllerTests {
 
     @Test
     void showAssingmentPageWorksWithManager() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(true);
+
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/5/assign-workers").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("allWorkers"))
                 .andExpect(model().attributeExists("assigneeDTO"))
                 .andExpect(model().attribute("sessionUser", "MRY"))
                 .andExpect(view().name("add_assignee"));
-        verify(projectEmployeeService, times(1)).getPermissions("MRY");
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
     }
 
     @Test
     void showAssingmentPageThrowsWithWorker() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(false);
+
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/5/assign-workers").session(sessionWithUser("MRY")))
                 .andExpect(status().isForbidden())
                 .andExpect(model().attribute("message", "Only managers may assign workers tasks."))
                 .andExpect(view().name("error"));
-        verify(projectEmployeeService, times(1)).getPermissions("MRY");
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
     }
 
     @Test
-    void saveAssignmentRedirects() throws Exception {
+    void showAssignmentPageRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(get("/projects/1/tasks/1/subtasks/5/assign-workers"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    void saveAssignmentRedirectsAndPostsCorrectValues() throws Exception {
         mockMvc.perform(post("/projects/1/tasks/1/subtasks/5/assign-workers")
                 .param("allUsers", "lildawg", "marqs", "bigdawg")
                 .param("usernames", "lildawg", "marqs"))
@@ -167,32 +225,50 @@ public class TaskControllerTests {
 
         verify(taskService, times(1)).assignTaskToEmployee(5, "lildawg");
         verify(taskService, times(1)).assignTaskToEmployee(5, "marqs");
-        verify(taskService, times(0)).assignTaskToEmployee(5, "bigdawg");
+        verify(taskService, times(0)).assignTaskToEmployee(5, "bigdawg"); // Not selected
     }
 
     @Test
     void unassignWorkerWorksWithManager() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(true);
+
         mockMvc.perform(post("/projects/1/tasks/1/subtasks/5/unassign-worker/lildawg").session(sessionWithUser("MRY")))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/5"));
+
         verify(taskService, times(1)).unassignTaskFromEmployee(5, "lildawg");
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
     }
 
     @Test
     void unassignWorkerThrowsWithWorker() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(false);
+
         mockMvc.perform(post("/projects/1/tasks/1/subtasks/5/unassign-worker/lildawg").session(sessionWithUser("MRY")))
                 .andExpect(status().isForbidden())
                 .andExpect(model().attribute("message", "Only managers may unassign workers."))
                 .andExpect(view().name("error"));
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+    }
+
+    @Test
+    void unassignWorkerRedirectsOnMissingLogin() throws Exception {
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/5/unassign-worker/lildawg"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
     void showTaskPageHasRightAttrsAndRoutesAsExpected() throws Exception {
         Task task = new Task(1, 1, 0, "Project startup", "Building a good foundation for the actual work to come later.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 13), 22.667f);
         when(taskService.getTaskByID(1)).thenReturn(task);
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+
         mockMvc.perform(get("/projects/1/tasks/1").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("task"))
@@ -206,13 +282,24 @@ public class TaskControllerTests {
                 .andExpect(model().attributeExists("isManager"))
                 .andExpect(model().attributeExists("sessionUser"))
                 .andExpect(view().name("task_window"));
+
+        verify(taskService, times(1)).getTaskByID(1);
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+    }
+
+    @Test
+    void showTaskPageRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(get("/projects/1/tasks/1"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
     void showSubtaskPageHasRightAttrsAndRoutesAsExpected() throws Exception {
-        Task s = new Task(2, 1, 1, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
-        when(taskService.getTaskByID(2)).thenReturn(s);
+        Task sub = new Task(2, 1, 1, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(taskService.getTaskByID(2)).thenReturn(sub);
+
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/2").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("subtask"))
@@ -222,85 +309,144 @@ public class TaskControllerTests {
                 .andExpect(model().attributeExists("sessionUser"))
                 .andExpect(model().attributeExists("isManager"))
                 .andExpect(view().name("subtask_window"));
+
+        verify(taskService, times(1)).getTaskByID(2);
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
     }
 
     @Test
-    void showEditSubtaskPageRoutesCorrectly() throws Exception {
-        Task s = new Task(2, 1, 1, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
-        when(taskService.getTaskByID(2)).thenReturn(s);
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+    void showSubtaskPageRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(get("/projects/1/tasks/1/subtasks/2").session(sessionWithUser("MRY")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    void showEditSubtaskPageRoutesCorrectlyOnValidPermissions() throws Exception {
+        Task sub = new Task(2, 1, 1, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
+        when(taskService.getTaskByID(2)).thenReturn(sub);
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(true);
+
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/edit").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("isManager", true))
-                .andExpect(model().attribute("subtask", s))
+                .andExpect(model().attribute("subtask", sub))
                 .andExpect(model().attribute("sessionUser", "MRY"))
                 .andExpect(view().name("edit_subtask"));
+
+        verify(taskService, times(1)).getTaskByID(2);
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(2)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString()))); // Passed to template
     }
 
     @Test
-    void updateSubtaskRoutesAndRedirectsCorrectly() throws Exception {
+    void showEditSubtaskPageThrowsOnNonManager() throws Exception {
+        Task sub = new Task(2, 1, 1, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
+        when(taskService.getTaskByID(2)).thenReturn(sub);
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(false);
+
+        mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/edit").session(sessionWithUser("MRY")))
+                .andExpect(status().isForbidden())
+                .andExpect(model().attribute("message", "Only managers may edit subtasks."))
+                .andExpect(view().name("error"));
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+    }
+
+    @Test
+    void showEditSubtaskPageRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/edit").session(sessionWithUser("MRY")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    void updateSubtaskRoutesAndRedirectsCorrectlyAndPassesRightValues() throws Exception {
         mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/edit")
                         .param("ID", "2")
-                        .param("projectID", "1")
+                        .param("parentProjectID", "1")
                         .param("parentTaskID", "1")
                         .param("taskTitle", "Title")
                         .param("taskDescription", "Description")
                         .param("taskStart", "2025-11-12")
                         .param("taskEnd", "2025-11-12")
-                        .param("taskDurationInHours", "0.5"))
+                        .param("taskDurationHours", "0.5"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/2"));
-        ArgumentCaptor<Task> captor = ArgumentCaptor.forClass(Task.class);
-        verify(taskService, times(1)).updateTask(captor.capture(), eq(2));
+        verify(taskService, times(1)).updateTask(new Task(2, 1, 1, "Title", "Description", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f), 2);
     }
 
     @Test
-    void showEditTaskPageRoutesCorrectly() throws Exception {
-        Task s = new Task(1, 1, 0, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
-        when(taskService.getTaskByID(1)).thenReturn(s);
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+    void showEditTaskPageRoutesCorrectlyOnValidCredentials() throws Exception {
+        Task t = new Task(1, 1, 0, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
+        when(taskService.getTaskByID(1)).thenReturn(t);
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(true);
+
         mockMvc.perform(get("/projects/1/tasks/1/edit").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("task", s))
+                .andExpect(model().attribute("task", t))
                 .andExpect(view().name("edit_task"));
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(2)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString()))); // Also passed to template.
     }
 
     @Test
     void showEditTaskThrowsOnNonManager() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(false);
+
         mockMvc.perform(get("/projects/1/tasks/1/edit").session(sessionWithUser("MRY")))
                 .andExpect(status().isForbidden())
                 .andExpect(model().attribute("message", "Only managers may edit tasks."))
                 .andExpect(view().name("error"));
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+    }
+
+    @Test
+    void showEditTaskRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(get("/projects/1/tasks/1/edit"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
     void updateTaskRoutesAndRedirectsCorrectly() throws Exception {
         mockMvc.perform(post("/projects/1/tasks/1/edit")
                         .param("ID", "2")
-                        .param("projectID", "1")
+                        .param("parentProjectID", "1")
                         .param("parentTaskID", "0")
                         .param("taskTitle", "Title")
                         .param("taskDescription", "Description")
                         .param("taskStart", "2025-11-12")
                         .param("taskEnd", "2025-11-12")
-                        .param("taskDurationInHours", "0.5"))
+                        .param("taskDurationHours", "0.5"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/projects/1/tasks/1"));
-        ArgumentCaptor<Task> captor = ArgumentCaptor.forClass(Task.class);
-        verify(taskService, times(1)).updateTask(captor.capture(), eq(2));
+
+        verify(taskService, times(1)).updateTask(new Task(2, 1, 0, "Title", "Description", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f), 2);
     }
 
     @Test
-    void showAddTimeContributionFormRoutesCorrectly() throws Exception {
+    void showAddTimeContributionFormRoutesCorrectlyWhenLoggedIn() throws Exception {
         Task t = new Task(2, 1, 1, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
         when(taskService.getTaskByID(2)).thenReturn(t);
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/contribute-time").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("sessionUser", "MRY"))
                 .andExpect(model().attribute("subtaskTitle", "Set up GitHub project"))
                 .andExpect(view().name("add_time_contribution"));
+
         verify(taskService, times(1)).getTaskByID(2);
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
     }
 
     @Test
@@ -320,65 +466,122 @@ public class TaskControllerTests {
     }
 
     @Test
-    void deleteTimeContributionWorksAsExpected() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+    void deleteTimeContributionWorksAsExpectedWhenOwnerDoesIt() throws Exception {
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+
         mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-time-contribution").session(sessionWithUser("MRY"))
                 .param("byEmployee", "MRY")
                 .param("when", "2025-11-12T10:00:00"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/2"));
+
         verify(taskService, times(1)).deleteTimeContribution(eq("MRY"), eq(2), eq(LocalDateTime.of(2025, 11, 12, 10, 0, 0)));
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
     }
 
     @Test
-    void deleteTimeThrowsOnWorkerTryingToDeleteOtherWorkersTC() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
-        mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-time-contribution").session(sessionWithUser("MRY"))
+    void deleteTimeContributionWorksAsExpectedWhenManagerDoesIt() throws Exception {
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(true);
+
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-time-contribution").session(sessionWithUser("lildawg"))
                         .param("byEmployee", "MRY")
+                        .param("when", "2025-11-12T10:00:00"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/2"));
+
+        verify(taskService, times(1)).deleteTimeContribution(eq("MRY"), eq(2), eq(LocalDateTime.of(2025, 11, 12, 10, 0, 0)));
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "lildawg".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "lildawg".equals(s.getAttribute("username").toString())));
+    }
+
+    @Test
+    void deleteTimeContributionRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-time-contribution")
+                        .param("byEmployee", "MRY")
+                        .param("when", "2025-11-12T10:00:00"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    void deleteTimeContributionThrowsOnWorkerTryingToDeleteOtherWorkersTimeContribution() throws Exception {
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-time-contribution").session(sessionWithUser("MRY"))
+                        .param("byEmployee", "lildawg")
                         .param("when", "2025-11-12T10:00:00"))
                 .andExpect(status().isForbidden())
                 .andExpect(model().attribute("message", "Managers may delete all time contributions, workers may only delete their own."))
                 .andExpect(view().name("error"));
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
     }
 
     @Test
     void deleteArtifactWorksAsExpectedOnManager() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(true);
+
         mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-artifact").session(sessionWithUser("MRY"))
                     .param("author", "MRY")
                     .param("pathToArtifact", "/src/main/resources/example_artifact.pdf"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/2"));
         verify(taskService, times(1)).deleteArtifact(2, "MRY", "/src/main/resources/example_artifact.pdf");
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
     }
 
     @Test
     void deleteArtifactWorksAsExpectedOnAuthor() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(false);
+
         mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-artifact").session(sessionWithUser("MRY"))
                         .param("author", "MRY")
                         .param("pathToArtifact", "/src/main/resources/example_artifact.pdf"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/2"));
         verify(taskService, times(1)).deleteArtifact(2, "MRY", "/src/main/resources/example_artifact.pdf");
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
     }
 
     @Test
-    void deleteArtifactThrowsOnInsufficientPermissions() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
+    void deleteArtifactThrowsOnWorkerTryingToDeleteAnothersArtifact() throws Exception {
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(false);
+
         mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-artifact").session(sessionWithUser("MRY"))
                         .param("author", "lildawg")
                         .param("pathToArtifact", "/src/main/resources/example_artifact.pdf"))
                 .andExpect(status().isForbidden())
                 .andExpect(model().attribute("message", "Managers may delete all artifacts, workers may only delete their own."))
                 .andExpect(view().name("error"));
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+    }
+
+    @Test
+    void deleteArtifactRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/2/delete-artifact")
+                        .param("author", "lildawg")
+                        .param("pathToArtifact", "/src/main/resources/example_artifact.pdf"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
     void showDeleteSubtaskRoutesAsExpectedOnManagerSession() throws Exception {
-        Task t = new Task(2, 1, 1, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
-        when(taskService.getTaskByID(2)).thenReturn(t);
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+        Task sub = new Task(2, 1, 1, "Set up GitHub project", "Go to github.com, register an organization if not already done, then create a project with title \"plannex\"\n Then create a new view for a backlog (a table) with fields title, type, progress, time estimate, and person responsible.\nFill out as we progress.", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 0.5f);
+        when(taskService.getTaskByID(2)).thenReturn(sub);
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(true);
+
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/delete").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("sessionUser", "MRY"))
@@ -390,16 +593,30 @@ public class TaskControllerTests {
                 .andExpect(model().attribute("whereToSubmit", "/projects/1/tasks/1/subtasks/2/delete"))
                 .andExpect(model().attribute("whereToGoOnCancel", "/projects/1/tasks/1/subtasks/2"))
                 .andExpect(view().name("delete_main_entity"));
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
     }
 
     @Test
     void showDeleteSubtaskThrowsOnNonManager() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(false);
+
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/delete").session(sessionWithUser("MRY")))
                 .andExpect(status().isForbidden())
                 .andExpect(model().attribute("message", "Only managers may delete subtasks."))
                 .andExpect(view().name("error"));
-        verify(projectEmployeeService, times(1)).getPermissions("MRY");
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+    }
+
+    @Test
+    void showDeleteSubtaskRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/delete"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -412,12 +629,23 @@ public class TaskControllerTests {
 
     @Test
     void showAddArtifactRoutesCorrectlyOnLoggedInUser() throws Exception {
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+
         mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/add-artifact").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("pid", 1))
                 .andExpect(model().attribute("tid", 1))
                 .andExpect(model().attribute("sid", 2))
                 .andExpect(view().name("add_artefact"));
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+    }
+
+    @Test
+    void showAddArtifactRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(get("/projects/1/tasks/1/subtasks/2/add-artifact").session(sessionWithUser("MRY")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -434,7 +662,9 @@ public class TaskControllerTests {
     void showDeleteTaskRoutesCorrectlyOnManager() throws Exception {
         Task t = new Task(2, 1, 1, "A title", "A description", LocalDate.of(2025, 11, 12), LocalDate.of(2025, 11, 12), 4.0f);
         when(taskService.getTaskByID(1)).thenReturn(t);
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Manager");
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(true);
+
         mockMvc.perform(get("/projects/1/tasks/1/delete").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("sessionUser", "MRY"))
@@ -446,15 +676,30 @@ public class TaskControllerTests {
                 .andExpect(model().attribute("whereToSubmit", "/projects/1/tasks/1/delete"))
                 .andExpect(model().attribute("whereToGoOnCancel", "/projects/1/tasks/1"))
                 .andExpect(view().name("delete_main_entity"));
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
     }
 
     @Test
     void showDeleteTaskThrowsOnNonManager() throws Exception {
-        when(projectEmployeeService.getPermissions("MRY")).thenReturn("Worker");
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+        when(authAndPermissionsService.isManager(any())).thenReturn(false);
+
         mockMvc.perform(get("/projects/1/tasks/1/delete").session(sessionWithUser("MRY")))
                 .andExpect(status().isForbidden())
                 .andExpect(model().attribute("message", "Only managers may delete tasks."))
                 .andExpect(view().name("error"));
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+        verify(authAndPermissionsService, times(1)).isManager(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+    }
+
+    @Test
+    void showDeleteTaskRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(get("/projects/1/tasks/1/delete"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -466,10 +711,21 @@ public class TaskControllerTests {
     }
 
     @Test
-    void showAddDependencyTaskRoutesCorrectly() throws Exception {
+    void showAddDependencyTaskRoutesCorrectlyIfLoggedIn() throws Exception {
+        when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
+
         mockMvc.perform(get("/projects/1/tasks/1/add-dependency").session(sessionWithUser("MRY")))
                 .andExpect(status().isOk())
                 .andExpect(view().name("add_dependencies_task"));
+
+        verify(authAndPermissionsService, times(1)).isLoggedIn(argThat(s -> "MRY".equals(s.getAttribute("username").toString())));
+    }
+
+    @Test
+    void showAddDependencyTaskRedirectsOnNotLoggedIn() throws Exception {
+        mockMvc.perform(get("/projects/1/tasks/1/add-dependency"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test

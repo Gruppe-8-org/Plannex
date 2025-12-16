@@ -62,6 +62,10 @@ public class TaskService {
         return taskRepository.getAllTimeContributionsForTask(taskID);
     }
 
+    public List<Float> getAllTimeContributionsForSubtask(int subtaskID) {
+        return taskRepository.getAllTimeContributionsForSubtask(subtaskID);
+    }
+
     public int updateTask(Task modifiedTask, int targetTaskID) {
         if (taskRepository.getTaskByIDOrThrow(targetTaskID) == null) {
             throw new EntityDoesNotExistException("No task with ID " + targetTaskID + " exists.");
