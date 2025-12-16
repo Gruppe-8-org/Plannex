@@ -25,7 +25,17 @@ jobs:
           distribution: 'microsoft'
 
       - name: Build with Maven
-        run: mvn clean install
+        env:
+          PROD_DATABASE_URL: ${{secrets.PROD_DATABASE_URL}}
+          PROD_DATABASE_USERNAME: ${{secrets.PROD_DATABASE_USERNAME}}
+          PROD_DATABASE_PASSWORD: ${{secrets.PROD_DATABASE_PASSWORD}}
+          SPRING_PROFILES_ACTIVE: ${{secrets.SPRING_PROFILES_ACTIVE}}
+        run: mvn clean install -DskipTests=false
+
+      - name: Test
+        run: mvn test
+        env:
+          SPRING_PROFILES_ACTIVE: test
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -60,4 +70,5 @@ jobs:
           app-name: 'Plannex'
           slot-name: 'Production'
           package: '*.jar'
+
           
