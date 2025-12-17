@@ -130,7 +130,7 @@ public class ProjectEmployeeControllerTests {
     }
 
     @Test
-    void showAllUsersRoutesCorrectlyWhenLoggedIn() throws Exception {
+    void showAllEmployeesRoutesCorrectlyWhenLoggedIn() throws Exception {
         when(authAndPermissionsService.isLoggedIn(any())).thenReturn(true);
 
         mockMvc.perform(get("/employees").session(sessionWithUser("MRY")))
@@ -142,7 +142,7 @@ public class ProjectEmployeeControllerTests {
     }
 
     @Test
-    void showAllUsersRedirectsOnNotLoggedIn() throws Exception {
+    void showAllEmployeesRedirectsOnNotLoggedIn() throws Exception {
         mockMvc.perform(get("/employees"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
@@ -405,7 +405,7 @@ public class ProjectEmployeeControllerTests {
     }
 
     @Test
-    void addRowAddsNewEmptyRowAndHasRightValues() throws Exception {
+    void addRowAddsNewEmptySkillRowAndHasRightValues() throws Exception {
         mockMvc.perform(post("/employees/MRY/assign-skills")
                 .param("addRow", ""))
                 .andExpect(status().isOk())
@@ -417,7 +417,7 @@ public class ProjectEmployeeControllerTests {
     }
 
     @Test
-    void removeRowRoutesCorrectlyAndHasRightValues() throws Exception {
+    void removeSkillRowRoutesCorrectlyAndHasRightValues() throws Exception {
         mockMvc.perform(post("/employees/MRY/assign-skills")
                         .param("removeRow", "0")
                         .param("skillRows[0].skillTitle", "C#-Coder")
@@ -432,7 +432,7 @@ public class ProjectEmployeeControllerTests {
     }
 
     @Test
-    void saveAssignmentsRoutesCorrectlyAndProvidesAdditionWithoutDuplicates() throws Exception {
+    void saveSkillAssignmentsRoutesCorrectlyAndProvidesAdditionWithoutDuplicates() throws Exception {
         List<EmployeeSkill> skills = List.of(new EmployeeSkill("lildawg", "Java-Coder", "Expert"));
         when(projectEmployeeService.getSkillsForEmployee("MRY")).thenReturn(skills);
 
@@ -453,7 +453,7 @@ public class ProjectEmployeeControllerTests {
     }
 
     @Test
-    void saveAssignmentsRoutesCorrectlyAndProvidesDeletionIfNotPresentInDTOAnymore() throws Exception {
+    void saveSkillAssignmentsRoutesCorrectlyAndProvidesDeletionIfNotPresentInDTOAnymore() throws Exception {
         List<EmployeeSkill> skills = List.of(new EmployeeSkill("lildawg", "Java-Coder", "Expert"));
         when(projectEmployeeService.getSkillsForEmployee("MRY")).thenReturn(skills);
 
