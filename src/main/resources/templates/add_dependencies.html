@@ -38,7 +38,9 @@
                         <input type="checkbox"
                                name="blockedByTaskIDs"
                                th:value="${task.ID}"
-                               th:id="'dep-' + ${task.ID}">
+                               th:id="'dep-' + ${task.ID}"
+                               th:checked="${existingDependencies.contains(task.ID)}">
+
                         <label th:for="'dep-' + ${task.ID}"
                                th:text="${task.taskTitle}"></label>
                     </div>

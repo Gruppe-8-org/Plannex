@@ -2136,3 +2136,32 @@ footer {
     background: #ff9999 !important;
 }
 
+
+.plx-project-card-dates {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    opacity: 0.85;
+    line-height: 1.3;
+}
+
+.plx-project-card-dates p {
+    margin: 2px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.plx-project-card-dates i {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+.task-option input[type="checkbox"]:checked + label {
+    color: #1e90ff;
+    font-weight: 600;
+}
+
+.task-option input[type="checkbox"]:checked + label::before {
+    content: "✔ ";
+}
+
