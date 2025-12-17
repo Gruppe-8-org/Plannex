@@ -21,6 +21,6 @@ Plannex (plan-nexus) is a project management service written as a web app. It al
 3. Hit run (the green play button)
 4. Navigate to `localhost:8080/login` and start planning
 
-Should you wish to not run a local instance, navigate to \[azure-link\] and start planning! This requires internet access.
+Should you wish to not run a local instance, navigate to (http://plannex-a4cxfubygbhpcedv.norwayeast-01.azurewebsites.net) and start planning! This requires internet access.
 
 See [Contributing](contributing.md) for policies on contribution.
