@@ -4,7 +4,6 @@ import com.plannex.Exception.InsufficientPermissionsException;
 import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Service.AuthAndPermissionsService;
-import com.plannex.Model.Skill;
 import com.plannex.Model.SkillDTO;
 import com.plannex.Service.ProjectEmployeeService;
 import jakarta.servlet.http.HttpSession;
@@ -12,10 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/employees")
@@ -63,7 +59,7 @@ public class ProjectEmployeeController {
     }
 
     @GetMapping()
-    public String showAllUsers(Model model, HttpSession session) {
+    public String showAllEmployees(Model model, HttpSession session) {
         if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
@@ -140,7 +136,7 @@ public class ProjectEmployeeController {
     }
 
     @PostMapping(value="/{username}/assign-skills", params={"addRow"})
-    public String addRow(@PathVariable String username, @ModelAttribute SkillDTO skillDTO, Model model) {
+    public String addSkillRow(@PathVariable String username, @ModelAttribute SkillDTO skillDTO, Model model) {
         skillDTO.getSkillRows().add(new EmployeeSkill());
         skillDTO.getSkillRows().getLast().setEmployeeUsername(username);
 
@@ -151,7 +147,7 @@ public class ProjectEmployeeController {
     }
 
     @PostMapping(value="/{username}/assign-skills", params={"removeRow"})
-    public String deleteRow(@PathVariable String username, @ModelAttribute SkillDTO skillDTO, @RequestParam String removeRow, Model model) {
+    public String deleteSkillRow(@PathVariable String username, @ModelAttribute SkillDTO skillDTO, @RequestParam String removeRow, Model model) {
         skillDTO.getSkillRows().remove(Integer.parseInt(removeRow));
         model.addAttribute("skillDTO", skillDTO);
         model.addAttribute("allLevels", List.of("Intermediate", "Expert"));
@@ -160,7 +156,7 @@ public class ProjectEmployeeController {
     }
 
     @PostMapping(value="/{username}/assign-skills", params={"save"})
-    public String saveAssignments(@ModelAttribute SkillDTO skillDTO, @PathVariable String username) {
+    public String saveSkillAssignments(@ModelAttribute SkillDTO skillDTO, @PathVariable String username) {
         List<EmployeeSkill> skillsDesired = skillDTO.getSkillRows();
         List<EmployeeSkill> skillsCurrent = projectEmployeeService.getSkillsForEmployee(username);
         List<EmployeeSkill> skillsToAdd = skillsDesired.stream().filter(skill -> !skillsCurrent.contains(skill)).toList();

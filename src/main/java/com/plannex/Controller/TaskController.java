@@ -131,7 +131,7 @@ public class TaskController {
     }
 
     @GetMapping("/tasks/{tid}/add-dependency")
-    public String showAddDependencyTask(@PathVariable int pid, Model model, HttpSession session, @PathVariable String tid) {
+    public String showAddDependencyTask(@PathVariable int pid, @PathVariable String tid, Model model, HttpSession session) {
         if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
@@ -142,7 +142,7 @@ public class TaskController {
     }
 
     @PostMapping("/tasks/{tid}/add-dependency")
-    public String saveDependencyTask(@PathVariable int tid, @RequestParam(name="blockedByTaskIDs") List<Integer> blockedByTaskIDs, @PathVariable String pid) {
+    public String saveDependencyTask(@PathVariable int tid, @PathVariable String pid, @RequestParam(name="blockedByTaskIDs") List<Integer> blockedByTaskIDs) {
         for (Integer blockedByTaskID : blockedByTaskIDs) {
             taskService.addFollowsDependency(tid, blockedByTaskID);
         }
@@ -219,7 +219,7 @@ public class TaskController {
     }
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}/edit")
-    public String showEditSubtasks(@PathVariable int sid, Model model, HttpSession session, @PathVariable String pid, @PathVariable String tid) {
+    public String showEditSubtasks(@PathVariable String pid, @PathVariable String tid, @PathVariable int sid, Model model, HttpSession session) {
         if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
@@ -274,7 +274,7 @@ public class TaskController {
 
 
     @GetMapping("/tasks/{tid}")
-    public String showTaskPage(@PathVariable int tid, Model model, HttpSession session, @PathVariable String pid) {
+    public String showTaskPage(@PathVariable String pid, @PathVariable int tid, Model model, HttpSession session) {
         if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
@@ -293,7 +293,7 @@ public class TaskController {
     }
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}")
-    public String showSubtaskPage(@PathVariable int sid, Model model, HttpSession session, @PathVariable String pid, @PathVariable String tid) {
+    public String showSubtaskPage(@PathVariable String pid, @PathVariable String tid, @PathVariable int sid, Model model, HttpSession session) {
         if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
@@ -398,7 +398,7 @@ public class TaskController {
     }
 
     @GetMapping("/tasks/{tid}/subtasks/{sid}/contribute-time")
-    public String showTimeContributionForm(HttpSession session, Model model, @PathVariable int pid, @PathVariable int tid, @PathVariable int sid) {
+    public String showTimeContributionForm(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, HttpSession session, Model model) {
         if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
@@ -409,13 +409,13 @@ public class TaskController {
     }
 
     @PostMapping("/tasks/{tid}/subtasks/{sid}/contribute-time")
-    public String saveTimeContribution(HttpSession session, @RequestParam("timeSpent") float timeSpent, @PathVariable int pid, @PathVariable int tid, @PathVariable int sid) {
+    public String saveTimeContribution(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, HttpSession session, @RequestParam("timeSpent") float timeSpent) {
         taskService.contributeTime(session.getAttribute("username").toString(), sid, timeSpent);
         return "redirect:/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
     }
 
     @PostMapping("/tasks/{tid}/subtasks/{sid}/delete-time-contribution")
-    public String deleteTimeContribution(HttpSession session, @RequestParam("byEmployee") String byUser, @RequestParam("when") LocalDateTime when, @PathVariable int pid, @PathVariable int tid, @PathVariable int sid) {
+    public String deleteTimeContribution(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, HttpSession session, @RequestParam("byEmployee") String byUser, @RequestParam("when") LocalDateTime when) {
         if (!authAndPermissionsService.isLoggedIn(session)) {
             return "redirect:/login";
         }
