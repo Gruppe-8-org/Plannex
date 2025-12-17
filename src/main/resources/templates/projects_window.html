@@ -42,6 +42,16 @@
                             <p><i class="fa fa-user"></i> <span th:text="${employeesInvolved[iter.index]}"></span></p>
                             <p><i class="fa fa-clock-o"></i> <span th:text="${#numbers.formatDecimal(timeSpents[iter.index], 0, 0)}"></span></p>
                         </div>
+                        <div class="plx-project-card-dates">
+                            <p>
+                                <i class="fa fa-play"></i>
+                                <span th:text="${startDates[iter.index]}"></span>
+                            </p>
+                            <p>
+                                <i class="fa fa-flag-checkered"></i>
+                                <span th:text="${endDates[iter.index]}"></span>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

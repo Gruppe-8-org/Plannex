@@ -92,7 +92,9 @@ public class ProjectEmployeeController {
     @PostMapping("/{username}/edit")
     public String saveEditedEmployee(@ModelAttribute ProjectEmployee updatedEmployee, @RequestParam("oldUsername") String oldUsername, HttpSession session) {
         projectEmployeeService.updateEmployee(updatedEmployee, oldUsername);
-        session.setAttribute("username", updatedEmployee.getEmployeeUsername()); // Was a very confusing bug before this
+        if (session.getAttribute("username").toString().equals(oldUsername)) {
+            session.setAttribute("username", updatedEmployee.getEmployeeUsername()); // Was a very confusing bug before this
+        }
         return "redirect:/employees/" + updatedEmployee.getEmployeeUsername();
     }
 
