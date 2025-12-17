@@ -14,7 +14,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.naming.OperationNotSupportedException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;

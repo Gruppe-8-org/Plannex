@@ -2,9 +2,7 @@ package com.plannex.Repository;
 
 import com.plannex.Exception.EntityDoesNotExistException;
 import com.plannex.Model.Project;
-import com.plannex.Model.ProjectEmployee;
 import com.plannex.Model.Task;
-import com.plannex.RowMapper.ProjectEmployeeRowMapper;
 import com.plannex.RowMapper.ProjectRowMapper;
 import com.plannex.RowMapper.TaskRowMapper;
 import org.springframework.dao.EmptyResultDataAccessException;
