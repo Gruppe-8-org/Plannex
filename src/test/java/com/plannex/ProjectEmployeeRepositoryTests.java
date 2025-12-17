@@ -172,6 +172,10 @@ public class ProjectEmployeeRepositoryTests {
 
         int count = projectEmployeeRepository.countExpertSkills("marqs");
         assertEquals(2, count);
+
+        int rowsAffected = jdbcTemplate.update("DELETE FROM EmployeeSkills");
+        assertEquals(6, rowsAffected);
+        assertEquals(0, projectEmployeeRepository.countExpertSkills("marqs"));
     }
 
     @Test
@@ -185,6 +189,10 @@ public class ProjectEmployeeRepositoryTests {
 
         int count = projectEmployeeRepository.countIntermediateSkills("bigdawg");
         assertEquals(3, count); // One already exists (Business Degree)
+
+        int rowsAffected = jdbcTemplate.update("DELETE FROM EmployeeSkills;");
+        assertEquals(6, rowsAffected);
+        assertEquals(0, projectEmployeeRepository.countIntermediateSkills("bigdawg"));
     }
     @Test
     public void loginWorksOnMatchingCredentialsAndRefusesInvalidOnes() {

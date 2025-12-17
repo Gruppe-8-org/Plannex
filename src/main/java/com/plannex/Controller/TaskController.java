@@ -14,7 +14,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.naming.OperationNotSupportedException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,7 +49,7 @@ public class TaskController {
     }
 
     @PostMapping("/add-task")
-    public String saveTask(@PathVariable int pid, @ModelAttribute Task task) throws OperationNotSupportedException {
+    public String saveTask(@PathVariable int pid, @ModelAttribute Task task) {
         task.setParentProjectID(pid);
         taskService.addTask(task);
         return "redirect:/projects/" + pid;
@@ -78,7 +77,7 @@ public class TaskController {
     }
 
     @PostMapping("/tasks/{tid}/add-subtask")
-    public String saveSubtask(@PathVariable int pid, @PathVariable int tid, @ModelAttribute Task task) throws OperationNotSupportedException {
+    public String saveSubtask(@PathVariable int pid, @PathVariable int tid, @ModelAttribute Task task) {
         task.setParentProjectID(pid);
         task.setParentTaskID(tid);
         taskService.addSubtask(task);
@@ -109,8 +108,7 @@ public class TaskController {
     }
 
     @PostMapping("/tasks/{tid}/subtasks/{sid}/add-dependency")
-    public String saveDependency(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, @RequestParam(required = false, name = "blockedByTaskIDs") List<Integer> blockedByTaskIDs)
-            throws OperationNotSupportedException {
+    public String saveDependency(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, @RequestParam(required = false, name = "blockedByTaskIDs") List<Integer> blockedByTaskIDs) {
 
         final List<Integer> selectedIds = blockedByTaskIDs != null ? blockedByTaskIDs : List.of();
 

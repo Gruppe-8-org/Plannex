@@ -2,9 +2,7 @@ package com.plannex.Repository;
 
 import com.plannex.Exception.EntityDoesNotExistException;
 import com.plannex.Model.Project;
-import com.plannex.Model.ProjectEmployee;
 import com.plannex.Model.Task;
-import com.plannex.RowMapper.ProjectEmployeeRowMapper;
 import com.plannex.RowMapper.ProjectRowMapper;
 import com.plannex.RowMapper.TaskRowMapper;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -73,14 +71,12 @@ public class ProjectRepository {
 
     public float getTotalTimeSpent(int projectID) {
         getProjectByIDOrThrow(projectID);
-        try {
-            return jdbcTemplate.queryForObject("""
+        Float result = jdbcTemplate.queryForObject("""
                 
                     SELECT SUM(HoursSpent) FROM TimeSpent AS tc
                 JOIN Tasks AS t ON tc.OnTaskID = t.TaskID
                 WHERE t.ProjectID = ?""", Float.class, projectID);
-        } catch (NullPointerException npe) {
-            return 0.0f;
-        }
+
+        return result != null ? result : 0;
     }
 }
