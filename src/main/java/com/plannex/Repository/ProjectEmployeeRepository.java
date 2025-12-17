@@ -166,18 +166,22 @@ public class ProjectEmployeeRepository {
 
 
     public int countExpertSkills(String username) {
-        return jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM EmployeeSkills WHERE EmployeeUsername=? AND SkillLevel='Expert'",
-                Integer.class,
-                username
-        );
+        Integer result = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM EmployeeSkills WHERE EmployeeUsername=? AND SkillLevel='Expert'",
+                    Integer.class,
+                    username
+            );
+
+        return result != null ? result : 0;
     }
 
     public int countIntermediateSkills(String username) {
-        return jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM EmployeeSkills WHERE EmployeeUsername=? AND SkillLevel='Intermediate'",
-                Integer.class,
-                username
-        );
+        Integer result = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM EmployeeSkills WHERE EmployeeUsername=? AND SkillLevel='Intermediate'",
+                    Integer.class,
+                    username
+            );
+
+        return result != null ? result : 0;
     }
 }

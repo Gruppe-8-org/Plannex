@@ -30,8 +30,6 @@ public class ProjectEmployeeController {
             return "redirect:/login";
         }
 
-        String username = session.getAttribute("username").toString();
-
         if (!authAndPermissionsService.isManager(session)) {
             throw new InsufficientPermissionsException("Only managers may add employees.");
         }

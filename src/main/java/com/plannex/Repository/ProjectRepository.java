@@ -73,14 +73,12 @@ public class ProjectRepository {
 
     public float getTotalTimeSpent(int projectID) {
         getProjectByIDOrThrow(projectID);
-        try {
-            return jdbcTemplate.queryForObject("""
+        Float result = jdbcTemplate.queryForObject("""
                 
                     SELECT SUM(HoursSpent) FROM TimeSpent AS tc
                 JOIN Tasks AS t ON tc.OnTaskID = t.TaskID
                 WHERE t.ProjectID = ?""", Float.class, projectID);
-        } catch (NullPointerException npe) {
-            return 0.0f;
-        }
+
+        return result != null ? result : 0;
     }
 }
