@@ -5,6 +5,9 @@ Plannex (plan-nexus) is a project management service written as a web app. It al
 **Prerequisites**
 1. A Java SDK 21 implementation
 2. Maven 3.99 or greater
+3. Spring Boot 4 (JDBC 4, Spring- (JDBC)Session 4)
+4. Thymeleaf 3.1.3
+5. MySQL 8.0.44 (MySQL-connector 9.5.0)
 
 **Building and running - No IDE**
 1. Clone the source code by writing `git clone https://github.com/Gruppe-8-org/Plannex/` in a terminal in a working directory of your choosing
