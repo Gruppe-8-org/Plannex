@@ -3,6 +3,7 @@ package com.plannex;
 import com.plannex.Controller.TaskController;
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Model.Task;
+import com.plannex.Repository.TaskRepository;
 import com.plannex.Service.AuthAndPermissionsService;
 import com.plannex.Service.ProjectEmployeeService;
 import com.plannex.Service.ProjectService;
@@ -757,4 +758,25 @@ public class TaskControllerTests {
         // Used invalid IDs in this test (2 is a subtask, for instance),
         // but user will only be able to choose among actual tasks, not subtasks.
     }
+
+    @Test
+    void saveDependencyRemovesDependenciesNotInSubmittedList() throws Exception {
+        when(taskService.getAllDependenciesForTask(1))
+                .thenReturn(List.of(
+                        new TaskRepository.ConstPair<>(1, 2),
+                        new TaskRepository.ConstPair<>(1, 3),
+                        new TaskRepository.ConstPair<>(1, 4)
+                ));
+        mockMvc.perform(post("/projects/1/tasks/1/subtasks/1/add-dependency")
+                        .param("blockedByTaskIDs", "2"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/projects/1/tasks/1/subtasks/1"));
+
+        verify(taskService, never()).addFollowsDependency(1, 2);
+        verify(taskService, times(1)).deleteFollowsDependency(1, 3);
+        verify(taskService, times(1)).deleteFollowsDependency(1, 4);
+    }
+
+
+
 }

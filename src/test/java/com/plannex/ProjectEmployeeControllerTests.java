@@ -238,7 +238,25 @@ public class ProjectEmployeeControllerTests {
     void saveEditedEmployeeRedirectsAfterStoringIfNewUsernameDoesNotExist() throws Exception {
         ProjectEmployee nonExistentEmployee = new ProjectEmployee("hj2451", "Hans Jørgen", "HJE@gmail.com", "abcdefgh", LocalTime.of(8, 0, 0), LocalTime.of(16, 0, 0));
         when(projectEmployeeService.getEmployeeByUsername("hj2450")).thenReturn(nonExistentEmployee);
-        mockMvc.perform(post("/employees/hj2450/edit")
+        mockMvc.perform(post("/employees/hj2450/edit").session(sessionWithUser("bruger1"))
+                        .param("employeeUsername", "hj2451")
+                        .param("employeeName", "Hans Jørgen")
+                        .param("employeeEmail", "HJE@gmail.com")
+                        .param("employeePassword", "abcdefgh")
+                        .param("workingHoursFrom", "08:00:00")
+                        .param("workingHoursTo", "16:00:00")
+                        .param("permissions", "Worker")
+                        .param("oldUsername", "hj2450"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/employees/hj2451"));
+        verify(projectEmployeeService, times(1)).updateEmployee(nonExistentEmployee, "hj2450");
+    }
+
+    @Test
+    void saveEditedEmployeeAlsoWorksOnEditedUserEqualsLoggedInUser() throws Exception {
+        ProjectEmployee nonExistentEmployee = new ProjectEmployee("hj2451", "Hans Jørgen", "HJE@gmail.com", "abcdefgh", LocalTime.of(8, 0, 0), LocalTime.of(16, 0, 0));
+        when(projectEmployeeService.getEmployeeByUsername("hj2450")).thenReturn(nonExistentEmployee);
+        mockMvc.perform(post("/employees/hj2450/edit").session(sessionWithUser("hj2450"))
                         .param("employeeUsername", "hj2451")
                         .param("employeeName", "Hans Jørgen")
                         .param("employeeEmail", "HJE@gmail.com")

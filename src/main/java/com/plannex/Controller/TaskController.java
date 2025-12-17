@@ -2,6 +2,7 @@ package com.plannex.Controller;
 
 import com.plannex.Exception.InsufficientPermissionsException;
 import com.plannex.Model.AssigneeFormDTO;
+import com.plannex.Model.EmployeeSkill;
 import com.plannex.Model.ProjectEmployee;
 import com.plannex.Model.Task;
 import com.plannex.Service.AuthAndPermissionsService;
@@ -15,9 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.naming.OperationNotSupportedException;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -97,6 +96,10 @@ public class TaskController {
         if (!authAndPermissionsService.isLoggedIn(session)) return "redirect:/login";
 
         model.addAttribute("allTasks", taskService.getAllSubtasksForParentTask(tid));
+        model.addAttribute("existingDependencies", taskService.getAllDependenciesForTask(sid)
+                .stream()
+                .map(d -> d.second())
+                .toList());
         model.addAttribute("sid", sid);
         model.addAttribute("tid", tid);
         model.addAttribute("pid", pid);
@@ -105,22 +108,27 @@ public class TaskController {
         return "add_dependencies";
     }
 
-
     @PostMapping("/tasks/{tid}/subtasks/{sid}/add-dependency")
-    public String saveDependency(
-            @PathVariable int pid,
-            @PathVariable int tid,
-            @PathVariable int sid,
-            @RequestParam(name="blockedByTaskIDs") List<Integer> blockedByTaskIDs)
+    public String saveDependency(@PathVariable int pid, @PathVariable int tid, @PathVariable int sid, @RequestParam(required = false, name = "blockedByTaskIDs") List<Integer> blockedByTaskIDs)
             throws OperationNotSupportedException {
 
-        for (Integer blockedID : blockedByTaskIDs) {
+        final List<Integer> selectedIds = blockedByTaskIDs != null ? blockedByTaskIDs : List.of();
+
+        Set<Integer> previousDependencies =
+                taskService.getAllDependenciesForTask(sid).stream().map(d -> d.second()).collect(Collectors.toSet());
+
+        Set<Integer> dependenciesToAdd = selectedIds.stream().filter(id -> !previousDependencies.contains(id)).collect(Collectors.toSet());
+
+        Set<Integer> dependenciesToRemove = previousDependencies.stream().filter(id -> !selectedIds.contains(id)).collect(Collectors.toSet());
+
+        for (Integer blockedID : dependenciesToAdd) {
             taskService.addFollowsDependency(sid, blockedID);
         }
-
+        for (Integer blockedID : dependenciesToRemove) {
+            taskService.deleteFollowsDependency(sid, blockedID);
+        }
         return "redirect:/projects/" + pid + "/tasks/" + tid + "/subtasks/" + sid;
     }
-
 
     @GetMapping("/tasks/{tid}/add-dependency")
     public String showAddDependencyTask(@PathVariable int pid, @PathVariable String tid, Model model, HttpSession session) {
@@ -290,10 +298,21 @@ public class TaskController {
             return "redirect:/login";
         }
 
+        var assignees = taskService.getAllAssigneesForSubtask(sid);
+
+        Map<String, List<EmployeeSkill>> skillsPerEmployee = new HashMap<>();
+        for (ProjectEmployee e : assignees) {
+            skillsPerEmployee.put(
+                    e.getEmployeeUsername(),
+                    projectEmployeeService.getSkillsForEmployee(e.getEmployeeUsername())
+            );
+        }
+
         model.addAttribute("subtask", taskService.getTaskByID(sid));
         model.addAttribute("artifacts", taskService.getAllArtifactsForTask(sid));
         model.addAttribute("dependencies", taskService.getAllDependenciesForTask(sid));
         model.addAttribute("assignees", taskService.getAllAssigneesForSubtask(sid));
+        model.addAttribute("skillsPerEmployee", skillsPerEmployee);
         model.addAttribute("timeSpents", taskService.getAllTimeContributionsForSubtask(sid).stream().mapToDouble(f -> f).sum());
         model.addAttribute("sessionUser", session.getAttribute("username").toString());
         model.addAttribute("isManager", authAndPermissionsService.isManager(session));

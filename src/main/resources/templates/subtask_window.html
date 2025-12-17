@@ -54,8 +54,19 @@
 
                 <p th:each="a : ${assignees}">
                     <i class="fa fa-user"></i>
+
                     <span th:text="${a.employeeName}"></span>
+
+                    <span th:if="${skillsPerEmployee[a.employeeUsername].size() > 0}">
+        (
+        <span th:each="s, stat : ${skillsPerEmployee[a.employeeUsername]}">
+            <span th:text="${s.skillTitle} + ' – ' + ${s.skillLevel}"></span>
+            <span th:if="${!stat.last}">, </span>
+        </span>
+        )
+    </span>
                 </p>
+
             </div>
         </div>
 
